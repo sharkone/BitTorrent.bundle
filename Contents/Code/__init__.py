@@ -57,13 +57,14 @@ def YTS():
 	object_container = ObjectContainer(title2='YTS')
 	object_container.add(DirectoryObject(key=Callback(YTS_Search, title='Latest'), title='Latest', thumb=R('yts.png')))
 	object_container.add(DirectoryObject(key=Callback(YTS_Genres, title='Genres'), title='Genres', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(YTS_Search, title='3D', only_3d=True), title='3D', thumb=R('yts.png')))
 	object_container.add(InputDirectoryObject(key=Callback(YTS_Search, title='Search'), title='Search', thumb=R('search.png')))
 	return object_container
 
 ################################################################################
-@route(PREFIX + '/yts_search', page=int)
-def YTS_Search(title, query='', genre='', page=1):
-	return YTS_Search_Internal(title, query, genre, page)
+@route(PREFIX + '/yts_search', only_3d=bool, page=int)
+def YTS_Search(title, query='', genre='', only_3d=False, page=1):
+	return YTS_Search_Internal(title, query, genre, only_3d, page)
 
 ################################################################################
 @route(PREFIX + '/yts_genres')
@@ -75,24 +76,26 @@ def YTS_Genres(title):
 	return object_container
 
 ################################################################################
-def YTS_Search_Internal(title, query, genre, page):
+def YTS_Search_Internal(title, query, genre, only_3d, page):
 	YTS        = 'http://yts.re'
-	YTS_SEARCH = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&set={2}'
+	YTS_SEARCH = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
 
-	query = String.Quote(query) if (query != None) else ''
-	genre = String.Quote(genre) if (genre != None) else ''
+	query   = String.Quote(query) if query   else ''
+	genre   = String.Quote(genre) if genre   else ''
+	quality = String.Quote('3D')  if only_3d else ''
 
-	url  = YTS_SEARCH.format(query, genre, str(page))
+	url  = YTS_SEARCH.format(query, genre, quality, str(page))
 	json = JSON.ObjectFromURL(url, cacheTime=0)
 
 	object_container = ObjectContainer(title2=title)
 	for movie in json['MovieList']:
-		movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(get_tmdb_art_async, imdb_id=movie['ImdbCode']), Callback(get_tmdb_thumb_async, imdb_id=movie['ImdbCode']))
-		movie_object.url = movie['MovieUrl']
-		object_container.add(movie_object)
+		if movie['Quality'] != '3D' or only_3d:
+			movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(get_tmdb_art_async, imdb_id=movie['ImdbCode']), Callback(get_tmdb_thumb_async, imdb_id=movie['ImdbCode']))
+			movie_object.url = movie['MovieUrl']
+			object_container.add(movie_object)
 
 	if (page * 50) < int(json['MovieCount']):
-		object_container.add(NextPageObject(key=Callback(YTS_Search_Internal, title=title, query=query, genre=genre, page=page + 1), title="More..."))
+		object_container.add(NextPageObject(key=Callback(YTS_Search_Internal, title=title, query=query, genre=genre, only_3d=only_3d, page=page + 1), title="More..."))
 
 	return object_container
 
