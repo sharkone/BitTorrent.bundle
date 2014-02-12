@@ -23,8 +23,8 @@ def MediaObjectsForURL(url):
 		if movie_data['Quality'] == '3D':
 			media_object = MediaObject()
 			media_object.add(PartObject(key=Callback(PlayVideo, url=url)))
-			media_object.video_resolution = get_closest_resolution(int(version_data['Resolution'].partition('*')[2]))
-			media_object.video_frame_rate = version_data['FrameRate']
+			media_object.video_resolution = get_closest_resolution(int(movie_data['Resolution'].partition('*')[2]))
+			media_object.video_frame_rate = movie_data['FrameRate']
 			media_objects.append(media_object)
 		else:
 			version_list_url  = YTS_LIST.format(movie_data['ImdbCode'])
