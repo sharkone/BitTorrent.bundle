@@ -64,7 +64,7 @@ def YTS():
 ################################################################################
 @route(PREFIX + '/yts_search', only_3d=bool, page=int)
 def YTS_Search(title, query='', genre='', only_3d=False, page=1):
-	return YTS_Search_Internal(title, query, genre, only_3d, page)
+	return YTS_Search_Internal(title, query, genre, only_3d, set(), page)
 
 ################################################################################
 @route(PREFIX + '/yts_genres')
@@ -76,7 +76,7 @@ def YTS_Genres(title):
 	return object_container
 
 ################################################################################
-def YTS_Search_Internal(title, query, genre, only_3d, page):
+def YTS_Search_Internal(title, query, genre, only_3d, movie_set, page):
 	YTS        = 'http://yts.re'
 	YTS_SEARCH = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
 
@@ -90,12 +90,14 @@ def YTS_Search_Internal(title, query, genre, only_3d, page):
 	object_container = ObjectContainer(title2=title)
 	for movie in json['MovieList']:
 		if movie['Quality'] != '3D' or only_3d:
-			movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(get_tmdb_art_async, imdb_id=movie['ImdbCode']), Callback(get_tmdb_thumb_async, imdb_id=movie['ImdbCode']))
-			movie_object.url = movie['MovieUrl']
-			object_container.add(movie_object)
+			if movie['ImdbCode'] not in movie_set:
+				movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(get_tmdb_art_async, imdb_id=movie['ImdbCode']), Callback(get_tmdb_thumb_async, imdb_id=movie['ImdbCode']))
+				movie_object.url = movie['MovieUrl']
+				object_container.add(movie_object)
+				movie_set.add(movie['ImdbCode'])
 
 	if (page * 50) < int(json['MovieCount']):
-		object_container.add(NextPageObject(key=Callback(YTS_Search_Internal, title=title, query=query, genre=genre, only_3d=only_3d, page=page + 1), title="More..."))
+		object_container.add(NextPageObject(key=Callback(YTS_Search_Internal, title=title, query=query, genre=genre, only_3d=only_3d, movie_set=movie_set, page=page + 1), title="More..."))
 
 	return object_container
 
