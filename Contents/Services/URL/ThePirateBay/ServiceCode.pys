@@ -1,0 +1,23 @@
+###############################################################################
+import torrent2http
+
+###############################################################################
+def MetadataObjectForURL(url):
+	html  = HTML.ElementFromURL(url)
+	metadata_object       = MovieObject()
+	metadata_object.title = html.xpath('//*[@id="title"]')[0].text.strip()
+	return metadata_object
+
+###############################################################################
+def MediaObjectsForURL(url):
+	media_object = MediaObject()
+	media_object.add(PartObject(key=Callback(PlayVideo, url=url)))
+	media_objects = [media_object]
+	return media_objects
+
+###############################################################################
+@indirect
+def PlayVideo(url):
+	html   = HTML.ElementFromURL(url)
+	magnet = html.xpath('//*[@id="details"]/div[@class="download"]/a[1]')[0].get('href')
+	return torrent2http.start_torrent(url, magnet)
