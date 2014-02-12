@@ -6,7 +6,7 @@ def MetadataObjectForURL(url):
 	html      = HTML.ElementFromURL(url)
 	imdb_link = html.xpath('//*[@id="movie-wrapper"]/div[1]/div[2]/a[1]/@href')[0]
 	imdb_id   = imdb_link.replace('http://www.imdb.com/title/', '').replace('/', '')
-	return tmdb.create_movie_object(imdb_id, Callback(tmdb_get_art_async, imdb_id=imdb_id), Callback(tmdb_get_thumb_async, imdb_id=imdb_id))
+	return tmdb.create_movie_object(imdb_id, Callback(get_tmdb_art_async, imdb_id=imdb_id), Callback(get_tmdb_thumb_async, imdb_id=imdb_id))
 
 ###############################################################################
 def MediaObjectsForURL(url):
@@ -23,9 +23,9 @@ def PlayVideo(url):
 	return torrent2http.start_torrent(url, magnet)
 
 ###############################################################################
-def tmdb_get_art_async(imdb_id):
+def get_tmdb_art_async(imdb_id):
 	return tmdb.get_art(imdb_id)
 
 ###############################################################################
-def tmdb_get_thumb_async(imdb_id):
+def get_tmdb_thumb_async(imdb_id):
 	return tmdb.get_thumb(imdb_id)

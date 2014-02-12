@@ -87,7 +87,7 @@ def YTS_Search_Internal(title, query, genre, page):
 
 	object_container = ObjectContainer(title2=title)
 	for movie in json['MovieList']:
-		movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(tmdb_get_art_async, imdb_id=movie['ImdbCode']), Callback(tmdb_get_thumb_async, imdb_id=movie['ImdbCode']))
+		movie_object     = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'], Callback(get_tmdb_art_async, imdb_id=movie['ImdbCode']), Callback(get_tmdb_thumb_async, imdb_id=movie['ImdbCode']))
 		movie_object.url = movie['MovieUrl']
 		object_container.add(movie_object)
 
@@ -98,10 +98,10 @@ def YTS_Search_Internal(title, query, genre, page):
 
 ################################################################################
 @route(PREFIX + '/tmdb_get_art_async')
-def tmdb_get_art_async(imdb_id):
+def get_tmdb_art_async(imdb_id):
 	return SharedCodeService.tmdb.get_art(imdb_id)
 
 ################################################################################
 @route(PREFIX + '/tmdb_get_thumb_async')
-def tmdb_get_thumb_async(imdb_id):
+def get_tmdb_thumb_async(imdb_id):
 	return SharedCodeService.tmdb.get_thumb(imdb_id)
