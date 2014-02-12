@@ -77,14 +77,14 @@ def YTS_Genres(title):
 
 ################################################################################
 def YTS_Search_Internal(title, query, genre, only_3d, movie_set, page):
-	YTS        = 'http://yts.re'
-	YTS_SEARCH = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
+	YTS      = 'http://yts.re'
+	YTS_LIST = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
 
 	query   = String.Quote(query) if query   else ''
 	genre   = String.Quote(genre) if genre   else ''
 	quality = String.Quote('3D')  if only_3d else ''
 
-	url  = YTS_SEARCH.format(query, genre, quality, str(page))
+	url  = YTS_LIST.format(query, genre, quality, str(page))
 	json = JSON.ObjectFromURL(url, cacheTime=0)
 
 	object_container = ObjectContainer(title2=title)
