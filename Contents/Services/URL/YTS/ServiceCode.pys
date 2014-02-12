@@ -44,6 +44,7 @@ def MediaObjectsForURL(url):
 	except Exception as exception:
 		Log.Error('[BitTorrent] [YTS] [MediaObjectsForURL] Unhandled exception: {0}'.format(exception))
 
+	media_objects.sort(cmp=media_object_compare)
 	return media_objects
 
 ################################################################################
@@ -52,6 +53,10 @@ def PlayVideo(url):
 	html   = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 	magnet = html.xpath('//*[@class="magnet torrentDwl"]/@href')[0]
 	return torrent2http.start_torrent(url, magnet)
+
+################################################################################
+def media_object_compare(a, b):
+	return b.video_resolution - a.video_resolution
 
 ################################################################################
 def get_movie_data(url):
