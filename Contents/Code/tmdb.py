@@ -1,3 +1,9 @@
+###############################################################################
+import common
+
+###############################################################################
+SUBPREFIX = 'tmdb'
+
 API_KEY = 'a3dc111e66105f6387e99393813ae4d5'
 
 TMDB_CONFIG = None
@@ -20,24 +26,31 @@ def get_data(imdb_id):
 	return TMDB_DATA[imdb_id]
 
 ###############################################################################
+@route(common.PREFIX + '/' + SUBPREFIX + '/get_art')
 def get_art(imdb_id):
 	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['backdrop_path'])
 
 ###############################################################################
+@route(common.PREFIX + '/' + SUBPREFIX + '/get_thumb')
 def get_thumb(imdb_id):
 	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['poster_path'])
 
 ###############################################################################
-def create_movie_object(imdb_id, art_callback, thumb_callback):
-	movie_data            = get_data(imdb_id)
+@route(common.PREFIX + '/' + SUBPREFIX + '/create_movie_object')
+def create_movie_object(imdb_id):
 	movie_object          = MovieObject()
-	movie_object.duration = int(movie_data['runtime']) * 60 * 1000
-	movie_object.title    = movie_data['title']
-	movie_object.tagline  = movie_data['tagline']
-	movie_object.summary  = movie_data['overview']
-	movie_object.rating   = movie_data['vote_average']
-	movie_object.art      = art_callback
-	movie_object.thumb    = thumb_callback
+
+	try:
+		movie_data            = get_data(imdb_id)
+		movie_object.duration = int(movie_data['runtime']) * 60 * 1000
+		movie_object.title    = movie_data['title']
+		movie_object.tagline  = movie_data['tagline']
+		movie_object.summary  = movie_data['overview']
+		movie_object.rating   = movie_data['vote_average']
+		movie_object.art      = Callback(get_art, imdb_id=imdb_id)
+		movie_object.thumb    = Callback(get_thumb, imdb_id=imdb_id)
+	except:
+		pass
 
 	try:
 		movie_object.originally_available_at = Datetime.ParseDate(movie_data['release_date']).date()
