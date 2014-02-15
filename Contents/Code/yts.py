@@ -7,8 +7,6 @@ SUBPREFIX = 'yts'
 YTS      = 'http://yts.re'
 YTS_LIST = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
 
-#MOVIE_SET = set()
-
 ################################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
@@ -20,14 +18,21 @@ def menu():
 	return object_container
 
 ################################################################################
-@route(common.PREFIX + '/' + SUBPREFIX + '/search', only_3d=bool, page=int)
-def search(title, query='', genre='', only_3d=False, page=1):
-	if page == 1:
-		MOVIE_SET = set()
+@route(common.PREFIX + '/' + SUBPREFIX + '/search', only_3d=bool)
+def search(title, query='', genre='', only_3d=False):
+	return search_internal(title, list(), query, genre, only_3d, 1)
 
+################################################################################
+@route(common.PREFIX + '/' + SUBPREFIX + '/search_internal', movie_list=list, only_3d=bool, page=int)
+def search_internal(title, movie_list, query='', genre='', only_3d=False, page=1):
 	query   = String.Quote(query) if query   else ''
 	genre   = String.Quote(genre) if genre   else ''
 	quality = String.Quote('3D')  if only_3d else ''
+
+	if query == '__EMPTY__':
+		query = ''
+	if genre == '__EMPTY__':
+		genre = ''
 
 	url  = YTS_LIST.format(query, genre, quality, str(page))
 	json = JSON.ObjectFromURL(url, cacheTime=0)
@@ -35,13 +40,18 @@ def search(title, query='', genre='', only_3d=False, page=1):
 	object_container = ObjectContainer(title2=title)
 	for movie in json['MovieList']:
 		if movie['Quality'] != '3D' or only_3d:
-			if movie['ImdbCode'] not in MOVIE_SET:
-				MOVIE_SET.add(movie['ImdbCode'])
+			if movie['ImdbCode'] not in movie_list:
+				movie_list.append(movie['ImdbCode'])
 				movie_object = common.create_movie_object(movie['MovieUrl'], movie['TorrentMagnetUrl'], movie['ImdbCode'])
 				object_container.add(movie_object)
-		
+
 	if (page * 50) < int(json['MovieCount']):
-		object_container.add(NextPageObject(key=Callback(search, title=title, query=query, genre=genre, only_3d=only_3d, page=page + 1), title="More..."))
+		if query == '':
+			query = '__EMPTY__'
+		if genre == '':
+			genre = '__EMPTY__'
+
+		object_container.add(NextPageObject(key=Callback(search_internal, title=title, movie_list=movie_list, query=query, genre=genre, only_3d=only_3d, page=page+1), title="More..."))
 
 	return object_container
 
