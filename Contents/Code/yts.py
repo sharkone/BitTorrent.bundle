@@ -6,7 +6,7 @@ import tmdb
 SUBPREFIX = 'yts'
 
 YTS               = 'http://yts.re'
-YTS_LIST          = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&set={3}'
+YTS_LIST          = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&sort={3}&set={4}'
 YTS_LIST_VERSIONS = YTS + '/api/list.json?limit=50&keywords={0}'
 YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 
@@ -15,6 +15,8 @@ YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 def menu():
 	object_container = ObjectContainer(title2='YTS')
 	object_container.add(DirectoryObject(key=Callback(search, title='Latest'), title='Latest', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(search, title='Popular', sort='peers'), title='Popular', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(search, title='Rating', sort='rating'), title='Rating', thumb=R('yts.png')))
 	object_container.add(DirectoryObject(key=Callback(genres, title='Genres'), title='Genres', thumb=R('yts.png')))
 	object_container.add(DirectoryObject(key=Callback(search, title='3D', only_3d=True), title='3D', thumb=R('yts.png')))
 	object_container.add(InputDirectoryObject(key=Callback(search, title='Search'), title='Search', thumb=R('search.png')))
@@ -22,22 +24,19 @@ def menu():
 
 ################################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/search', only_3d=bool)
-def search(title, query='', genre='', only_3d=False):
-	return search_internal(title, list(), query, genre, only_3d, 1)
+def search(title, query='', genre='ALL', sort='date', only_3d=False):
+	return search_internal(title, list(), query, genre, sort, only_3d, 1)
 
 ################################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/search_internal', movie_list=list, only_3d=bool, page=int)
-def search_internal(title, movie_list, query='', genre='', only_3d=False, page=1):
-	query   = String.Quote(query) if query   else ''
+def search_internal(title, movie_list, query, genre, sort, only_3d, page):
 	genre   = String.Quote(genre) if genre   else ''
 	quality = String.Quote('3D')  if only_3d else ''
 
 	if query == '__EMPTY__':
 		query = ''
-	if genre == '__EMPTY__':
-		genre = ''
 
-	url  = YTS_LIST.format(query, genre, quality, str(page))
+	url  = YTS_LIST.format(query, genre, quality, sort, str(page))
 	json = JSON.ObjectFromURL(url, cacheTime=0)
 
 	object_container = ObjectContainer(title2=title)
@@ -51,10 +50,8 @@ def search_internal(title, movie_list, query='', genre='', only_3d=False, page=1
 	if (page * 50) < int(json['MovieCount']):
 		if query == '':
 			query = '__EMPTY__'
-		if genre == '':
-			genre = '__EMPTY__'
 
-		object_container.add(NextPageObject(key=Callback(search_internal, title=title, movie_list=movie_list, query=query, genre=genre, only_3d=only_3d, page=page+1), title="More..."))
+		object_container.add(NextPageObject(key=Callback(search_internal, title=title, movie_list=movie_list, query=query, genre=genre, sort=sort, only_3d=only_3d, page=page+1), title="More..."))
 
 	return object_container
 
