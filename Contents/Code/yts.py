@@ -84,7 +84,6 @@ def create_movie_object(url, magnet, imdb_id, include_container=False):
 	else:
 		return movie_object
 
-
 ################################################################################
 def create_media_objects(url, magnet):
 	media_objects = []
