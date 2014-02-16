@@ -38,10 +38,15 @@ def get_thumb(imdb_id):
 ###############################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/create_movie_object')
 def create_movie_object(imdb_id):
-	movie_object          = MovieObject()
+	try:
+		movie_data = get_data(imdb_id)
+	except Exception as exception:
+		Log.Error('[BitTorrent][tmdb] Unhandled exception: {0}'.format(exception))
+		return
+
+	movie_object = MovieObject()
 
 	try:
-		movie_data            = get_data(imdb_id)
 		movie_object.duration = int(movie_data['runtime']) * 60 * 1000
 		movie_object.title    = movie_data['title']
 		movie_object.tagline  = movie_data['tagline']

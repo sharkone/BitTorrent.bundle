@@ -44,9 +44,10 @@ def search_internal(title, movie_list, query, genre, sort, only_3d, page):
 	for movie in json['MovieList']:
 		if movie['Quality'] != '3D' or only_3d:
 			if movie['ImdbCode'] not in movie_list:
-				movie_list.append(movie['ImdbCode'])
 				movie_object = create_movie_object(movie['MovieUrl'], movie['TorrentMagnetUrl'], movie['ImdbCode'])
-				object_container.add(movie_object)
+				if movie_object:
+					movie_list.append(movie['ImdbCode'])
+					object_container.add(movie_object)
 
 	if (page * 50) < int(json['MovieCount']):
 		if query == '':
@@ -69,18 +70,19 @@ def genres(title):
 ################################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/create_movie_object')
 def create_movie_object(url, magnet, imdb_id, include_container=False):
-	movie_object            = tmdb.create_movie_object(imdb_id)
-	movie_object.key        = Callback(create_movie_object, url=url, magnet=magnet, imdb_id=imdb_id, include_container=True)
-	movie_object.rating_key = url
+	movie_object = tmdb.create_movie_object(imdb_id)
+	if movie_object:
+		movie_object.key        = Callback(create_movie_object, url=url, magnet=magnet, imdb_id=imdb_id, include_container=True)
+		movie_object.rating_key = url
 
-	if include_container:
-		movie_object.items = create_media_objects(url, magnet)
+		if include_container:
+			movie_object.items = create_media_objects(url, magnet)
 
-		object_container = ObjectContainer()
-		object_container.objects.append(movie_object)
-		return object_container
-	else:
-		return movie_object
+			object_container = ObjectContainer()
+			object_container.objects.append(movie_object)
+			return object_container
+		else:
+			return movie_object
 
 ################################################################################
 def create_media_objects(url, magnet):
