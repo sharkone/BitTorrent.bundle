@@ -115,12 +115,8 @@ def create_media_objects(url, magnet):
 				media_object.video_frame_rate = version_data['FrameRate']
 				media_objects.append(media_object)
 
-	media_objects.sort(cmp=media_object_compare)
+	media_objects.sort(key=lambda obj: obj.video_resolution, reverse=True)
 	return media_objects
-
-################################################################################
-def media_object_compare(a, b):
-	return b.video_resolution - a.video_resolution
 
 ################################################################################
 def get_closest_resolution(height):
