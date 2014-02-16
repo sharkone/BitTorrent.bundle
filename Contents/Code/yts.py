@@ -38,7 +38,7 @@ def search_internal(title, movie_list, query, genre, sort, only_3d, page):
 		query = ''
 
 	url  = YTS_LIST.format(query, genre, quality, sort, str(page))
-	json = JSON.ObjectFromURL(url, cacheTime=0)
+	json = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
 
 	object_container = ObjectContainer(title2=title)
 	for movie in json['MovieList']:
