@@ -26,11 +26,11 @@ def start_torrent(url, magnet):
 		else:
 			Log.Info('[BitTorrent][torrent2http][{0}] Not ready yet: {1}'.format(port, status_json['state']))
 		
-		Thread.Sleep(2)	
-		return IndirectResponse(VideoClipObject, key=Callback(common.play_torrent, url=url, magnet=magnet))
-
 	except Exception as exception:
 		Log.Error('[BitTorrent][torrent2http] Unhandled exception: {0}'.format(exception))
+
+	Thread.Sleep(2)	
+	return IndirectResponse(VideoClipObject, key=Callback(common.play_torrent, url=url, magnet=magnet))
 
 ###############################################################################
 def start_torrent2http(url, magnet):
