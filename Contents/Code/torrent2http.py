@@ -44,9 +44,9 @@ def start_torrent2http(url, magnet):
 			file_content = os.read(file_fd, 1024)
 			os.close(file_fd)
 			if file_content == url:
-				Log.Info('[BitTorrent][torrent2http] Found port file: {0}'.format(file_path))
 				downloader_port    = int(file_name)
 				downloader_running = True
+				Log.Info('[BitTorrent][torrent2http][{0}] Found port file'.format(downloader_port))
 				break
 
 	if not downloader_running:
@@ -56,7 +56,7 @@ def start_torrent2http(url, magnet):
 		s.close()
 
 		downloader_port_file = os.path.join(get_bin_dir(), str(downloader_port))
-		Log.Info('[BitTorrent][torrent2http] Writing port file: {0}'.format(downloader_port_file))
+		Log.Info('[BitTorrent][torrent2http][{0}] Writing port file'.format(downloader_port))
 		
 		downloader_port_fd   = os.open(downloader_port_file, os.O_CREAT | os.O_RDWR)
 		os.write(downloader_port_fd, url)
@@ -96,7 +96,7 @@ def get_exec_dir():
 		return os.path.join(get_bin_dir(), 'Windows')
 	elif Platform.OS == 'MacOSX':
 		return os.path.join(get_bin_dir(), 'MacOSX')
-	Log.Error('[BitTorrent] [torrent2http] Unsupported OS: {0}'.format(Platform.OS))
+	Log.Error('[BitTorrent][torrent2http] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
 def get_exec_path():
@@ -104,7 +104,7 @@ def get_exec_path():
 		return os.path.join(get_exec_dir(), 'torrent2http.exe')
 	elif Platform.OS == 'MacOSX':
 		return os.path.join(get_exec_dir(), 'torrent2http')
-	Log.Error('[BitTorrent] [torrent2http] Unsupported OS: {0}'.format(Platform.OS))
+	Log.Error('[BitTorrent][torrent2http] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
 def is_cancelable(port):
