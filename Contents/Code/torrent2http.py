@@ -108,17 +108,21 @@ def get_exec_path():
 
 ###############################################################################
 def is_cancelable(port):
-	status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
+	try:
+		status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0, timeout=300)
 	
-	if int(status_json['state']) >= 3:
-		ls_json      = JSON.ObjectFromURL(get_url(port, 'ls'), cacheTime=0)
-		biggest_file = get_biggest_video_file(ls_json['files'])
+		if int(status_json['state']) >= 3:
+			ls_json      = JSON.ObjectFromURL(get_url(port, 'ls'), cacheTime=0, timeout=300)
+			biggest_file = get_biggest_video_file(ls_json['files'])
 
-		complete_pieces = biggest_file['complete_pieces']
-		total_pieces    = biggest_file['total_pieces']
-		pieces_ratio    = (float(complete_pieces) / float(total_pieces)) * 100.0
-		return pieces_ratio > 0.5
+			complete_pieces = biggest_file['complete_pieces']
+			total_pieces    = biggest_file['total_pieces']
+			pieces_ratio    = (float(complete_pieces) / float(total_pieces)) * 100.0
+			return pieces_ratio > 0.5
 
+	except Exception as exception:
+		Log.Error('[BitTorrent][torrent2http][is_cancelable] Unhandled exception: {0}'.format(exception))
+    
 	return False
 
 ###############################################################################
