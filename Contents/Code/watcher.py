@@ -22,10 +22,14 @@ class Watcher:
 			self.number               = port_number
 			self.timeout              = timeout
 			self.last_connection_time = Datetime.Now()
+			self.is_cancelable        = False
 
 		#######################################################################
 		def check(self):
-			if not self.is_cancelable() or self.has_connections():
+			if not self.is_cancelable:
+				self.is_cancelable = torrent2http.is_cancelable(self.number)
+			
+			if not self.is_cancelable or self.has_connections():
 				# Update timestamp
 				self.last_connection_time = Datetime.Now()
 			else:
@@ -34,10 +38,6 @@ class Watcher:
 					return False
 
 			return True
-
-		#######################################################################
-		def is_cancelable(self):
-			return torrent2http.is_cancelable(self.number)
 
 		#######################################################################
 		def has_connections(self):
