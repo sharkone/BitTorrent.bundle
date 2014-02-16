@@ -1,0 +1,26 @@
+[
+    {
+        "id":       "MAX_DOWNLOAD_RATE",
+        "label":    "Maximum download rate (in kb/s, 0 = Unlimited)",
+        "type":     "text",
+        "default":  "0"
+    },
+    {
+        "id":       "MAX_UPLOAD_RATE",
+        "label":    "Maximum upload rate (in kb/s, 0 = Unlimited)",
+        "type":     "text",
+        "default":  "0"
+    },
+    {
+        "id":       "KEEP_FILES",
+        "label":    "Keep files after exiting",
+        "type":     "bool",
+        "default":  "false"
+    },
+    {
+        "id":       "DOWNLOAD_DIR",
+        "label":    "Download directory",
+        "type":     "text",
+        "default":  "."
+    }
+]

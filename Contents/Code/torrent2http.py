@@ -49,8 +49,7 @@ def start_torrent2http(url, magnet):
 		if Platform.OS == 'MacOSX':
 			env['DYLD_LIBRARY_PATH'] = get_exec_dir()
 
-		# TODO: Make that look nicer
-		command = '\"{0}\" -bind=\":{1}\" -keep={2} -dlpath=\"{3}\" -magnet=\"{4}\"'.format(get_exec_path(), downloader_port, True, get_download_dir(), magnet)
+		command = '\"{0}\" -bind=\":{1}\" -keep={2} -dlpath=\"{3}\" -dlrate={4} -ulrate={5} -magnet=\"{6}\"'.format(get_exec_path(), downloader_port, Prefs['KEEP_FILES'], Prefs['DOWNLOAD_DIR'], Prefs['MAX_DOWNLOAD_RATE'], Prefs['MAX_UPLOAD_RATE'], magnet)
 		subprocess.Popen(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
 	return downloader_port

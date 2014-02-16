@@ -25,4 +25,5 @@ def Main():
 	object_container = ObjectContainer(title2=TITLE)
 	object_container.add(DirectoryObject(key=Callback(thepiratebay.menu), title='The Pirate Bay', thumb=R('thepiratebay.png')))
 	object_container.add(DirectoryObject(key=Callback(yts.menu), title="YTS", thumb=R('yts.png')))
+	object_container.add(PrefsObject(title='Preferences'))
 	return object_container
