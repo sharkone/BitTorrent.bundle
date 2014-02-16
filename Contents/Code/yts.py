@@ -30,6 +30,7 @@ def search(title, query='', genre='ALL', sort='date', only_3d=False):
 ################################################################################
 @route(common.PREFIX + '/' + SUBPREFIX + '/search_internal', movie_list=list, only_3d=bool, page=int)
 def search_internal(title, movie_list, query, genre, sort, only_3d, page):
+	query   = String.Quote(query) if query   else ''
 	genre   = String.Quote(genre) if genre   else ''
 	quality = String.Quote('3D')  if only_3d else ''
 
