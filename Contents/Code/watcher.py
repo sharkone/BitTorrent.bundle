@@ -2,6 +2,7 @@
 import os
 import subprocess
 import time
+import torrent2http
 import urllib2
 
 ###############################################################################
@@ -24,7 +25,7 @@ class Watcher:
 
 		#######################################################################
 		def check(self):
-			if self.has_connections():
+			if not self.is_cancelable() or self.has_connections():
 				# Update timestamp
 				self.last_connection_time = Datetime.Now()
 			else:
@@ -33,6 +34,10 @@ class Watcher:
 					return False
 
 			return True
+
+		#######################################################################
+		def is_cancelable(self):
+			return torrent2http.is_cancelable(self.number)
 
 		#######################################################################
 		def has_connections(self):
@@ -104,19 +109,19 @@ class Watcher:
 			if os.path.isfile(file_path) and file_name.isdigit():
 				port_number = int(file_name)
 				if not self.is_watching_port(port_number):
-					Log.Info('[BitTorrent][Watcher] [{0}] Adding to watch list'.format(port_number))
+					Log.Info('[BitTorrent][Watcher][{0}] Adding to watch list'.format(port_number))
 					self.ports.append(self.Port(port_number, self.timeout))
 		# Check ports
 		useless_ports = []
 		for port in self.ports:
 			if port.check():
-				Log.Info('[BitTorrent][Watcher] [{0}] Active'.format(port_number))
+				Log.Info('[BitTorrent][Watcher][{0}] Active'.format(port.number))
 			else:
-				Log.Info('[BitTorrent][Watcher] [{0}] Inactive'.format(port_number))
+				Log.Info('[BitTorrent][Watcher][{0}] Inactive'.format(port.number))
 				self.shutdown(port.number)
 				os.remove(os.path.join(self.watch_directory, str(port.number)))
 				useless_ports.append(port)
-				Log.Info('[BitTorrent][Watcher] [{0}] Removing from watch list'.format(port.number))
+				Log.Info('[BitTorrent][Watcher][{0}] Removing from watch list'.format(port.number))
 		# Remove useless ports
 		for port in useless_ports:
 			self.ports.remove(port)
@@ -131,7 +136,7 @@ class Watcher:
 	###########################################################################
 	def shutdown(self, port_number):
 		try:
-			urllib2.urlopen('http://localhost:{0}/shutdown'.format(port_number))
-			Log.Info('[BitTorrent][Watcher] [{0}] Shutdown successful'.format(port_number))
+			torrent2http.shutdown(port_number)
+			Log.Info('[BitTorrent][Watcher][{0}] Shutdown successful'.format(port_number))
 		except Exception as exception:
-			Log.Error('[BitTorrent][Watcher] [{0}] Shutdown failed: {1}'.format(port_number, exception))
+			Log.Error('[BitTorrent][Watcher][{0}] Shutdown failed: {1}'.format(port_number, exception))

@@ -1,4 +1,5 @@
 ###############################################################################
+import common
 import os
 import socket
 import subprocess
@@ -6,14 +7,30 @@ import subprocess
 ###############################################################################
 def start_torrent(url, magnet):
 	try:
-		port     = start_torrent2http(url, magnet)
-		json_url = get_url(port, 'ls')
-		json 	 = JSON.ObjectFromURL(json_url, cacheTime=0, timeout=300)
-		file 	 = get_biggest_video_file(json['files'])
-		file_url = get_url(port, 'files/') + String.Quote(file['name'])
-		return IndirectResponse(VideoClipObject, key=file_url)
+		port = start_torrent2http(url, magnet)
+		
+		status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0, timeout=300)
+			
+		if int(status_json['state']) >= 3:
+			ls_json      = JSON.ObjectFromURL(get_url(port, 'ls'), cacheTime=0, timeout=300)
+			biggest_file = get_biggest_video_file(ls_json['files'])
+			
+			complete_pieces = biggest_file['complete_pieces']
+ 			total_pieces    = biggest_file['total_pieces']
+ 			pieces_ratio    = (float(complete_pieces) / float(total_pieces)) * 100.0
+ 			if pieces_ratio > 0.5:
+ 				file_url = get_url(port, 'files/') + String.Quote(biggest_file['name'])
+ 				return IndirectResponse(VideoClipObject, key=file_url)
+			else:
+				Log.Info('[BitTorrent][torrent2http][{0}] Not enough pieces yet: {1}/{2} -> {3}% @ {4} kb/s'.format(port, complete_pieces, total_pieces, pieces_ratio, status_json['download_rate']))
+		else:
+			Log.Info('[BitTorrent][torrent2http][{0}] Not ready yet: {1}'.format(port, status_json['state']))
+		
+		Thread.Sleep(2)	
+		return IndirectResponse(VideoClipObject, key=Callback(common.play_torrent, url=url, magnet=magnet))
+
 	except Exception as exception:
-		Log.Error('[BitTorrent] [torrent2http] Unhandled exception: {0}'.format(exception))
+		Log.Error('[BitTorrent][torrent2http] Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
 def start_torrent2http(url, magnet):
@@ -90,5 +107,20 @@ def get_exec_path():
 	Log.Error('[BitTorrent] [torrent2http] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
-def get_download_dir():
-	return os.path.join(os.path.expanduser("~"), 'Downloads', 'BitTorrent')
+def is_cancelable(port):
+	status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
+	
+	if int(status_json['state']) >= 3:
+		ls_json      = JSON.ObjectFromURL(get_url(port, 'ls'), cacheTime=0)
+		biggest_file = get_biggest_video_file(ls_json['files'])
+
+		complete_pieces = biggest_file['complete_pieces']
+		total_pieces    = biggest_file['total_pieces']
+		pieces_ratio    = (float(complete_pieces) / float(total_pieces)) * 100.0
+		return pieces_ratio > 0.5
+
+	return False
+
+###############################################################################
+def shutdown(port):
+	HTML.ElementFromURL(get_url(port, 'shutdown'), cacheTime=0)
