@@ -3,7 +3,6 @@ import common
 import thepiratebay
 import torrent2http
 import yts
-import watcher
 
 ################################################################################
 TITLE  = 'BitTorrent'
@@ -17,7 +16,6 @@ def Start():
 	ObjectContainer.title1 = TITLE
 	VideoClipObject.art    = R(ART)
 	VideoClipObject.thumb  = R(ICON)
-	Thread.Create(watcher.thread_proc, watch_directory=torrent2http.get_bin_dir(), timeout=Datetime.Delta(seconds=30))
 
 ################################################################################
 @handler(common.PREFIX, TITLE)
