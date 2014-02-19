@@ -1,6 +1,7 @@
 ################################################################################
 import common
 import tmdb
+import torrent2http
 
 ################################################################################
 SUBPREFIX = 'yts'
@@ -96,7 +97,7 @@ def create_media_objects(url, magnet):
 
 	if movie_data['Quality'] == '3D':
 			media_object = MediaObject()
-			media_object.add(PartObject(key=Callback(common.play_torrent, url=url, magnet=magnet)))
+			media_object.add(PartObject(key=Callback(torrent2http.play_torrent, url=url, magnet=magnet)))
 			media_object.video_resolution = get_closest_resolution(int(movie_data['Resolution'].partition('*')[2]))
 			media_object.video_frame_rate = movie_data['FrameRate']
 			media_objects.append(media_object)
@@ -110,7 +111,7 @@ def create_media_objects(url, magnet):
 				version_data = JSON.ObjectFromURL(version_url, cacheTime=CACHE_1DAY)
 
 				media_object = MediaObject()
-				media_object.add(PartObject(key=Callback(common.play_torrent, url=version_data['MovieUrl'], magnet=version_data['TorrentMagnetUrl'])))
+				media_object.add(PartObject(key=Callback(torrent2http.play_torrent, url=version_data['MovieUrl'], magnet=version_data['TorrentMagnetUrl'])))
 				media_object.video_resolution = get_closest_resolution(int(version_data['Resolution'].partition('*')[2]))
 				media_object.video_frame_rate = version_data['FrameRate']
 				media_objects.append(media_object)

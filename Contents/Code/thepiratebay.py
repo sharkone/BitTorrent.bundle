@@ -1,5 +1,6 @@
 ################################################################################
 import common
+import torrent2http
 
 ################################################################################
 SUBPREFIX = 'thepiratebay'
@@ -57,7 +58,7 @@ def create_media_objects(url, magnet):
 	media_objects = []
 
 	media_object = MediaObject()
-	media_object.parts.append(PartObject(key=Callback(common.play_torrent, url=url, magnet=magnet)))
+	media_object.parts.append(PartObject(key=Callback(torrent2http.play_torrent, url=url, magnet=magnet)))
 	media_objects.append(media_object)
 
 	return media_objects

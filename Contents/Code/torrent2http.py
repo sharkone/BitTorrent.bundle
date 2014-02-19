@@ -5,7 +5,9 @@ import socket
 import subprocess
 
 ###############################################################################
-def start_torrent(url, magnet):
+@route(common.PREFIX + '/play_torrent')
+@indirect
+def play_torrent(url, magnet):
 	try:
 		port = start_torrent2http(url, magnet)
 		
@@ -30,7 +32,7 @@ def start_torrent(url, magnet):
 		Log.Error('[BitTorrent][torrent2http] Unhandled exception: {0}'.format(exception))
 
 	Thread.Sleep(2)
-	return IndirectResponse(VideoClipObject, key=Callback(common.play_torrent, url=url, magnet=magnet))
+	return IndirectResponse(VideoClipObject, key=Callback(play_torrent, url=url, magnet=magnet))
 
 ###############################################################################
 def start_torrent2http(url, magnet):
