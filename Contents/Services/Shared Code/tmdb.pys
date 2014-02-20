@@ -2,8 +2,6 @@
 import common
 
 ###############################################################################
-SUBPREFIX = 'tmdb'
-
 API_KEY = 'a3dc111e66105f6387e99393813ae4d5'
 
 TMDB_CONFIG = None
@@ -14,7 +12,7 @@ def get_config():
 	global TMDB_CONFIG
 
 	if TMDB_CONFIG == None:
-		TMDB_CONFIG = JSON.ObjectFromURL('http://api.themoviedb.org/3/configuration?api_key={0}'.format(API_KEY))
+		TMDB_CONFIG = JSON.ObjectFromURL('http://api.themoviedb.org/3/configuration?api_key={0}'.format(API_KEY), cacheTime=CACHE_1WEEK)
 	return TMDB_CONFIG
 
 ###############################################################################
@@ -22,22 +20,24 @@ def get_data(imdb_id):
 	global TMDB_DATA
 
 	if not imdb_id in TMDB_DATA:
-		TMDB_DATA[imdb_id] = JSON.ObjectFromURL('http://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response=credits'.format(imdb_id, API_KEY))
+		TMDB_DATA[imdb_id] = JSON.ObjectFromURL('http://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response=credits'.format(imdb_id, API_KEY), cacheTime=CACHE_1DAY)
 	return TMDB_DATA[imdb_id]
 
 ###############################################################################
-@route(common.PREFIX + '/' + SUBPREFIX + '/get_art')
 def get_art(imdb_id):
 	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['backdrop_path'])
 
 ###############################################################################
-@route(common.PREFIX + '/' + SUBPREFIX + '/get_thumb')
 def get_thumb(imdb_id):
 	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['poster_path'])
 
 ###############################################################################
-@route(common.PREFIX + '/' + SUBPREFIX + '/create_movie_object')
-def create_movie_object(imdb_id):
+def create_movie_object(imdb_id, art_callback=None, thumb_callback=None):
+	if not art_callback:
+		art_callback = Callback(get_art, imdb_id=imdb_id)
+	if not thumb_callback:
+		thumb_callback = Callback(get_thumb, imdb_id=imdb_id)
+
 	try:
 		movie_data = get_data(imdb_id)
 	except Exception as exception:
@@ -52,8 +52,8 @@ def create_movie_object(imdb_id):
 		movie_object.tagline  = movie_data['tagline']
 		movie_object.summary  = movie_data['overview']
 		movie_object.rating   = movie_data['vote_average']
-		movie_object.art      = Callback(get_art, imdb_id=imdb_id)
-		movie_object.thumb    = Callback(get_thumb, imdb_id=imdb_id)
+		movie_object.art      = art_callback
+		movie_object.thumb    = thumb_callback
 	except:
 		pass
 

@@ -1,0 +1,32 @@
+################################################################################
+import thepiratebay
+import torrent2http
+import yts
+
+################################################################################
+def MetadataObjectForURL(url):
+	if url.startswith(thepiratebay.THEPIRATEBAY):
+		return thepiratebay.MetadataObjectForURL(url, Callback(tmdb_get_art, url=url), Callback(tmdb_get_thumb, url=url))
+	elif url.startswith(yts.YTS):
+		return yts.MetadataObjectForURL(url, Callback(tmdb_get_art, url=url), Callback(tmdb_get_thumb, url=url))
+
+################################################################################
+@deferred
+def MediaObjectsForURL(url):
+	if url.startswith(thepiratebay.THEPIRATEBAY):
+		return thepiratebay.MediaObjectsForURL(url, play_torrent)
+	elif url.startswith(yts.YTS):
+		return yts.MediaObjectsForURL(url, play_torrent)
+
+################################################################################
+def tmdb_get_art(url):
+	return yts.tmdb_get_art(url)
+
+###############################################################################
+def tmdb_get_thumb(url):
+	return yts.tmdb_get_thumb(url)
+
+###############################################################################
+@indirect
+def play_torrent(url, magnet, port=-1):
+	return torrent2http.play_torrent(url, magnet, play_torrent, port)

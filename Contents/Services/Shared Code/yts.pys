@@ -1,0 +1,76 @@
+################################################################################
+import common
+import tmdb
+import torrent2http
+
+################################################################################
+YTS               = 'http://yts.re'
+YTS_LIST          = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&sort={3}&set={4}'
+YTS_LIST_VERSIONS = YTS + '/api/list.json?limit=50&keywords={0}'
+YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
+
+################################################################################
+def MetadataObjectForURL(url, art_callback, thumb_callback):
+	return tmdb.create_movie_object(get_imdb_id(url), art_callback, thumb_callback)
+
+################################################################################
+def MediaObjectsForURL(url, play_func):
+	media_objects = []
+
+	html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+	movie_id = html.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
+
+	movie_data_url = YTS_MOVIE.format(movie_id)
+	movie_data     = JSON.ObjectFromURL(movie_data_url, cacheTime=CACHE_1DAY)
+
+	if movie_data['Quality'] == '3D':
+			media_object = MediaObject()
+			media_object.add(PartObject(key=Callback(play_func, url=url, magnet=magnet)))
+			media_object.video_resolution = get_closest_resolution(int(movie_data['Resolution'].partition('*')[2]))
+			media_object.video_frame_rate = movie_data['FrameRate']
+			media_objects.append(media_object)
+	else:
+		version_list_url  = YTS_LIST_VERSIONS.format(movie_data['ImdbCode'])
+		version_list_data = JSON.ObjectFromURL(version_list_url, cacheTime=CACHE_1DAY)
+
+		for version in version_list_data['MovieList']:
+			if version['Quality'] != '3D':
+				version_url  = YTS_MOVIE.format(version['MovieID'])
+				version_data = JSON.ObjectFromURL(version_url, cacheTime=CACHE_1DAY)
+
+				media_object = MediaObject()
+				media_object.add(PartObject(key=Callback(play_func, url=version_data['MovieUrl'], magnet=version_data['TorrentMagnetUrl'])))
+				media_object.video_resolution = get_closest_resolution(int(version_data['Resolution'].partition('*')[2]))
+				media_object.video_frame_rate = version_data['FrameRate']
+				media_objects.append(media_object)
+
+	media_objects.sort(key=lambda obj: obj.video_resolution, reverse=True)
+	return media_objects
+
+################################################################################
+def tmdb_get_art(url):
+	return tmdb.get_art(get_imdb_id(url))
+
+###############################################################################
+def tmdb_get_thumb(url):
+	return tmdb.get_thumb(get_imdb_id(url))
+
+################################################################################
+def get_imdb_id(url):
+	html      = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+	imdb_link = html.xpath('//*[@id="movie-wrapper"]/div[1]/div[2]/a[1]/@href')[0]
+	imdb_id   = imdb_link.replace('http://www.imdb.com/title/', '').replace('/', '')
+	return imdb_id
+
+################################################################################
+def get_closest_resolution(height):
+	if height <= 240:
+		return 240
+	elif height <= 320:
+		return 320
+	elif height <= 480:
+		return 480
+	elif height <= 720:
+		return 720
+	else:
+		return 1080
