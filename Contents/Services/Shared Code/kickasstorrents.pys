@@ -4,8 +4,7 @@ import tmdb
 import torrent2http
 
 ################################################################################
-KICKASSTORRENTS        = 'http://kickass.to'
-KICKASSTORRENTS_SEARCH = KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'
+KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
 def MetadataObjectForURL(url, art_callback, thumb_callback):
