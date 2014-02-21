@@ -15,7 +15,7 @@ def MetadataObjectForURL(url, art_callback, thumb_callback):
 
 ################################################################################
 def MediaObjectsForURL(url, play_func):
-	html   = HTML.ElementFromURL(url)
+	html   = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 	magnet = html.xpath('//*[@id="details"]/div[@class="download"]/a[1]/@href')[0]
 
 	media_objects = []
