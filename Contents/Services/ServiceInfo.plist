@@ -8,6 +8,7 @@
 			<dict>
 				<key>URLPatterns</key>
 				<array>
+					<string>^http://kickass.to/.+</string>
 					<string>^http://thepiratebay.se/torrent/.+</string>
 					<string>^http://yts.re/movie/.+</string>
 				</array>

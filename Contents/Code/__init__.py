@@ -1,4 +1,5 @@
 ################################################################################
+import kickasstorrents_menu
 import thepiratebay_menu
 import yts_menu
 
@@ -18,6 +19,7 @@ def Start():
 @handler(SharedCodeService.common.PREFIX, TITLE)
 def Main():
 	object_container = ObjectContainer(title2=TITLE)
+	object_container.add(DirectoryObject(key=Callback(kickasstorrents_menu.menu), title='KickassTorrents', thumb=R('kickasstorrents.png')))
 	object_container.add(DirectoryObject(key=Callback(thepiratebay_menu.menu), title='The Pirate Bay', thumb=R('thepiratebay.png')))
 	object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
 	object_container.add(PrefsObject(title='Preferences'))

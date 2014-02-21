@@ -1,0 +1,27 @@
+################################################################################
+import common
+import torrent2http
+
+################################################################################
+KICKASSTORRENTS        = 'http://kickass.to'
+KICKASSTORRENTS_SEARCH = KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'
+
+################################################################################
+def MetadataObjectForURL(url, art_callback, thumb_callback):
+	html  = HTML.ElementFromURL(url)
+	metadata_object       = MovieObject()
+	metadata_object.title = html.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
+	return metadata_object
+
+################################################################################
+def MediaObjectsForURL(url, play_func):
+	html   = HTML.ElementFromURL(url)
+	magnet = html.xpath('//*[@class="magnetlinkButton"]/@href')[0]
+
+	media_objects = []
+
+	media_object = MediaObject()
+	media_object.add(PartObject(key=Callback(play_func, url=url, magnet=magnet)))
+	media_objects.append(media_object)
+
+	return media_objects
