@@ -27,6 +27,8 @@ def MediaObjectsForURL(url):
 def tmdb_get_art(url):
 	if url.startswith(kickasstorrents.KICKASSTORRENTS):
 		return kickasstorrents.tmdb_get_art(url)
+	elif url.startswith(thepiratebay.THEPIRATEBAY):
+		return thepiratebay.tmdb_get_art(url)
 	elif url.startswith(yts.YTS):
 		return yts.tmdb_get_art(url)
 
@@ -34,6 +36,8 @@ def tmdb_get_art(url):
 def tmdb_get_thumb(url):
 	if url.startswith(kickasstorrents.KICKASSTORRENTS):
 		return kickasstorrents.tmdb_get_thumb(url)
+	elif url.startswith(thepiratebay.THEPIRATEBAY):
+		return thepiratebay.tmdb_get_thumb(url)
 	elif url.startswith(yts.YTS):
 		return yts.tmdb_get_thumb(url)
 
