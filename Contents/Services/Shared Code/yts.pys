@@ -10,8 +10,8 @@ YTS_LIST_VERSIONS = YTS + '/api/list.json?limit=50&keywords={0}'
 YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 
 ################################################################################
-def MetadataObjectForURL(url, art_callback, thumb_callback):
-	return tmdb.create_movie_object(get_imdb_id(url), art_callback, thumb_callback)
+def MetadataObjectForURL(url):
+	return tmdb.create_movie_object(get_imdb_id(url))
 
 ################################################################################
 def MediaObjectsForURL(url, play_func):
@@ -46,14 +46,6 @@ def MediaObjectsForURL(url, play_func):
 
 	media_objects.sort(key=lambda obj: obj.video_resolution, reverse=True)
 	return media_objects
-
-################################################################################
-def tmdb_get_art(url):
-	return tmdb.get_art(get_imdb_id(url))
-
-###############################################################################
-def tmdb_get_thumb(url):
-	return tmdb.get_thumb(get_imdb_id(url))
 
 ################################################################################
 def get_imdb_id(url):

@@ -8,10 +8,10 @@ THEPIRATEBAY        = 'http://thepiratebay.se'
 THEPIRATEBAY_SEARCH = THEPIRATEBAY + '/search/{0}/0/7/200'
 
 ################################################################################
-def MetadataObjectForURL(url, art_callback, thumb_callback):
+def MetadataObjectForURL(url):
 	imdb_id = get_imdb_id(url)
 	if imdb_id:
-		return tmdb.create_movie_object(imdb_id, art_callback, thumb_callback)
+		return tmdb.create_movie_object(imdb_id)
 	else:
 		html  = HTML.ElementFromURL(url)
 		metadata_object       = MovieObject()
@@ -30,14 +30,6 @@ def MediaObjectsForURL(url, play_func):
 	media_objects.append(media_object)
 
 	return media_objects
-
-################################################################################
-def tmdb_get_art(url):
-	return tmdb.get_art(get_imdb_id(url))
-
-###############################################################################
-def tmdb_get_thumb(url):
-	return tmdb.get_thumb(get_imdb_id(url))
 
 ################################################################################
 def get_imdb_id(url):

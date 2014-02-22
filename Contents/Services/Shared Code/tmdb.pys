@@ -24,20 +24,7 @@ def get_data(imdb_id):
 	return TMDB_DATA[imdb_id]
 
 ###############################################################################
-def get_art(imdb_id):
-	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['backdrop_path'])
-
-###############################################################################
-def get_thumb(imdb_id):
-	return Redirect(get_config()['images']['base_url'] + 'original' + get_data(imdb_id)['poster_path'])
-
-###############################################################################
-def create_movie_object(imdb_id, art_callback=None, thumb_callback=None):
-	if not art_callback:
-		art_callback = Callback(get_art, imdb_id=imdb_id)
-	if not thumb_callback:
-		thumb_callback = Callback(get_thumb, imdb_id=imdb_id)
-
+def create_movie_object(imdb_id):
 	try:
 		movie_data = get_data(imdb_id)
 	except Exception as exception:
@@ -52,8 +39,8 @@ def create_movie_object(imdb_id, art_callback=None, thumb_callback=None):
 		movie_object.tagline  = movie_data['tagline']
 		movie_object.summary  = movie_data['overview']
 		movie_object.rating   = movie_data['vote_average']
-		movie_object.art      = art_callback
-		movie_object.thumb    = thumb_callback
+		movie_object.art      = get_config()['images']['base_url'] + 'original' + movie_data['backdrop_path']
+		movie_object.thumb    = get_config()['images']['base_url'] + 'original' + movie_data['poster_path']
 	except:
 		pass
 

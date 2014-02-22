@@ -6,12 +6,20 @@ import yts
 
 ################################################################################
 def MetadataObjectForURL(url):
+	metadata_object = None
+
 	if url.startswith(kickasstorrents.KICKASSTORRENTS):
-		return kickasstorrents.MetadataObjectForURL(url, Callback(tmdb_get_art, url=url), Callback(tmdb_get_thumb, url=url))
+		metadata_object = kickasstorrents.MetadataObjectForURL(url)
 	elif url.startswith(thepiratebay.THEPIRATEBAY):
-		return thepiratebay.MetadataObjectForURL(url, Callback(tmdb_get_art, url=url), Callback(tmdb_get_thumb, url=url))
+		metadata_object = thepiratebay.MetadataObjectForURL(url)
 	elif url.startswith(yts.YTS):
-		return yts.MetadataObjectForURL(url, Callback(tmdb_get_art, url=url), Callback(tmdb_get_thumb, url=url))
+		metadata_object = yts.MetadataObjectForURL(url)
+
+	if metadata_object:
+		metadata_object.art   = Callback(get_image_async, url=metadata_object.art)
+		metadata_object.thumb = Callback(get_image_async, url=metadata_object.thumb)
+
+	return metadata_object
 
 ################################################################################
 @deferred
@@ -24,22 +32,8 @@ def MediaObjectsForURL(url):
 		return yts.MediaObjectsForURL(url, play_torrent)
 
 ################################################################################
-def tmdb_get_art(url):
-	if url.startswith(kickasstorrents.KICKASSTORRENTS):
-		return kickasstorrents.tmdb_get_art(url)
-	elif url.startswith(thepiratebay.THEPIRATEBAY):
-		return thepiratebay.tmdb_get_art(url)
-	elif url.startswith(yts.YTS):
-		return yts.tmdb_get_art(url)
-
-###############################################################################
-def tmdb_get_thumb(url):
-	if url.startswith(kickasstorrents.KICKASSTORRENTS):
-		return kickasstorrents.tmdb_get_thumb(url)
-	elif url.startswith(thepiratebay.THEPIRATEBAY):
-		return thepiratebay.tmdb_get_thumb(url)
-	elif url.startswith(yts.YTS):
-		return yts.tmdb_get_thumb(url)
+def get_image_async(url):
+	return Redirect(url)
 
 ###############################################################################
 @indirect
