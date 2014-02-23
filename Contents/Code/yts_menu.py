@@ -4,28 +4,38 @@ SUBPREFIX = 'yts'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-	object_container = ObjectContainer(title2='YTS')
-	object_container.add(DirectoryObject(key=Callback(search, title='Latest'), title='Latest', thumb=R('yts.png')))
-	object_container.add(DirectoryObject(key=Callback(search, title='Popular', sort='peers'), title='Popular', thumb=R('yts.png')))
-	object_container.add(DirectoryObject(key=Callback(search, title='Rating', sort='rating'), title='Rating', thumb=R('yts.png')))
+	object_container = genre('All', False)
 	object_container.add(DirectoryObject(key=Callback(genres, title='Genres'), title='Genres', thumb=R('yts.png')))
-	object_container.add(DirectoryObject(key=Callback(search, title='3D', only_3d=True), title='3D', thumb=R('yts.png')))
-	object_container.add(InputDirectoryObject(key=Callback(search, title='Search'), title='Search', thumb=R('search.png')))
+	object_container.add(InputDirectoryObject(key=Callback(search, title='Search', genre='All'), title='Search', thumb=R('search.png')))
 	return object_container
-
-################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search', only_3d=bool)
-def search(title, query='', genre='ALL', sort='date', only_3d=False):
-	return search_internal(title, list(), query, genre, sort, only_3d, 1)
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres')
 def genres(title):
 	object_container = ObjectContainer(title2=title)
 	genres = ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Sport', 'Thriller', 'War', 'Western']
-	for genre in genres:
-		object_container.add(DirectoryObject(key=Callback(search, title=genre, genre=genre), title=genre, thumb=R('yts.png')))
+	for g in genres:
+		object_container.add(DirectoryObject(key=Callback(genre, genre=g), title=g, thumb=R('yts.png')))
 	return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', allow_search=bool)
+def genre(genre, allow_search=True):
+	object_container = ObjectContainer(title2=genre)
+	object_container.add(DirectoryObject(key=Callback(search, title='Latest', genre=genre), title='Latest', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(search, title='Popular', genre=genre, sort='peers'), title='Popular', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(search, title='Rating', genre=genre, sort='rating'), title='Rating', thumb=R('yts.png')))
+	object_container.add(DirectoryObject(key=Callback(search, title='3D', genre=genre, only_3d=True), title='3D', thumb=R('yts.png')))
+	
+	if allow_search:
+		object_container.add(InputDirectoryObject(key=Callback(search, title='Search', genre=genre), title='Search', thumb=R('search.png')))
+	
+	return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search', only_3d=bool)
+def search(title, query='', genre='ALL', sort='date', only_3d=False):
+	return search_internal(title, list(), query, genre, sort, only_3d, 1)
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search_internal', movie_list=list, only_3d=bool, page=int)
