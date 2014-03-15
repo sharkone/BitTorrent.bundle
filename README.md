@@ -7,10 +7,7 @@ BitTorrent channel for Plex Media Server
 
 Installation
 ------------
-- Download repository as zip
-- Unzip
-- Rename folder to BitTorrent.bundle (remove -master part)
-- Move folder to your server's Plug-ins folder
+- Available through the [Unsupported AppStore](https://github.com/mikedm139/UnSupportedAppstore.bundle) 
 
 Known issues:
 -------------
