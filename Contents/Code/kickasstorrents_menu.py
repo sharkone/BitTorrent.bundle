@@ -14,14 +14,14 @@ def menu():
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/category')
 def category(title, category):
 	object_container = ObjectContainer(title2=title)
-	object_container.add(DirectoryObject(key=Callback(page, title='Popular', root='/' + category, field='leechers'), title='Popular', thumb=R('kickasstorrents.png')))
+	object_container.add(DirectoryObject(key=Callback(page, title='Popular', root='/' + category, field='seeders'), title='Popular', thumb=R('kickasstorrents.png')))
 	object_container.add(InputDirectoryObject(key=Callback(search, title='Search', category=category), title='Search', thumb=R('search.png')))
 	return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/page', page_index=int)
 def page(title, root, field, page_index=1):
-	url = '{0}{1}/?field={2}&sord=desc&rss=1'.format(SharedCodeService.kickasstorrents.KICKASSTORRENTS, root, field)
+	url = '{0}{1}/{3}/?field={2}&sord=desc&rss=1'.format(SharedCodeService.kickasstorrents.KICKASSTORRENTS, root, field, page_index)
 	rss = RSS.FeedFromURL(url, cacheTime=0)
 
 	object_container = ObjectContainer(title2=title)
