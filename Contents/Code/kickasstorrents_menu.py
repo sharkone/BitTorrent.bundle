@@ -5,15 +5,17 @@ SUBPREFIX = 'kickasstorrents'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
 	object_container = ObjectContainer(title2='KickassTorrents')
-	object_container.add(DirectoryObject(key=Callback(movies, title='Movies'), title='Movies', thumb=R('kickasstorrents.png')))
+	object_container.add(DirectoryObject(key=Callback(category, title='Anime', category='anime'), title='Anime', thumb=R('kickasstorrents.png')))
+	object_container.add(DirectoryObject(key=Callback(category, title='Movies', category='movies'), title='Movies', thumb=R('kickasstorrents.png')))
+	object_container.add(DirectoryObject(key=Callback(category, title='TV Shows', category='tv'), title='TV Shows', thumb=R('kickasstorrents.png')))
 	return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies')
-def movies(title):
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/category')
+def category(title, category):
 	object_container = ObjectContainer(title2=title)
-	object_container.add(DirectoryObject(key=Callback(page, title='Popular', root='/movies', field='leechers'), title='Popular', thumb=R('kickasstorrents.png')))
-	object_container.add(InputDirectoryObject(key=Callback(search, title='Search', category='movies'), title='Search', thumb=R('search.png')))
+	object_container.add(DirectoryObject(key=Callback(page, title='Popular', root='/' + category, field='leechers'), title='Popular', thumb=R('kickasstorrents.png')))
+	object_container.add(InputDirectoryObject(key=Callback(search, title='Search', category=category), title='Search', thumb=R('search.png')))
 	return object_container
 
 ################################################################################
