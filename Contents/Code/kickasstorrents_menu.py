@@ -26,13 +26,10 @@ def page(title, root, field, page_index=1):
 
 	object_container = ObjectContainer(title2=title)
 	for item in rss.entries:
-		movie_seeders = item.torrent_seeds
-		movie_peers   = item.torrent_peers
-		movie_title   = item.title
-
-		movie_object       = MovieObject()
-		movie_object.url   = item.link
-		movie_object.title = '(S{0}|P{1}) {2}'.format(movie_seeders, movie_peers, movie_title)
+		movie_object         = MovieObject()
+		movie_object.title   = item.title
+		movie_object.summary = 'Seeders: {0}, Leechers:{1}'.format(item.torrent_seeds, item.torrent_peers)
+		movie_object.url     = item.link
 		object_container.add(movie_object)
 
 	object_container.add(NextPageObject(key=Callback(page, title=title, root=root, field=field, page_index=page_index + 1), title="More..."))
