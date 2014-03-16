@@ -21,12 +21,15 @@ def top(title, category_id):
 	return get_page_object_container(title, html)
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(title, query=''):
-	url  = SharedCodeService.thepiratebay.THEPIRATEBAY_SEARCH.format(String.Quote(query))
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search', page_index=int)
+def search(title, query, page_index=0):
+	url  = SharedCodeService.thepiratebay.THEPIRATEBAY_SEARCH.format(String.Quote(query), page_index)
 	html = HTML.ElementFromURL(url, cacheTime=0)
 	
-	return get_page_object_container(title, html)
+	object_container = get_page_object_container(title, html)
+	object_container.add(NextPageObject(key=Callback(search, title=title, query=query, page_index=page_index + 1), title="More..."))
+
+	return object_container
 
 ################################################################################
 def get_page_object_container(title, html):

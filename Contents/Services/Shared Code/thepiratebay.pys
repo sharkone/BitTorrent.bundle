@@ -5,7 +5,7 @@ import torrent2http
 
 ################################################################################
 THEPIRATEBAY        = 'http://thepiratebay.se'
-THEPIRATEBAY_SEARCH = THEPIRATEBAY + '/search/{0}/0/7/200'
+THEPIRATEBAY_SEARCH = THEPIRATEBAY + '/search/{0}/{1}/7/200'
 THEPIRATEBAY_TOP    = THEPIRATEBAY + '/top/{0}'
 
 ################################################################################
