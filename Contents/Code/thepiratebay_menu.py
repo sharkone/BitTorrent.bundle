@@ -41,16 +41,11 @@ def get_page_object_container(title, html):
 		movie_object         = MovieObject()
 		movie_object.title   = item.xpath('./td[2]/div/a/text()')[0]
 
-		movie_title_result = SharedCodeService.common.RE_MOVIE_TITLE.search(SharedCodeService.common.get_clean_title(movie_object.title))
-		movie_title        = movie_title_result.group(1) if movie_title_result else movie_object.title
-		movie_year         = movie_title_result.group(3) if movie_title_result else ''
-		movie_release      = movie_title_result.group(5) if movie_title_result else ''
-		movie_tmdb_id      = SharedCodeService.tmdb.get_tmdb_id_from_title(movie_title, movie_year) if (movie_title and movie_year) else None
-
-		if movie_tmdb_id:
-			movie_object = SharedCodeService.tmdb.create_movie_object(movie_tmdb_id)
-			
-		movie_object.summary = '{0}\nSeeders: {1}, Leechers:{2}\n\n{3}'.format(movie_release, item_seeders, item_leechers, movie_object.summary if movie_object.summary else '')
+		movie_info = SharedCodeService.common.get_movie_info(movie_object.title)
+		if movie_info['tmdb_id']:
+			movie_object = SharedCodeService.tmdb.create_movie_object(movie_info['tmdb_id'])
+	
+		movie_object.summary = '{0}\nSeeders: {1}, Leechers:{2}\n\n{3}'.format(movie_info['release'], item_seeders, item_leechers, movie_object.summary if movie_object.summary else '')
 		movie_object.url     = SharedCodeService.thepiratebay.THEPIRATEBAY + item.xpath('./td[2]/div/a/@href')[0]
 
 		object_container.add(movie_object)

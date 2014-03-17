@@ -9,14 +9,20 @@ THEPIRATEBAY_TOP    = THEPIRATEBAY + '/top/{0}'
 
 ################################################################################
 def MetadataObjectForURL(url):
-	imdb_id = get_imdb_id(url)
-	if imdb_id:
-		return tmdb.create_movie_object(imdb_id)
-	else:
-		html  = HTML.ElementFromURL(url)
-		metadata_object       = MovieObject()
-		metadata_object.title = html.xpath('//*[@id="title"]')[0].text.strip()
-		return metadata_object
+	html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+	seeders  = html.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip()
+	leechers = html.xpath('//*[@id="details"]/dl[1]/dd[10]/text()')[0].strip()
+
+	metadata_object       = MovieObject()
+	metadata_object.title = html.xpath('//*[@id="title"]')[0].text.strip()
+
+	movie_info = common.get_movie_info(metadata_object.title)
+	if movie_info['tmdb_id']:
+		metadata_object = tmdb.create_movie_object(movie_info['tmdb_id'])
+	
+	metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(movie_info['release'], seeders, leechers, metadata_object.summary if metadata_object.summary else '')
+
+	return metadata_object
 
 ################################################################################
 def MediaObjectsForURL(url, play_func):
@@ -30,13 +36,3 @@ def MediaObjectsForURL(url, play_func):
 	media_objects.append(media_object)
 
 	return media_objects
-
-################################################################################
-def get_imdb_id(url):
-	try:
-		html      = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-		imdb_link = html.xpath('//*[@title="IMDB"]/@href')[0]
-		imdb_id   = imdb_link.replace('http://www.imdb.com/title/', '').replace('/', '')
-		return imdb_id
-	except:
-		Log.Error('[BitTorrent][thepiratebay] Couldn\'t find IMDB ID')

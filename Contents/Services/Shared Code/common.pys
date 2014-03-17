@@ -1,5 +1,6 @@
 ################################################################################
 import re
+import tmdb
 
 ################################################################################
 PREFIX = '/video/bittorrent'
@@ -8,5 +9,10 @@ PREFIX = '/video/bittorrent'
 RE_MOVIE_TITLE = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 
 ################################################################################
-def get_clean_title(title):
-	return title.replace('.', ' ')
+def get_movie_info(title):
+	movie_title_result = RE_MOVIE_TITLE.search(title.replace('.', ' '))
+	movie_title        = movie_title_result.group(1) if movie_title_result else title
+	movie_year         = movie_title_result.group(3) if movie_title_result else ''
+	movie_release      = movie_title_result.group(5) if movie_title_result else ''
+	movie_tmdb_id      = tmdb.get_tmdb_id_from_title(movie_title, movie_year) if (movie_title and movie_year) else None
+	return { 'title': movie_title, 'year': movie_year, 'release': movie_release, 'tmdb_id': movie_tmdb_id }
