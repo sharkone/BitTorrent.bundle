@@ -4,8 +4,9 @@ import common
 ###############################################################################
 API_KEY = 'a3dc111e66105f6387e99393813ae4d5'
 
-TMDB_CONFIG = None
-TMDB_DATA   = {}
+TMDB_CONFIG      = None
+TMDB_DATA        = {}
+TMDB_SEARCH_DATA = {}
 
 ###############################################################################
 def get_config():
@@ -20,8 +21,21 @@ def get_data(imdb_id):
 	global TMDB_DATA
 
 	if not imdb_id in TMDB_DATA:
-		TMDB_DATA[imdb_id] = JSON.ObjectFromURL('http://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response=credits'.format(imdb_id, API_KEY), cacheTime=CACHE_1DAY)
+		TMDB_DATA[imdb_id] = JSON.ObjectFromURL('http://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response=credits'.format(imdb_id, API_KEY), cacheTime=CACHE_1WEEK)
 	return TMDB_DATA[imdb_id]
+
+###############################################################################
+def get_tmdb_id_from_title(movie_title, movie_year):
+	global TMDB_SEARCH_DATA
+
+	try:
+		key = '{0},{1}'.format(movie_title, movie_year)
+		if not key in TMDB_SEARCH_DATA:
+			search_url = 'http://api.themoviedb.org/3/search/movie?query={0}&year={1}&api_key={2}'.format(String.Quote(movie_title), movie_year, API_KEY)
+			TMDB_SEARCH_DATA[key] = JSON.ObjectFromURL(search_url, cacheTime=CACHE_1WEEK)
+		return TMDB_SEARCH_DATA[key]['results'][0]['id']
+	except Exception as exception:
+		Log.Error('[BitTorrent][tmdb] Failed to identify {0} ({1}): {2}'.format(movie_title, movie_year, exception))
 
 ###############################################################################
 def create_movie_object(imdb_id):
