@@ -78,28 +78,34 @@ def movie(movie_info):
     torrent_infos = []
     
     # KAT
-    rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(movie_info['imdb_id'][2:])
-    rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+    try:
+        rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(movie_info['imdb_id'][2:])
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
-    for rss_entry in rss_data.entries:
-        SharedCodeService.movies.add_torrent_to_torrent_infos(torrent_infos,
-                                                              rss_entry.title,
-                                                              rss_entry.link,
-                                                              rss_entry.torrent_magneturi,
-                                                              int(rss_entry.torrent_seeds),
-                                                              int(rss_entry.torrent_peers))
+        for rss_entry in rss_data.entries:
+            SharedCodeService.movies.add_torrent_to_torrent_infos(torrent_infos,
+                                                                  rss_entry.title,
+                                                                  rss_entry.link,
+                                                                  rss_entry.torrent_magneturi,
+                                                                  int(rss_entry.torrent_seeds),
+                                                                  int(rss_entry.torrent_peers))
+    except Exception as exception:
+        Log.Error('[Bittorrent][movies] Unhandled exception: {0}'.format(exception))
 
     # TPB
-    html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(movie_info['imdb_id'])
-    html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+    try:
+        html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(movie_info['imdb_id'])
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
-    for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
-        SharedCodeService.movies.add_torrent_to_torrent_infos(torrent_infos,
-                                                              html_item.xpath('./td[2]/div/a/text()')[0],
-                                                              'http://thepiratebay.se' + html_item.xpath('./td[2]/div/a/@href')[0],
-                                                              html_item.xpath('./td[2]/a[1]/@href')[0],
-                                                              int(html_item.xpath('./td[3]/text()')[0]),
-                                                              int(html_item.xpath('./td[4]/text()')[0]))
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            SharedCodeService.movies.add_torrent_to_torrent_infos(torrent_infos,
+                                                                  html_item.xpath('./td[2]/div/a/text()')[0],
+                                                                  'http://thepiratebay.se' + html_item.xpath('./td[2]/div/a/@href')[0],
+                                                                  html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                                  int(html_item.xpath('./td[3]/text()')[0]),
+                                                                  int(html_item.xpath('./td[4]/text()')[0]))
+    except Exception as exception:
+        Log.Error('[Bittorrent][movies] Unhandled exception: {0}'.format(exception))
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info['seeders'], reverse=True)
 
