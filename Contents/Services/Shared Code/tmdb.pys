@@ -1,206 +1,199 @@
 ###############################################################################
-import common
+import decorators
 
 ###############################################################################
 API_KEY = 'a3dc111e66105f6387e99393813ae4d5'
 
-TMDB_CONFIG      = None
-TMDB_DATA        = {}
-TMDB_SEARCH_DATA = {}
-
 ###############################################################################
+@decorators.memoized
 def get_config():
-	global TMDB_CONFIG
-
-	if TMDB_CONFIG == None:
-		TMDB_CONFIG = JSON.ObjectFromURL('http://api.themoviedb.org/3/configuration?api_key={0}'.format(API_KEY), cacheTime=CACHE_1WEEK)
-	return TMDB_CONFIG
+    json_url  = 'http://api.themoviedb.org/3/configuration?api_key={0}'.format(API_KEY)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+    return json_data
 
 ###############################################################################
-def get_data(imdb_id):
-	global TMDB_DATA
-
-	if not imdb_id in TMDB_DATA:
-		TMDB_DATA[imdb_id] = JSON.ObjectFromURL('http://api.themoviedb.org/3/movie/{0}?api_key={1}&append_to_response=credits'.format(imdb_id, API_KEY), cacheTime=CACHE_1WEEK)
-	return TMDB_DATA[imdb_id]
+@decorators.memoized
+def get_data(movie_id):
+    json_url  = 'http://api.themoviedb.org/3/movie/{0}?append_to_response=credits&api_key={1}'.format(movie_id, API_KEY)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+    return json_data
 
 ###############################################################################
+@decorators.memoized
 def get_tmdb_id_from_title(movie_title, movie_year):
-	global TMDB_SEARCH_DATA
+    try:
+        if movie_title and movie_year:
+            json_url  = 'http://api.themoviedb.org/3/search/movie?query={0}&year={1}&api_key={2}'.format(String.Quote(movie_title), movie_year, API_KEY)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+            return (json_data['results'][0]['id'], json_data['results'][0]['title'])
+    except:
+        pass
 
-	try:
-		if movie_title and movie_year:
-			key = '{0},{1}'.format(movie_title, movie_year)
-			if not key in TMDB_SEARCH_DATA:
-				search_url = 'http://api.themoviedb.org/3/search/movie?query={0}&year={1}&api_key={2}'.format(String.Quote(movie_title), movie_year, API_KEY)
-				TMDB_SEARCH_DATA[key] = JSON.ObjectFromURL(search_url, cacheTime=CACHE_1WEEK)
-			return (TMDB_SEARCH_DATA[key]['results'][0]['id'], TMDB_SEARCH_DATA[key]['results'][0]['title'])
-	except:
-		pass
-		
-	#Log.Error('[BitTorrent][tmdb] Failed to determine tmdb_id for {0} ({1})'.format(movie_title, movie_year))
-	return (None, movie_title)
+    #Log.Error('[BitTorrent][tmdb] Failed to determine tmdb_id for {0} ({1})'.format(movie_title, movie_year))
+    return (None, movie_title)
 
 ###############################################################################
+@decorators.memoized
 def get_imdb_id_from_title(movie_title, movie_year):
-	tmdb_id, movie_title = get_tmdb_id_from_title(movie_title, movie_year)
-	if tmdb_id:
-		return get_data(tmdb_id)['imdb_id']
+    tmdb_id, movie_title = get_tmdb_id_from_title(movie_title, movie_year)
+    if tmdb_id:
+        return get_data(tmdb_id)['imdb_id']
 
-	#Log.Error('[BitTorrent][tmdb] Failed to determine imdb_id for {0} ({1})'.format(movie_title, movie_year))
-	return (None, movie_title)
+    #Log.Error('[BitTorrent][tmdb] Failed to determine imdb_id for {0} ({1})'.format(movie_title, movie_year))
+    return (None, movie_title)
 
 ###############################################################################
+@decorators.memoized
 def get_movie_metadata(movie_id):
-	try:
-		movie_data = get_data(movie_id)
-	except Exception as exception:
-		Log.Error('[BitTorrent][tmdb] Unhandled exception: {0}'.format(exception))
-		return
+    try:
+        movie_data = get_data(movie_id)
+    except Exception as exception:
+        Log.Error('[BitTorrent][tmdb] Unhandled exception: {0}'.format(exception))
+        return
 
-	movie_metadata = {}
+    movie_metadata = {}
 
-	try:
-		movie_metadata['duration'] = int(movie_data['runtime']) * 60 * 1000
-		movie_metadata['title']    = movie_data['title']
-		movie_metadata['tagline']  = movie_data['tagline']
-		movie_metadata['summary']  = movie_data['overview']
-		movie_metadata['rating']   = movie_data['vote_average']
-		movie_metadata['thumb']    = get_config()['images']['base_url'] + 'original' + movie_data['poster_path']
-		movie_metadata['art']      = get_config()['images']['base_url'] + 'original' + movie_data['backdrop_path']
-	except:
-		pass
+    try:
+        movie_metadata['duration'] = int(movie_data['runtime']) * 60 * 1000
+        movie_metadata['title']    = movie_data['title']
+        movie_metadata['tagline']  = movie_data['tagline']
+        movie_metadata['summary']  = movie_data['overview']
+        movie_metadata['rating']   = movie_data['vote_average']
+        movie_metadata['thumb']    = get_config()['images']['base_url'] + 'original' + movie_data['poster_path']
+        movie_metadata['art']      = get_config()['images']['base_url'] + 'original' + movie_data['backdrop_path']
+    except:
+        pass
 
-	try:
-		movie_metadata['originally_available_at'] = Datetime.ParseDate(movie_data['release_date']).date()
-		movie_metadata['year']                    = movie_metadata['originally_available_at']
-	except:
-		pass
-	
-	try:
-		movie_metadata['studio'] = movie_data['production_companies'][0]['name'].strip()
-	except:
-		pass
+    try:
+        movie_metadata['originally_available_at'] = Datetime.ParseDate(movie_data['release_date']).date()
+        movie_metadata['year']                    = movie_metadata['originally_available_at']
+    except:
+        pass
+    
+    try:
+        movie_metadata['studio'] = movie_data['production_companies'][0]['name'].strip()
+    except:
+        pass
 
-	movie_metadata['genres'] = []
-	for genre in movie_data['genres']:
-		movie_metadata['genres'].append(genre['name'].strip())
+    movie_metadata['genres'] = []
+    for genre in movie_data['genres']:
+        movie_metadata['genres'].append(genre['name'].strip())
 
-	movie_metadata['directors'] = []
-	movie_metadata['writers']   = []
-	movie_metadata['producers'] = []
-	for member in movie_data['credits']['crew']:
-		if member['job'] == 'Director':
-			movie_metadata['directors'].append(member['name'])
-		elif member['job'] in ('Writer', 'Screenplay'):
-			movie_metadata['writers'].append(member['name'])
-		elif member['job'] == 'Producer':
-			movie_metadata['producers'].append(member['name'])
+    movie_metadata['directors'] = []
+    movie_metadata['writers']   = []
+    movie_metadata['producers'] = []
+    for member in movie_data['credits']['crew']:
+        if member['job'] == 'Director':
+            movie_metadata['directors'].append(member['name'])
+        elif member['job'] in ('Writer', 'Screenplay'):
+            movie_metadata['writers'].append(member['name'])
+        elif member['job'] == 'Producer':
+            movie_metadata['producers'].append(member['name'])
 
-	movie_metadata['roles'] = []
-	for member in sorted(movie_data['credits']['cast'], key=lambda k: k['order']):
-		role = { 'character': member['character'], 'name': member['name'], 'photo': None }
-		if member['profile_path']:
-			role['photo'] = get_config()['images']['base_url'] + 'original' + member['profile_path']
-		movie_metadata['roles'].append(role)
+    movie_metadata['roles'] = []
+    for member in sorted(movie_data['credits']['cast'], key=lambda k: k['order']):
+        role = { 'character': member['character'], 'name': member['name'], 'photo': None }
+        if member['profile_path']:
+            role['photo'] = get_config()['images']['base_url'] + 'original' + member['profile_path']
+        movie_metadata['roles'].append(role)
 
-	movie_metadata['countries'] = []
-	if 'production_countries' in movie_data:
-		for country in movie_data['production_countries']:
-			country = country['name'].replace('United States of America', 'USA')
-			movie_metadata['countries'].append(country)
+    movie_metadata['countries'] = []
+    if 'production_countries' in movie_data:
+        for country in movie_data['production_countries']:
+            country = country['name'].replace('United States of America', 'USA')
+            movie_metadata['countries'].append(country)
 
-	return movie_metadata
+    return movie_metadata
 
 ###############################################################################
 def fill_metadata_object(metadata_object, imdb_id):
-	movie_metadata = get_movie_metadata(imdb_id)
-	if not movie_metadata:
-		return
+    movie_metadata = get_movie_metadata(imdb_id)
+    if not movie_metadata:
+        return
 
-	try:
-		metadata_object.duration = movie_metadata['duration']
-	except:
-		pass
-	
-	try:
-		metadata_object.title = movie_metadata['title']
-	except:
-		pass
+    try:
+        metadata_object.duration = movie_metadata['duration']
+    except:
+        pass
+    
+    try:
+        metadata_object.title = movie_metadata['title']
+    except:
+        pass
 
-	try:
-		metadata_object.tagline = movie_metadata['tagline']
-	except:
-		pass
+    try:
+        metadata_object.tagline = movie_metadata['tagline']
+    except:
+        pass
 
-	try:
-		metadata_object.summary = movie_metadata['summary']
-	except:
-		pass
+    try:
+        metadata_object.summary = movie_metadata['summary']
+    except:
+        pass
 
-	try:
-		metadata_object.rating = movie_metadata['rating']
-	except:
-		pass
+    try:
+        metadata_object.rating = movie_metadata['rating']
+    except:
+        pass
 
-	try:
-		metadata_object.thumb = movie_metadata['thumb']
-	except:
-		pass
+    try:
+        metadata_object.thumb = movie_metadata['thumb']
+    except:
+        pass
 
-	try:
-		metadata_object.art = movie_metadata['art']
-	except:
-		pass
-	
-	try:
-		metadata_object.originally_available_at = movie_metadata['originally_available_at']
-		metadata_object.year                    = metadata_object.originally_available_at.year
-	except:
-		pass
+    try:
+        metadata_object.art = movie_metadata['art']
+    except:
+        pass
+    
+    try:
+        metadata_object.originally_available_at = movie_metadata['originally_available_at']
+        metadata_object.year                    = metadata_object.originally_available_at.year
+    except:
+        pass
 
-	try:
-		metadata_object.studio = movie_metadata['studio']
-	except:
-		pass
+    try:
+        metadata_object.studio = movie_metadata['studio']
+    except:
+        pass
 
-	try:
-		for genre in movie_metadata['genres']:
-			metadata_object.genres.add(genre)
-	except:
-		pass
+    try:
+        for genre in movie_metadata['genres']:
+            metadata_object.genres.add(genre)
+    except:
+        pass
 
-	try:
-		for director in movie_metadata['directors']:
-			metadata_object.directors.add(director)
-	except:
-		pass
+    try:
+        for director in movie_metadata['directors']:
+            metadata_object.directors.add(director)
+    except:
+        pass
 
-	try:
-		for writer in movie_metadata['writers']:
-			metadata_object.writers.add(writer)
-	except:
-		pass
+    try:
+        for writer in movie_metadata['writers']:
+            metadata_object.writers.add(writer)
+    except:
+        pass
 
-	try:
-		for producer in movie_metadata['producers']:
-			metadata_object.producers.add(producer)
-	except:
-		pass
+    try:
+        for producer in movie_metadata['producers']:
+            metadata_object.producers.add(producer)
+    except:
+        pass
 
-	try:
-		for role in movie_metadata['roles']:
-			new_role       = metadata_object.roles.new()
-			new_role.actor = role['character']
-			new_role.role  = role['name']
-			new_role.photo = role['photo']
-	except:
-		pass
+    try:
+        for role in movie_metadata['roles']:
+            new_role       = metadata_object.roles.new()
+            new_role.actor = role['character']
+            new_role.role  = role['name']
+            new_role.photo = role['photo']
+    except:
+        pass
 
-	try:
-		for country in movie_metadata['countries']:
-			metadata_object.countries.add(country)
-	except:
-		pass
+    try:
+        for country in movie_metadata['countries']:
+            metadata_object.countries.add(country)
+    except:
+        pass
 
-	return metadata_object
+    return metadata_object
