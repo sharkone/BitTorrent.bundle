@@ -1,5 +1,5 @@
 ################################################################################
-import common
+import movies
 import tmdb
 
 ################################################################################
@@ -7,18 +7,23 @@ KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
 def MetadataObjectForURL(url):
-	html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-	seeders  = html.xpath('//strong[@itemprop="seeders"]/text()')[0]
-	leechers = html.xpath('//strong[@itemprop="leechers"]/text()')[0]
+	html             = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+	torrent_title    = html.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
+	torrent_release  = movies.get_torrent_release(torrent_title)
+	torrent_seeders  = html.xpath('//strong[@itemprop="seeders"]/text()')[0]
+	torrent_leechers = html.xpath('//strong[@itemprop="leechers"]/text()')[0]
+	torrent_imdb_id  = 'tt' + html.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
 
-	metadata_object    = MovieObject()
-	metadata_object.title = html.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
+	metadata_object       = MovieObject()
+	metadata_object.title = torrent_title
 
-	movie_info = common.get_movie_info(metadata_object.title)
+	movie_info = movies.get_movie_info(metadata_object.title)
 	if movie_info['tmdb_id']:
-		metadata_object = tmdb.create_movie_object(movie_info['tmdb_id'])
+		tmdb.fill_metadata_object(metadata_object, movie_info['tmdb_id'])
+	else:
+		tmdb.fill_metadata_object(metadata_object, torrent_imdb_id)
 	
-	metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(movie_info['release'], seeders, leechers, metadata_object.summary if metadata_object.summary else '')
+	metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_release, torrent_seeders, torrent_leechers, metadata_object.summary)
 
 	return metadata_object
 
