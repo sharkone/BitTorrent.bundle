@@ -25,23 +25,23 @@ def popular(page_index=1):
     rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
     for rss_entry in rss_data.entries:
-        movie_info = SharedCodeService.movies.get_movie_info(rss_entry.title)
-        movie_infos[movie_info['key']] = movie_info
+        movie_info = SharedCodeService.movies.MovieInfo(rss_entry.title)
+        movie_infos[movie_info.key] = movie_info
 
     # TPB
     html_url  = 'http://thepiratebay.se/top/201'
     html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
     for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
-        movie_info = SharedCodeService.movies.get_movie_info(html_item.xpath('./td[2]/div/a/text()')[0])
-        movie_infos[movie_info['key']] = movie_info
+        movie_info = SharedCodeService.movies.MovieInfo(html_item.xpath('./td[2]/div/a/text()')[0])
+        movie_infos[movie_info.key] = movie_info
 
     html_url  = 'http://thepiratebay.se/top/207'
     html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
     for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
-        movie_info = SharedCodeService.movies.get_movie_info(html_item.xpath('./td[2]/div/a/text()')[0])
-        movie_infos[movie_info['key']] = movie_info
+        movie_info = SharedCodeService.movies.MovieInfo(html_item.xpath('./td[2]/div/a/text()')[0])
+        movie_infos[movie_info.key] = movie_info
 
     object_container = ObjectContainer(title2='Popular')
     parse_movie_infos(object_container, movie_infos)
@@ -57,16 +57,16 @@ def search(query):
     rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
     for rss_entry in rss_data.entries:
-        movie_info = SharedCodeService.movies.get_movie_info(rss_entry.title)
-        movie_infos[movie_info['key']] = movie_info
+        movie_info = SharedCodeService.movies.MovieInfo(rss_entry.title)
+        movie_infos[movie_info.key] = movie_info
 
     # TPB
     html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(String.Quote(query))
     html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
     for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
-        movie_info = SharedCodeService.movies.get_movie_info(html_item.xpath('./td[2]/div/a/text()')[0])
-        movie_infos[movie_info['key']] = movie_info
+        movie_info = SharedCodeService.movies.MovieInfo(html_item.xpath('./td[2]/div/a/text()')[0])
+        movie_infos[movie_info.key] = movie_info
 
     object_container = ObjectContainer(title2='Popular')
     parse_movie_infos(object_container, movie_infos)
@@ -75,11 +75,12 @@ def search(query):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie', movie_info=dict)
 def movie(movie_info):
+    movie_info    = SharedCodeService.movies.MovieInfo.from_dict(movie_info)
     torrent_infos = []
     
     # KAT
     try:
-        rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(movie_info['imdb_id'][2:])
+        rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(movie_info.imdb_id[2:])
         rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
         for rss_entry in rss_data.entries:
@@ -94,7 +95,7 @@ def movie(movie_info):
 
     # TPB
     try:
-        html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(movie_info['imdb_id'])
+        html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(movie_info.imdb_id)
         html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
         for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
@@ -109,7 +110,7 @@ def movie(movie_info):
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info['seeders'], reverse=True)
 
-    object_container = ObjectContainer(title2=movie_info['title'])
+    object_container = ObjectContainer(title2=movie_info.title)
     parse_torrent_infos(object_container, movie_info, torrent_infos)
     return object_container
 
@@ -117,14 +118,14 @@ def movie(movie_info):
 def parse_movie_infos(object_container, movie_infos):
     for movie_info in movie_infos.itervalues():
         directory_object         = DirectoryObject()
-        directory_object.title   = movie_info['title']
+        directory_object.title   = movie_info.title
 
-        if movie_info['tmdb_id']:
-            SharedCodeService.tmdb.fill_metadata_object(directory_object, movie_info['tmdb_id'])
+        if movie_info.tmdb_id:
+            SharedCodeService.tmdb.fill_metadata_object(directory_object, movie_info.tmdb_id)
         elif not ALLOW_UNRECOGNIZED:
             continue
 
-        directory_object.key = Callback(movie, movie_info=movie_info)
+        directory_object.key = Callback(movie, movie_info=movie_info.to_dict())
         object_container.add(directory_object)
 
 ################################################################################
@@ -135,11 +136,11 @@ def parse_torrent_infos(object_container, movie_info, torrent_infos):
         seeders_leechers_line = 'Seeders: {0}, Leechers: {1}'.format(torrent_info['seeders'], torrent_info['leechers'])
 
         movie_object         = MovieObject()
-        movie_object.title   = movie_info['title']
+        movie_object.title   = movie_info.title
         movie_object.summary = seeders_leechers_line
 
-        if movie_info['tmdb_id']:
-            SharedCodeService.tmdb.fill_metadata_object(movie_object, movie_info['tmdb_id'])
+        if movie_info.tmdb_id:
+            SharedCodeService.tmdb.fill_metadata_object(movie_object, movie_info.tmdb_id)
             movie_object.title = torrent_info['release']
 
         movie_object.url     = torrent_info['url']
