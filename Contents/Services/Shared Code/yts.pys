@@ -10,7 +10,9 @@ YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 
 ################################################################################
 def MetadataObjectForURL(url):
-	return tmdb.create_movie_object(get_imdb_id(url))
+	metadata_object = MovieObject()
+	tmdb.fill_metadata_object(metadata_object, get_imdb_id(url))
+	return metadata_object
 
 ################################################################################
 def MediaObjectsForURL(url, play_func):
