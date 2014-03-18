@@ -7,18 +7,41 @@ RE_MOVIE_TITLE      = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 
 ################################################################################
-def get_movie_info(torrent_title):
-    movie_title_result  = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
-    movie_info          = {}
-    movie_info['title'] = movie_title_result.group(1) if movie_title_result else torrent_title
-    movie_info['year']  = movie_title_result.group(3) if movie_title_result else ''
-    
-    movie_info['tmdb_id'], movie_info['title'] = tmdb.get_tmdb_id_from_title(movie_info['title'], movie_info['year'])
-    
-    movie_info['imdb_id'] = tmdb.get_imdb_id_from_title(movie_info['title'], movie_info['year'])
-    movie_info['key']     = movie_info['tmdb_id'] if movie_info['tmdb_id'] else torrent_title
-    
-    return movie_info
+class MovieInfo:
+    def __init__(self, torrent_title=''):
+        self.title   = torrent_title
+        self.year    = ''
+        self.tmdb_id = ''
+        self.imdb_id = ''
+        self.key     = torrent_title
+
+        title_re_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+        if title_re_result:
+            self.title = title_re_result.group(1)
+            self.year  = title_re_result.group(3)
+
+            self.tmdb_id, self.title = tmdb.get_tmdb_id_from_title(self.title, self.year)
+            self.imdb_id             = tmdb.get_imdb_id_from_title(self.title, self.year)
+            self.key                 = self.tmdb_id
+
+    def to_dict(self):
+        return { 
+                    'title':    self.title,
+                    'year':     self.year,
+                    'tmdb_id':  self.tmdb_id,
+                    'imdb_id':  self.imdb_id,
+                    'key':      self.key
+               }
+
+    @staticmethod
+    def from_dict(dict):
+        result         = MovieInfo()
+        result.title   = dict['title']
+        result.year    = dict['year']
+        result.tmdb_id = dict['tmdb_id']
+        result.imdb_id = dict['imdb_id']
+        result.key     = dict['key']
+        return result
 
 ################################################################################
 def get_torrent_release(torrent_title):
