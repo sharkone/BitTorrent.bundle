@@ -12,6 +12,7 @@ class TorrentInfo:
         self.magnet    = magnet
         self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
         self.title     = title
+        self.release   = get_torrent_release(title)
         self.seeders   = seeders
         self.leechers  = leechers
         self.url       = url
