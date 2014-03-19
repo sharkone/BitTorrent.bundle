@@ -67,7 +67,10 @@ def search(query):
 
     for rss_entry in rss_data.entries:
         movie_info = SharedCodeService.movies.MovieInfo(rss_entry.title)
-        movie_infos[movie_info.key] = movie_info
+        if not movie_info.key in movie_infos:
+            movie_infos[movie_info.key] = movie_info
+        movie_infos[movie_info.key].seeders  = movie_infos[movie_info.key].seeders  + int(rss_entry.torrent_seeds)
+        movie_infos[movie_info.key].leechers = movie_infos[movie_info.key].leechers + int(rss_entry.torrent_peers)
 
     # TPB
     html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(String.Quote(query))
@@ -75,7 +78,10 @@ def search(query):
 
     for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
         movie_info = SharedCodeService.movies.MovieInfo(html_item.xpath('./td[2]/div/a/text()')[0])
-        movie_infos[movie_info.key] = movie_info
+        if not movie_info.key in movie_infos:
+            movie_infos[movie_info.key] = movie_info
+        movie_infos[movie_info.key].seeders  = movie_infos[movie_info.key].seeders  + int(html_item.xpath('./td[3]/text()')[0])
+        movie_infos[movie_info.key].leechers = movie_infos[movie_info.key].leechers + int(html_item.xpath('./td[4]/text()')[0])
 
     object_container = ObjectContainer(title2='Popular')
     parse_movie_infos(object_container, movie_infos)
@@ -137,10 +143,9 @@ def parse_movie_infos(object_container, movie_infos):
 
         if movie_info.tmdb_id:
             SharedCodeService.tmdb.fill_metadata_object(directory_object, movie_info.tmdb_id)
+            directory_object.summary = seeders_leechers_line + '\n\n' + directory_object.summary
         elif not ALLOW_UNRECOGNIZED:
             continue
-
-        directory_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, directory_object.summary)
 
         directory_object.key = Callback(movie, movie_info=movie_info.to_dict())
         object_container.add(directory_object)
@@ -158,9 +163,10 @@ def parse_torrent_infos(object_container, movie_info, torrent_infos):
 
         if movie_info.tmdb_id:
             SharedCodeService.tmdb.fill_metadata_object(movie_object, movie_info.tmdb_id)
-            movie_object.title = torrent_info['release']
+            movie_object.title   = torrent_info['release']
+            movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary)
+            #movie_object.summary = '{3}\n{2}\n{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary, torrent_info['info_hash'], torrent_info['title'])
 
-        movie_object.url     = torrent_info['url']
-        movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary)
+        movie_object.url = torrent_info['url']
 
         object_container.add(movie_object)
