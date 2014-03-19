@@ -133,6 +133,9 @@ def movie(movie_info):
                                                                 int(rss_entry.torrent_peers),
                                                                 rss_entry.link)
     
+            if SharedCodeService.movies.MovieInfo(torrent_info.title).key != movie_info.key:
+                continue
+    
             if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
                 torrent_infos.append(torrent_info)
 
@@ -150,6 +153,9 @@ def movie(movie_info):
                                                                 int(html_item.xpath('./td[3]/text()')[0]),
                                                                 int(html_item.xpath('./td[4]/text()')[0]),
                                                                 'http://thepiratebay.se' + html_item.xpath('./td[2]/div/a/@href')[0])
+
+            if SharedCodeService.movies.MovieInfo(torrent_info.title).key != movie_info.key:
+                continue
 
             if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
                 torrent_infos.append(torrent_info)
