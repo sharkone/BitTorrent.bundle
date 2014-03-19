@@ -31,7 +31,7 @@ def popular(per_page, movie_count=0):
     #                                                         int(kat_rss_entry.torrent_peers),
     #                                                         kat_rss_entry.link)
         
-    #     if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+    #     if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
     #         torrent_infos.append(torrent_info)
 
     # TPB
@@ -45,7 +45,7 @@ def popular(per_page, movie_count=0):
     #                                                         int(tpb_html_item.xpath('./td[4]/text()')[0]),
     #                                                         'http://thepiratebay.se' + tpb_html_item.xpath('./td[2]/div/a/@href')[0])
 
-    #     if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+    #     if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
     #         torrent_infos.append(torrent_info)
 
     tpb_hd_html_url  = 'http://thepiratebay.se/top/207'
@@ -58,7 +58,7 @@ def popular(per_page, movie_count=0):
                                                             int(tpb_hd_html_item.xpath('./td[4]/text()')[0]),
                                                             'http://thepiratebay.se' + tpb_hd_html_item.xpath('./td[2]/div/a/@href')[0])
 
-        if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+        if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
             torrent_infos.append(torrent_info)
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
@@ -141,7 +141,7 @@ def movie(movie_info):
             if SharedCodeService.movies.MovieInfo(torrent_info.title).key != movie_info.key:
                 continue
 
-            if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
                 torrent_infos.append(torrent_info)
 
     except Exception as exception:
@@ -162,7 +162,7 @@ def movie(movie_info):
             if SharedCodeService.movies.MovieInfo(torrent_info.title).key != movie_info.key:
                 continue
 
-            if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
                 torrent_infos.append(torrent_info)
 
     except Exception as exception:
