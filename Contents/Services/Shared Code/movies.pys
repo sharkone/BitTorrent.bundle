@@ -7,14 +7,22 @@ RE_MOVIE_TITLE      = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 
 ################################################################################
+class TorrentInfo:
+    def __init__(self, magnet, title, seeders, leechers, url):
+        self.magnet    = magnet
+        self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
+        self.title     = title
+        self.seeders   = seeders
+        self.leechers  = leechers
+        self.url       = url
+
+################################################################################
 class MovieInfo:
     def __init__(self, torrent_title=''):
-        self.title    = torrent_title
-        self.year     = ''
-        self.tmdb_id  = ''
-        self.key      = torrent_title
-        self.seeders  = 0
-        self.leechers = 0
+        self.title   = torrent_title
+        self.year    = ''
+        self.tmdb_id = ''
+        self.key     = torrent_title
 
         title_re_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
         if title_re_result:
@@ -29,9 +37,7 @@ class MovieInfo:
                     'title':    self.title,
                     'year':     self.year,
                     'tmdb_id':  self.tmdb_id,
-                    'key':      self.key,
-                    'seeders':  self.seeders,
-                    'leechers': self.leechers
+                    'key':      self.key
                }
 
     @staticmethod
@@ -41,29 +47,9 @@ class MovieInfo:
         result.year     = dict['year']
         result.tmdb_id  = dict['tmdb_id']
         result.key      = dict['key']
-        result.seeders  = dict['seeders']
-        result.leechers = dict['leechers']
         return result
 
 ################################################################################
 def get_torrent_release(torrent_title):
     movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
     return movie_title_result.group(5) if movie_title_result else torrent_title
-
-################################################################################
-def add_torrent_to_torrent_infos(torrent_infos, torrent_title, torrent_url, torrent_magnet, torrent_seeders, torrent_leechers):
-    if not torrent_seeders:
-        return
-
-    torrent_info_hash = RE_MAGNET_INFO_HASH.search(torrent_magnet).group(1).lower()
-
-    if not [t for t in torrent_infos if torrent_info_hash == t['info_hash']]:
-        torrent_info = {}
-        torrent_info['title']     = torrent_title
-        torrent_info['url']       = torrent_url
-        torrent_info['magnet']    = torrent_magnet
-        torrent_info['info_hash'] = torrent_info_hash
-        torrent_info['seeders']   = torrent_seeders
-        torrent_info['leechers']  = torrent_leechers
-        torrent_info['release']   = get_torrent_release(torrent_info['title'])    
-        torrent_infos.append(torrent_info)
