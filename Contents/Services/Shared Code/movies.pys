@@ -9,11 +9,12 @@ RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 ################################################################################
 class MovieInfo:
     def __init__(self, torrent_title=''):
-        self.title   = torrent_title
-        self.year    = ''
-        self.tmdb_id = ''
-        self.imdb_id = ''
-        self.key     = torrent_title
+        self.title    = torrent_title
+        self.year     = ''
+        self.tmdb_id  = ''
+        self.key      = torrent_title
+        self.seeders  = 0
+        self.leechers = 0
 
         title_re_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
         if title_re_result:
@@ -21,7 +22,6 @@ class MovieInfo:
             self.year  = title_re_result.group(3)
 
             self.tmdb_id, self.title = tmdb.get_tmdb_id_from_title(self.title, self.year)
-            self.imdb_id             = tmdb.get_imdb_id_from_title(self.title, self.year)
             self.key                 = self.tmdb_id
 
     def to_dict(self):
@@ -29,18 +29,20 @@ class MovieInfo:
                     'title':    self.title,
                     'year':     self.year,
                     'tmdb_id':  self.tmdb_id,
-                    'imdb_id':  self.imdb_id,
-                    'key':      self.key
+                    'key':      self.key,
+                    'seeders':  self.seeders,
+                    'leechers': self.leechers
                }
 
     @staticmethod
     def from_dict(dict):
-        result         = MovieInfo()
-        result.title   = dict['title']
-        result.year    = dict['year']
-        result.tmdb_id = dict['tmdb_id']
-        result.imdb_id = dict['imdb_id']
-        result.key     = dict['key']
+        result          = MovieInfo()
+        result.title    = dict['title']
+        result.year     = dict['year']
+        result.tmdb_id  = dict['tmdb_id']
+        result.key      = dict['key']
+        result.seeders  = dict['seeders']
+        result.leechers = dict['leechers']
         return result
 
 ################################################################################
