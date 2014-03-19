@@ -126,7 +126,9 @@ def movie(movie_info):
     
     # KAT
     try:
-        rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(movie_info.imdb_id[2:])
+        imdb_id = SharedCodeService.tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
+
+        rss_url  = 'http://kickass.to/usearch/imdb%3A{0}/?field=seeders&sorder=desc&rss=1'.format(imdb_id[2:])
         rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
         for rss_entry in rss_data.entries:
