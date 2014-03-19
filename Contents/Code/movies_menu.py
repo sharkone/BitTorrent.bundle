@@ -61,7 +61,7 @@ def popular(per_page, movie_count=0):
         if not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
             torrent_infos.append(torrent_info)
 
-    #torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
+    torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 
     movie_infos      = set()
     movie_infos_list = []
@@ -70,14 +70,15 @@ def popular(per_page, movie_count=0):
     for torrent_info in torrent_infos:
         movie_info = SharedCodeService.movies.MovieInfo(torrent_info.title)
         
-        if len(movie_infos_skip) < movie_count:
-            movie_infos_skip.add(movie_info.key)
-        else:
-            if not movie_info.key in movie_infos_skip and not movie_info.key in movie_infos:
-                movie_infos.add(movie_info.key)
-                movie_infos_list.append(movie_info)
-                if len(movie_infos_list) == per_page:
-                    break
+        if movie_info.tmdb_id or ALLOW_UNRECOGNIZED:
+            if len(movie_infos_skip) < movie_count:
+                movie_infos_skip.add(movie_info.key)
+            else:
+                if not movie_info.key in movie_infos_skip and not movie_info.key in movie_infos:
+                    movie_infos.add(movie_info.key)
+                    movie_infos_list.append(movie_info)
+                    if len(movie_infos_list) == per_page:
+                        break
 
     object_container = ObjectContainer(title2='Popular')
     parse_movie_infos(object_container, movie_infos_list)
@@ -97,9 +98,10 @@ def search(query):
 
     for rss_entry in rss_data.entries:
         movie_info = SharedCodeService.movies.MovieInfo(rss_entry.title)
-        if not movie_info.key in movie_infos:
-            movie_infos.add(movie_info.key)
-            movie_infos_list.append(movie_info)
+        if movie_info.tmdb_id or ALLOW_UNRECOGNIZED:
+            if not movie_info.key in movie_infos:
+                movie_infos.add(movie_info.key)
+                movie_infos_list.append(movie_info)
 
     # TPB
     html_url  = 'http://thepiratebay.se/search/{0}/0/7/200'.format(String.Quote(query))
@@ -107,9 +109,10 @@ def search(query):
 
     for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
         movie_info = SharedCodeService.movies.MovieInfo(html_item.xpath('./td[2]/div/a/text()')[0])
-        if not movie_info.key in movie_infos:
-            movie_infos.add(movie_info.key)
-            movie_infos_list.append(movie_info)
+        if movie_info.tmdb_id or ALLOW_UNRECOGNIZED:
+            if not movie_info.key in movie_infos:
+                movie_infos.add(movie_info.key)
+                movie_infos_list.append(movie_info)
 
     object_container = ObjectContainer(title2='Search')
     parse_movie_infos(object_container, movie_infos_list)
@@ -177,8 +180,6 @@ def parse_movie_infos(object_container, movie_infos_list):
 
         if movie_info.tmdb_id:
             SharedCodeService.tmdb.fill_metadata_object(directory_object, movie_info.tmdb_id)
-        elif not ALLOW_UNRECOGNIZED:
-            continue
 
         directory_object.key = Callback(movie, movie_info=movie_info.to_dict())
         object_container.add(directory_object)
