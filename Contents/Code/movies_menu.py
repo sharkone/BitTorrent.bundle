@@ -199,9 +199,11 @@ def parse_torrent_infos(object_container, movie_info, torrent_infos):
 
         if movie_info.tmdb_id:
             SharedCodeService.tmdb.fill_metadata_object(movie_object, movie_info.tmdb_id)
-            movie_object.title   = torrent_info.release
-            movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary)
-            #movie_object.summary = '{3}\n{2}\n{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary, torrent_info['info_hash'], torrent_info['title'])
+            movie_object.title = torrent_info.release
+
+            if seeders_leechers_line != movie_object.summary:
+                movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary) 
+                #movie_object.summary = '{3}\n{2}\n{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary, torrent_info['info_hash'], torrent_info['title'])
 
         movie_object.url = torrent_info.url
 
