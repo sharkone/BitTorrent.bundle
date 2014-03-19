@@ -11,6 +11,7 @@ THEPIRATEBAY_TOP    = THEPIRATEBAY + '/top/{0}'
 def MetadataObjectForURL(url):
     html             = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
     torrent_title    = html.xpath('//*[@id="title"]')[0].text.strip()
+    torrent_release  = movies.get_torrent_release(torrent_title)
     
     try:
         torrent_seeders = html.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip()
@@ -29,7 +30,7 @@ def MetadataObjectForURL(url):
     if movie_info.tmdb_id:
         tmdb.fill_metadata_object(metadata_object, movie_info.tmdb_id)    
 
-    metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_title, torrent_seeders, torrent_leechers, metadata_object.summary)
+    metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_release, torrent_seeders, torrent_leechers, metadata_object.summary)
 
     return metadata_object
 
