@@ -21,32 +21,32 @@ def popular(per_page, movie_count=0):
     torrent_infos = []
 
     # KAT
-    # kat_rss_url  = 'http://kickass.to/movies/?field=seeders&sorder=desc&rss=1'
-    # kat_rss_data = RSS.FeedFromURL(kat_rss_url, cacheTime=CACHE_1HOUR)
+    kat_rss_url  = 'http://kickass.to/movies/?field=seeders&sorder=desc&rss=1'
+    kat_rss_data = RSS.FeedFromURL(kat_rss_url, cacheTime=CACHE_1HOUR)
 
-    # for kat_rss_entry in kat_rss_data.entries:
-    #     torrent_info = SharedCodeService.movies.TorrentInfo(kat_rss_entry.torrent_magneturi,
-    #                                                         kat_rss_entry.title, 
-    #                                                         int(kat_rss_entry.torrent_seeds),
-    #                                                         int(kat_rss_entry.torrent_peers),
-    #                                                         kat_rss_entry.link)
+    for kat_rss_entry in kat_rss_data.entries:
+        torrent_info = SharedCodeService.movies.TorrentInfo(kat_rss_entry.torrent_magneturi,
+                                                            kat_rss_entry.title, 
+                                                            int(kat_rss_entry.torrent_seeds),
+                                                            int(kat_rss_entry.torrent_peers),
+                                                            kat_rss_entry.link)
         
-    #     if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
-    #         torrent_infos.append(torrent_info)
+        if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            torrent_infos.append(torrent_info)
 
     # TPB
-    # tpb_html_url  = 'http://thepiratebay.se/top/201'
-    # tpb_html_data = HTML.ElementFromURL(tpb_html_url, cacheTime=CACHE_1HOUR)
+    tpb_html_url  = 'http://thepiratebay.se/top/201'
+    tpb_html_data = HTML.ElementFromURL(tpb_html_url, cacheTime=CACHE_1HOUR)
 
-    # for tpb_html_item in tpb_html_data.xpath('//*[@id="searchResult"]/tr'):
-    #     torrent_info = SharedCodeService.movies.TorrentInfo(tpb_html_item.xpath('./td[2]/a[1]/@href')[0],
-    #                                                         tpb_html_item.xpath('./td[2]/div/a/text()')[0],
-    #                                                         int(tpb_html_item.xpath('./td[3]/text()')[0]),
-    #                                                         int(tpb_html_item.xpath('./td[4]/text()')[0]),
-    #                                                         'http://thepiratebay.se' + tpb_html_item.xpath('./td[2]/div/a/@href')[0])
+    for tpb_html_item in tpb_html_data.xpath('//*[@id="searchResult"]/tr'):
+        torrent_info = SharedCodeService.movies.TorrentInfo(tpb_html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                            tpb_html_item.xpath('./td[2]/div/a/text()')[0],
+                                                            int(tpb_html_item.xpath('./td[3]/text()')[0]),
+                                                            int(tpb_html_item.xpath('./td[4]/text()')[0]),
+                                                            'http://thepiratebay.se' + tpb_html_item.xpath('./td[2]/div/a/@href')[0])
 
-    #     if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
-    #         torrent_infos.append(torrent_info)
+        if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            torrent_infos.append(torrent_info)
 
     tpb_hd_html_url  = 'http://thepiratebay.se/top/207'
     tpb_hd_html_data = HTML.ElementFromURL(tpb_hd_html_url, cacheTime=CACHE_1HOUR)
