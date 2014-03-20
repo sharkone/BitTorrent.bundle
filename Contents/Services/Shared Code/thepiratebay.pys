@@ -1,4 +1,5 @@
 ################################################################################
+import common
 import movies
 import tmdb
 
@@ -11,7 +12,7 @@ THEPIRATEBAY_TOP    = THEPIRATEBAY + '/top/{0}'
 def MetadataObjectForURL(url):
     html             = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
     torrent_title    = html.xpath('//*[@id="title"]')[0].text.strip()
-    torrent_release  = movies.get_torrent_release(torrent_title)
+    torrent_release  = common.get_torrent_release(torrent_title)
     
     try:
         torrent_seeders = html.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip()
