@@ -31,7 +31,7 @@ class MovieInfo:
             self.year  = title_re_result.group(3)
 
             self.tmdb_id, self.title = tmdb.get_tmdb_id_from_title(self.title, self.year)
-            self.key                 = self.tmdb_id
+            self.key                 = self.tmdb_id if self.tmdb_id else self.title
 
     def to_dict(self):
         return { 
