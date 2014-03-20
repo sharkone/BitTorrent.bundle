@@ -40,7 +40,7 @@ def get_imdb_id_from_title(movie_title, movie_year):
         return get_data(tmdb_id)['imdb_id']
 
     #Log.Error('[BitTorrent][tmdb] Failed to determine imdb_id for {0} ({1})'.format(movie_title, movie_year))
-    return (None, movie_title)
+    return None
 
 ###############################################################################
 @decorators.memoized
