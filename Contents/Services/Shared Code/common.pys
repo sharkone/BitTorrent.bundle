@@ -1,2 +1,23 @@
 ################################################################################
+import re
+
+################################################################################
 PREFIX = '/video/bittorrent'
+
+RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+
+################################################################################
+class TorrentInfo:
+    def __init__(self, magnet, title, seeders, leechers, url):
+        self.magnet    = magnet
+        self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
+        self.title     = title
+        self.release   = get_torrent_release(title)
+        self.seeders   = seeders
+        self.leechers  = leechers
+        self.url       = url
+
+################################################################################
+def get_torrent_release(torrent_title):
+    movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+    return movie_title_result.group(5) if movie_title_result else torrent_title
