@@ -2,6 +2,7 @@
 import common
 import kickasstorrents
 import thepiratebay
+import yts
 
 ################################################################################
 class MetaProvider(common.TorrentProvider):
@@ -9,6 +10,7 @@ class MetaProvider(common.TorrentProvider):
         self.providers = []
         self.providers.append(kickasstorrents.KickAssTorrentsProvider())
         self.providers.append(thepiratebay.ThePirateBayProvider())
+        self.providers.append(yts.YTSProvider())
 
     def get_popular_movie_torrents(self, torrent_infos):
         for provider in self.providers:

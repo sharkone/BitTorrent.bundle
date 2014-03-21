@@ -5,13 +5,8 @@ import yts
 
 ################################################################################
 def MetadataObjectForURL(url):
-    metadata_object = None
-
-    if url.startswith(yts.YTS):
-        metadata_object = yts.MetadataObjectForURL(url)
-    else:
-        torrent_provider = metaprovider.MetaProvider()
-        metadata_object  = torrent_provider.get_metadata_object_for_url(url)
+    torrent_provider = metaprovider.MetaProvider()
+    metadata_object  = torrent_provider.get_metadata_object_for_url(url)
 
     if metadata_object:
         metadata_object.thumb = Callback(get_image_async, url=metadata_object.thumb)
@@ -22,11 +17,8 @@ def MetadataObjectForURL(url):
 ################################################################################
 @deferred
 def MediaObjectsForURL(url):
-    if url.startswith(yts.YTS):
-        return yts.MediaObjectsForURL(url, play_torrent)
-    else:
-        torrent_provider = metaprovider.MetaProvider()
-        return torrent_provider.get_media_objects_for_url(url, play_torrent)
+    torrent_provider = metaprovider.MetaProvider()
+    return torrent_provider.get_media_objects_for_url(url, play_torrent)
 
 ################################################################################
 def get_image_async(url):
