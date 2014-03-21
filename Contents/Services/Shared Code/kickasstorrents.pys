@@ -8,7 +8,7 @@ KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
 class KickAssTorrentsProvider(common.TorrentProvider):
-    def fill_popular_torrent_infos(self, torrent_infos):
+    def get_popular_movie_torrents(self, torrent_infos):
         rss_url  = KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1'
         rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
@@ -18,6 +18,20 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                                                        int(rss_entry.torrent_seeds),
                                                        int(rss_entry.torrent_peers),
                                                        rss_entry.link)
+
+    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+        imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
+
+        rss_query = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
+        rss_url   = KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(rss_query))
+        rss_data  = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, movie_info.key, rss_entry.torrent_magneturi,
+                                                                 rss_entry.title,
+                                                                 int(rss_entry.torrent_seeds),
+                                                                 int(rss_entry.torrent_peers),
+                                                                 rss_entry.link)
 
     def get_torrent_info_for_url(self, url):
         if url.startswith(KICKASSTORRENTS):
