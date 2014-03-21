@@ -31,6 +31,12 @@ class TorrentProvider:
     def get_popular_movie_torrents(self, torrent_infos):
         pass
 
+    def search_movies(self, query, torrent_infos):
+        pass
+
+    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+        pass
+
     def get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
         if torrent_info:
