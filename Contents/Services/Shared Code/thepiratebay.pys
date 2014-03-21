@@ -11,6 +11,27 @@ RE_IMDB_ID = re.compile('http://www.imdb.com/title/(.+)/')
 
 ################################################################################
 class ThePirateBayProvider(common.TorrentProvider):
+    def fill_popular_torrent_infos(self, torrent_infos):
+        html_url  = THEPIRATEBAY + '/top/201'
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                       html_item.xpath('./td[2]/div/a/text()')[0],
+                                                       int(html_item.xpath('./td[3]/text()')[0]),
+                                                       int(html_item.xpath('./td[4]/text()')[0]),
+                                                       THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+        html_url  = THEPIRATEBAY + '/top/207'
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                       html_item.xpath('./td[2]/div/a/text()')[0],
+                                                       int(html_item.xpath('./td[3]/text()')[0]),
+                                                       int(html_item.xpath('./td[4]/text()')[0]),
+                                                       THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
     def get_torrent_info_for_url(self, url):
         if url.startswith(THEPIRATEBAY):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
@@ -20,12 +41,12 @@ class ThePirateBayProvider(common.TorrentProvider):
             torrent_title    = page_data.xpath('//div[@id="title"]')[0].text.strip()
             
             try:
-                torrent_seeders = page_data.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip()
+                torrent_seeders = int(page_data.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip())
             except:
                 torrent_seeders = 'Unknown'
 
             try:
-                torrent_leechers = page_data.xpath('//*[@id="details"]/dl[1]/dd[10]/text()')[0].strip()
+                torrent_leechers = int(page_data.xpath('//*[@id="details"]/dl[1]/dd[10]/text()')[0].strip())
             except:
                 torrent_leechers = 'Unknown'
 

@@ -28,6 +28,9 @@ def get_torrent_release(torrent_title):
 
 ################################################################################
 class TorrentProvider:
+    def fill_popular_torrent_infos(self, torrent_infos):
+        pass
+
     def get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
         if torrent_info:
@@ -54,3 +57,13 @@ class TorrentProvider:
 
     def get_torrent_info_for_url(self, url):
         pass
+
+    def add_torrent_info(self, torrent_infos, movie_key, torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url):
+        torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+
+        if movie_key and movies.MovieInfo(torrent_info.title).key != movie_key:
+            return
+
+        if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            torrent_infos.append(torrent_info)
+
