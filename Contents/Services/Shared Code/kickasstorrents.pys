@@ -8,6 +8,17 @@ KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
 class KickAssTorrentsProvider(common.TorrentProvider):
+    def fill_popular_torrent_infos(self, torrent_infos):
+        rss_url  = KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1'
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
+                                                       rss_entry.title,
+                                                       int(rss_entry.torrent_seeds),
+                                                       int(rss_entry.torrent_peers),
+                                                       rss_entry.link)
+
     def get_torrent_info_for_url(self, url):
         if url.startswith(KICKASSTORRENTS):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
@@ -15,8 +26,8 @@ class KickAssTorrentsProvider(common.TorrentProvider):
             torrent_url      = url
             torrent_magnet   = page_data.xpath('//*[@class="magnetlinkButton"]/@href')[0]
             torrent_title    = page_data.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
-            torrent_seeders  = page_data.xpath('//strong[@itemprop="seeders"]/text()')[0]            
-            torrent_leechers = page_data.xpath('//strong[@itemprop="leechers"]/text()')[0]
+            torrent_seeders  = int(page_data.xpath('//strong[@itemprop="seeders"]/text()')[0])
+            torrent_leechers = int(page_data.xpath('//strong[@itemprop="leechers"]/text()')[0])
 
             torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
             torrent_info.data['imdb_id'] = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
