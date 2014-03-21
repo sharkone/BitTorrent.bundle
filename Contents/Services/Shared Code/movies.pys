@@ -1,9 +1,6 @@
 ################################################################################
-import re
+import common
 import tmdb
-
-################################################################################
-RE_MOVIE_TITLE = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 
 ################################################################################
 class MovieInfo:
@@ -13,7 +10,7 @@ class MovieInfo:
         self.tmdb_id = ''
         self.key     = torrent_title
 
-        title_re_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+        title_re_result = common.RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
         if title_re_result:
             self.title = title_re_result.group(1)
             self.year  = title_re_result.group(3)

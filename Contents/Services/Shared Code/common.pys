@@ -1,10 +1,13 @@
 ################################################################################
+import movies
 import re
+import tmdb
 
 ################################################################################
 PREFIX = '/video/bittorrent'
 
 RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+RE_MOVIE_TITLE      = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 
 ################################################################################
 class TorrentInfo:
@@ -16,8 +19,38 @@ class TorrentInfo:
         self.seeders   = seeders
         self.leechers  = leechers
         self.url       = url
+        self.data      = {}
 
 ################################################################################
 def get_torrent_release(torrent_title):
     movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
     return movie_title_result.group(5) if movie_title_result else torrent_title
+
+################################################################################
+class TorrentProvider:
+    def get_metadata_object_for_url(self, url):
+        torrent_info = self.get_torrent_info_for_url(url)
+        if torrent_info:
+            metadata_object       = MovieObject()
+            metadata_object.title = torrent_info.title
+
+            movie_info = movies.MovieInfo(metadata_object.title)
+            if movie_info.tmdb_id:
+                tmdb.fill_metadata_object(metadata_object, movie_info.tmdb_id)
+            elif 'imdb_id' in torrent_info.data:
+                tmdb.fill_metadata_object(metadata_object, torrent_info.data['imdb_id'])
+            
+            metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_info.release, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
+
+            return metadata_object
+
+    def get_media_objects_for_url(self, url, play_func):
+        torrent_info = self.get_torrent_info_for_url(url)
+
+        if torrent_info:
+            media_object = MediaObject()
+            media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet)))
+            return [media_object]
+
+    def get_torrent_info_for_url(self, url):
+        pass

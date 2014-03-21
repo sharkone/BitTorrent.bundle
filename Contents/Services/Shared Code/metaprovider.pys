@@ -1,0 +1,29 @@
+################################################################################
+import common
+import kickasstorrents
+import thepiratebay
+
+################################################################################
+class MetaProvider(common.TorrentProvider):
+    def __init__(self):
+        self.providers = []
+        self.providers.append(kickasstorrents.KickAssTorrentsProvider())
+        self.providers.append(thepiratebay.ThePirateBayProvider())
+
+    def get_metadata_object_for_url(self, url):
+        for provider in self.providers:
+            metadata_object = provider.get_metadata_object_for_url(url)
+            if metadata_object:
+                return metadata_object
+
+    def get_media_objects_for_url(self, url, play_func):
+        for provider in self.providers:
+            media_objects = provider.get_media_objects_for_url(url, play_func)
+            if media_objects:
+                return media_objects
+
+    def get_torrent_info_for_url(self, url):
+        for provider in self.providers:
+            torrent_info = provider.get_torrent_info_for_url(url)
+            if torrent_info:
+                return torrent_info
