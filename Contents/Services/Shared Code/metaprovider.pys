@@ -10,9 +10,13 @@ class MetaProvider(common.TorrentProvider):
         self.providers.append(kickasstorrents.KickAssTorrentsProvider())
         self.providers.append(thepiratebay.ThePirateBayProvider())
 
-    def fill_popular_torrent_infos(self, torrent_infos):
+    def get_popular_movie_torrents(self, torrent_infos):
         for provider in self.providers:
-            provider.fill_popular_torrent_infos(torrent_infos)
+            provider.get_popular_movie_torrents(torrent_infos)
+
+    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+        for provider in self.providers:
+            provider.get_specific_movie_torrents(movie_info, torrent_infos)
 
     def get_metadata_object_for_url(self, url):
         for provider in self.providers:

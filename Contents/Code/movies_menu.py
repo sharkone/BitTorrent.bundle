@@ -18,7 +18,7 @@ def popular(per_page, movie_count=0):
     torrent_infos = []
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
-    torrent_provider.fill_popular_torrent_infos(torrent_infos)
+    torrent_provider.get_popular_movie_torrents(torrent_infos)
 
     movie_infos = []
     movie_count = fill_movie_list(torrent_infos, movie_count, per_page, movie_infos)
@@ -69,39 +69,8 @@ def movie(movie_info):
     movie_info    = SharedCodeService.movies.MovieInfo.from_dict(movie_info)
     torrent_infos = []
     
-    imdb_id = SharedCodeService.tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
-
-    # KAT
-    try:
-        kat_rss_query = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
-        kat_rss_url   = 'http://kickass.to/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(kat_rss_query))
-        kat_rss_data  = RSS.FeedFromURL(kat_rss_url, cacheTime=CACHE_1HOUR)
-
-        for kat_rss_entry in kat_rss_data.entries:
-            add_torrent_info(torrent_infos, movie_info.key, kat_rss_entry.torrent_magneturi,
-                                                            kat_rss_entry.title,
-                                                            int(kat_rss_entry.torrent_seeds),
-                                                            int(kat_rss_entry.torrent_peers),
-                                                            kat_rss_entry.link)
-
-    except Exception as exception:
-        Log.Error('[Bittorrent][movies] Unhandled exception: {0}'.format(exception))
-
-    # TPB
-    try:
-        tpb_html_query = imdb_id if imdb_id else movie_info.title
-        tpb_html_url   = 'http://thepiratebay.se/search/{0}/0/7/200'.format(String.Quote(tpb_html_query))
-        tpb_html_data  = HTML.ElementFromURL(tpb_html_url, cacheTime=CACHE_1HOUR)
-
-        for tpb_html_item in tpb_html_data.xpath('//*[@id="searchResult"]/tr'):
-            add_torrent_info(torrent_infos, movie_info.key, tpb_html_item.xpath('./td[2]/a[1]/@href')[0],
-                                                            tpb_html_item.xpath('./td[2]/div/a/text()')[0],
-                                                            int(tpb_html_item.xpath('./td[3]/text()')[0]),
-                                                            int(tpb_html_item.xpath('./td[4]/text()')[0]),
-                                                            'http://thepiratebay.se' + tpb_html_item.xpath('./td[2]/div/a/@href')[0])
-
-    except Exception as exception:
-        Log.Error('[Bittorrent][movies] Unhandled exception: {0}'.format(exception))
+    torrent_provider = SharedCodeService.metaprovider.MetaProvider()
+    torrent_provider.get_specific_movie_torrents(movie_info, torrent_infos)
 
     object_container = ObjectContainer(title2=movie_info.title)
     parse_torrent_infos(object_container, movie_info, torrent_infos)

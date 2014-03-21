@@ -28,7 +28,7 @@ def get_torrent_release(torrent_title):
 
 ################################################################################
 class TorrentProvider:
-    def fill_popular_torrent_infos(self, torrent_infos):
+    def get_popular_movie_torrents(self, torrent_infos):
         pass
 
     def get_metadata_object_for_url(self, url):
