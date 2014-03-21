@@ -19,6 +19,17 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                                                        int(rss_entry.torrent_peers),
                                                        rss_entry.link)
 
+    def search_movies(self, query, torrent_infos):
+        rss_url  = KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query))
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
+                                                       rss_entry.title,
+                                                       int(rss_entry.torrent_seeds),
+                                                       int(rss_entry.torrent_peers),
+                                                       rss_entry.link)
+
     def get_specific_movie_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
 

@@ -14,6 +14,10 @@ class MetaProvider(common.TorrentProvider):
         for provider in self.providers:
             provider.get_popular_movie_torrents(torrent_infos)
 
+    def search_movies(self, query, torrent_infos):
+        for provider in self.providers:
+            provider.search_movies(query, torrent_infos)
+
     def get_specific_movie_torrents(self, movie_info, torrent_infos):
         for provider in self.providers:
             provider.get_specific_movie_torrents(movie_info, torrent_infos)
