@@ -141,7 +141,7 @@ def movie(movie_info):
 
 ################################################################################
 def add_torrent_info(torrent_infos, movie_key, torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url):
-    torrent_info = SharedCodeService.movies.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+    torrent_info = SharedCodeService.common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
 
     if movie_key and SharedCodeService.movies.MovieInfo(torrent_info.title).key != movie_key:
         return
