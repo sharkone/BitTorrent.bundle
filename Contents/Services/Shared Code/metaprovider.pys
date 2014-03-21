@@ -12,30 +12,48 @@ class MetaProvider(common.TorrentProvider):
 
     def get_popular_movie_torrents(self, torrent_infos):
         for provider in self.providers:
-            provider.get_popular_movie_torrents(torrent_infos)
+            try:
+                provider.get_popular_movie_torrents(torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
 
     def search_movies(self, query, torrent_infos):
         for provider in self.providers:
-            provider.search_movies(query, torrent_infos)
+            try:
+                provider.search_movies(query, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
 
     def get_specific_movie_torrents(self, movie_info, torrent_infos):
         for provider in self.providers:
-            provider.get_specific_movie_torrents(movie_info, torrent_infos)
+            try:
+                provider.get_specific_movie_torrents(movie_info, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
 
     def get_metadata_object_for_url(self, url):
         for provider in self.providers:
-            metadata_object = provider.get_metadata_object_for_url(url)
-            if metadata_object:
-                return metadata_object
+            try:
+                metadata_object = provider.get_metadata_object_for_url(url)
+                if metadata_object:
+                    return metadata_object
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
 
     def get_media_objects_for_url(self, url, play_func):
         for provider in self.providers:
-            media_objects = provider.get_media_objects_for_url(url, play_func)
-            if media_objects:
-                return media_objects
+            try:
+                media_objects = provider.get_media_objects_for_url(url, play_func)
+                if media_objects:
+                    return media_objects
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
 
     def get_torrent_info_for_url(self, url):
         for provider in self.providers:
-            torrent_info = provider.get_torrent_info_for_url(url)
-            if torrent_info:
-                return torrent_info
+            try:
+                torrent_info = provider.get_torrent_info_for_url(url)
+                if torrent_info:
+                    return torrent_info
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
