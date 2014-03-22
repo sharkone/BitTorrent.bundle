@@ -9,6 +9,18 @@ KICKASSTORRENTS = 'http://kickass.to'
 ################################################################################
 class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
+    # ANIME
+    ############################################################################
+    def anime_get_popular_torrents(self, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/anime/?field=seeders&sorder=desc&rss=1', torrent_infos)
+
+    def anime_search(self, query, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Aanime%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
+
+    def anime_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    ############################################################################
     # MOVIES
     ############################################################################
     def movies_get_popular_torrents(self, torrent_infos):
@@ -49,6 +61,12 @@ class KickassTorrentsProvider(common.TorrentProvider):
 
             torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
             
+            try:
+                if page_data.xpath('//*[@id="tab-main"]/div[3]/div/div/ul[1]/li[6]/strong/text()')[0] == 'Anime type:':
+                    torrent_info.data['category'] = 'anime'
+            except:
+                pass
+
             try:
                 torrent_info.data['imdb_id']  = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
                 torrent_info.data['category'] = 'movies'

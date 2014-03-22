@@ -29,6 +29,27 @@ def get_torrent_release(torrent_title):
 ################################################################################
 class TorrentProvider:
     ############################################################################
+    # ANIME
+    ############################################################################
+    def anime_get_popular_torrents(self, torrent_infos):
+        pass
+
+    def anime_search(self, query, torrent_infos):
+        pass
+
+    def anime_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    def anime_get_metadata_object_for_url(self, url):
+        torrent_info = self.get_torrent_info_for_url(url)
+        if torrent_info and torrent_info.data['category'] == 'anime':
+            metadata_object         = MovieObject()
+            metadata_object.title   = torrent_info.title
+            metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_info.release, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
+
+            return metadata_object
+
+    ############################################################################
     # MOVIES
     ############################################################################
     def movies_get_popular_torrents(self, torrent_infos):

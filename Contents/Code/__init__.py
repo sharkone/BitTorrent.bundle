@@ -1,4 +1,5 @@
 ################################################################################
+import anime_menu
 import movies_menu
 import tvshows_menu
 import yts_menu
@@ -28,6 +29,7 @@ def Main():
         object_container.header  = 'Not supported'
         object_container.message = 'The {0} channel is not supported on {1} servers.'.format(TITLE, Platform.OS)
     else:
+        object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
         object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
         object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
         object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))

@@ -13,6 +13,30 @@ class MetaProvider(common.TorrentProvider):
         self.providers.append(yts.YTSProvider())
 
     ############################################################################
+    # ANIME
+    ############################################################################
+    def anime_get_popular_torrents(self, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_get_popular_torrents(torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def anime_search(self, query, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_search(query, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def anime_get_specific_torrents(self, movie_info, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_get_specific_torrents(movie_info, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    ############################################################################
     # MOVIES
     ############################################################################
     def movies_get_popular_torrents(self, torrent_infos):
