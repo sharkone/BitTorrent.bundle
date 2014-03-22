@@ -8,7 +8,10 @@ KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
 class KickAssTorrentsProvider(common.TorrentProvider):
-    def get_popular_movie_torrents(self, torrent_infos):
+    ############################################################################
+    # MOVIES
+    ############################################################################
+    def movies_get_popular_torrents(self, torrent_infos):
         rss_url  = KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1'
         rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
@@ -19,7 +22,7 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                                                        int(rss_entry.torrent_peers),
                                                        rss_entry.link)
 
-    def search_movies(self, query, torrent_infos):
+    def movies_search(self, query, torrent_infos):
         rss_url  = KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query))
         rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
@@ -30,7 +33,7 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                                                        int(rss_entry.torrent_peers),
                                                        rss_entry.link)
 
-    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
 
         rss_query = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
@@ -44,6 +47,39 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                                                                  int(rss_entry.torrent_peers),
                                                                  rss_entry.link)
 
+    ############################################################################
+    # TVSHOWS
+    ############################################################################
+    def tvshows_get_popular_torrents(self, torrent_infos):
+        rss_url  = KICKASSTORRENTS + '/tv/?field=seeders&sorder=desc&rss=1'
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
+                                                       rss_entry.title,
+                                                       int(rss_entry.torrent_seeds),
+                                                       int(rss_entry.torrent_peers),
+                                                       rss_entry.link)
+
+
+    def tvshows_search(self, query, torrent_infos):
+        rss_url  = KICKASSTORRENTS + '/usearch/category%3Atv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query))
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
+                                                       rss_entry.title,
+                                                       int(rss_entry.torrent_seeds),
+                                                       int(rss_entry.torrent_peers),
+                                                       rss_entry.link)
+
+
+    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    ############################################################################
+    # COMMON
+    ############################################################################
     def get_torrent_info_for_url(self, url):
         if url.startswith(KICKASSTORRENTS):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
@@ -54,7 +90,18 @@ class KickAssTorrentsProvider(common.TorrentProvider):
             torrent_seeders  = int(page_data.xpath('//strong[@itemprop="seeders"]/text()')[0])
             torrent_leechers = int(page_data.xpath('//strong[@itemprop="leechers"]/text()')[0])
 
-            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
-            torrent_info.data['imdb_id'] = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
+            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            
+            try:
+                torrent_info.data['imdb_id']  = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
+                torrent_info.data['category'] = 'movies'
+            except:
+                pass
+                
+            try:
+                torrent_info.data['tv_show_title'] = page_data.xpath('//*[@id="tab-main"]/div[3]/div/ul[1]/li[1]/a/strong/text()')[0]
+                torrent_info.data['category']      = 'tvshows'
+            except:
+                pass
 
             return torrent_info

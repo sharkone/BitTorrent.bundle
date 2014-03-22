@@ -11,7 +11,10 @@ RE_IMDB_ID = re.compile('http://www.imdb.com/title/(.+)/')
 
 ################################################################################
 class ThePirateBayProvider(common.TorrentProvider):
-    def get_popular_movie_torrents(self, torrent_infos):
+    ############################################################################
+    # MOVIES
+    ############################################################################
+    def movies_get_popular_torrents(self, torrent_infos):
         html_url  = THEPIRATEBAY + '/top/201'
         html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
@@ -32,8 +35,8 @@ class ThePirateBayProvider(common.TorrentProvider):
                                                        int(html_item.xpath('./td[4]/text()')[0]),
                                                        THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
 
-    def search_movies(self, query, torrent_infos):
-        html_url  = THEPIRATEBAY + '/search/{0}/0/7/200'.format(String.Quote(query))
+    def movies_search(self, query, torrent_infos):
+        html_url  = THEPIRATEBAY + '/search/{0}/0/7/201'.format(String.Quote(query))
         html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
         for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
@@ -43,8 +46,17 @@ class ThePirateBayProvider(common.TorrentProvider):
                                                  int(html_item.xpath('./td[4]/text()')[0]),
                                                  THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
 
+        html_url  = THEPIRATEBAY + '/search/{0}/0/7/207'.format(String.Quote(query))
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
-    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                 html_item.xpath('./td[2]/div/a/text()')[0],
+                                                 int(html_item.xpath('./td[3]/text()')[0]),
+                                                 int(html_item.xpath('./td[4]/text()')[0]),
+                                                 THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
 
         html_query = imdb_id if imdb_id else movie_info.title
@@ -58,6 +70,57 @@ class ThePirateBayProvider(common.TorrentProvider):
                                                                  int(html_item.xpath('./td[4]/text()')[0]),
                                                                  THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
 
+    ############################################################################
+    # TVSHOWS
+    ############################################################################
+    def tvshows_get_popular_torrents(self, torrent_infos):
+        html_url  = THEPIRATEBAY + '/top/205'
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                       html_item.xpath('./td[2]/div/a/text()')[0],
+                                                       int(html_item.xpath('./td[3]/text()')[0]),
+                                                       int(html_item.xpath('./td[4]/text()')[0]),
+                                                       THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+        html_url  = THEPIRATEBAY + '/top/208'
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                       html_item.xpath('./td[2]/div/a/text()')[0],
+                                                       int(html_item.xpath('./td[3]/text()')[0]),
+                                                       int(html_item.xpath('./td[4]/text()')[0]),
+                                                       THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+    def tvshows_search(self, query, torrent_infos):
+        html_url  = THEPIRATEBAY + '/search/{0}/0/7/205'.format(String.Quote(query))
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                 html_item.xpath('./td[2]/div/a/text()')[0],
+                                                 int(html_item.xpath('./td[3]/text()')[0]),
+                                                 int(html_item.xpath('./td[4]/text()')[0]),
+                                                 THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+        html_url  = THEPIRATEBAY + '/search/{0}/0/7/208'.format(String.Quote(query))
+        html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            self.add_torrent_info(torrent_infos, None, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                 html_item.xpath('./td[2]/div/a/text()')[0],
+                                                 int(html_item.xpath('./td[3]/text()')[0]),
+                                                 int(html_item.xpath('./td[4]/text()')[0]),
+                                                 THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+
+    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    ############################################################################
+    # COMMON
+    ############################################################################
     def get_torrent_info_for_url(self, url):
         if url.startswith(THEPIRATEBAY):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
@@ -79,8 +142,15 @@ class ThePirateBayProvider(common.TorrentProvider):
             torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
             
             try:
-                imdb_link                    = page_data.xpath('//a[@title="IMDB"]/@href')[0]
-                torrent_info.data['imdb_id'] = RE_IMDB_ID.search(imdb_link).group(1)
+                imdb_link                     = page_data.xpath('//a[@title="IMDB"]/@href')[0]
+                torrent_info.data['imdb_id']  = RE_IMDB_ID.search(imdb_link).group(1)
+                torrent_info.data['category'] = 'movies'
+            except:
+                pass
+
+            try:
+                if page_data.xpath('//*[@id="details"]/dl[1]/dd[1]/a/@href')[0] in ('/browse/205', '/browse/208'):
+                    torrent_info.data['category'] = 'tvshows'
             except:
                 pass
 

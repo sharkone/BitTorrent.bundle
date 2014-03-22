@@ -18,7 +18,7 @@ def popular(per_page, movie_count=0):
     torrent_infos = []
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
-    torrent_provider.get_popular_movie_torrents(torrent_infos)
+    torrent_provider.movies_get_popular_torrents(torrent_infos)
 
     movie_infos = []
     movie_count = fill_movie_list(torrent_infos, movie_count, per_page, movie_infos)
@@ -34,7 +34,7 @@ def search(query, per_page, movie_count=0):
     torrent_infos = []
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
-    torrent_provider.search_movies(query, torrent_infos)
+    torrent_provider.movies_search(query, torrent_infos)
 
     movie_infos = []
     movie_count = fill_movie_list(torrent_infos, movie_count, per_page, movie_infos)
@@ -51,7 +51,7 @@ def movie(movie_info):
     torrent_infos = []
     
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
-    torrent_provider.get_specific_movie_torrents(movie_info, torrent_infos)
+    torrent_provider.movies_get_specific_torrents(movie_info, torrent_infos)
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 

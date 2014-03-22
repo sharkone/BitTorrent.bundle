@@ -28,18 +28,21 @@ def get_torrent_release(torrent_title):
 
 ################################################################################
 class TorrentProvider:
-    def get_popular_movie_torrents(self, torrent_infos):
+    ############################################################################
+    # MOVIES
+    ############################################################################
+    def movies_get_popular_torrents(self, torrent_infos):
         pass
 
-    def search_movies(self, query, torrent_infos):
+    def movies_search(self, query, torrent_infos):
         pass
 
-    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
         pass
 
-    def get_metadata_object_for_url(self, url):
+    def movies_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info:
+        if torrent_info and torrent_info.data['category'] == 'movies':
             metadata_object       = MovieObject()
             metadata_object.title = torrent_info.title
 
@@ -53,6 +56,50 @@ class TorrentProvider:
 
             return metadata_object
 
+    ############################################################################
+    # TVSHOWS
+    ############################################################################
+    def tvshows_get_popular_torrents(self, torrent_infos):
+        pass
+
+    def tvshows_search(self, query, torrent_infos):
+        pass
+
+    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    def tvshows_get_metadata_object_for_url(self, url):
+        torrent_info = self.get_torrent_info_for_url(url)
+        if torrent_info and torrent_info.data['category'] == 'tvshows':
+            metadata_object         = MovieObject()
+            metadata_object.title   = torrent_info.title
+            metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(torrent_info.release, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
+
+            return metadata_object
+
+    ############################################################################
+    # COMMON
+    ############################################################################
+    def get_torrent_info_for_url(self, url):
+        pass
+
+    def get_metadata_object_for_url(self, url):
+        metadata_object = self.movies_get_metadata_object_for_url(url)
+        if metadata_object:
+            return metadata_object
+
+        metadata_object = self.tvshows_get_metadata_object_for_url(url)
+        if metadata_object:
+            return metadata_object
+
+        torrent_info = self.get_torrent_info_for_url(url)
+        if torrent_info:
+            videoclip_object         = VideoClipObject()
+            videoclip_object.title   = torrent_info.title
+            videoclip_object.summary = 'Seeders: {0}, Leechers: {1}'.format(torrent_info.seeders, torrent_info.leechers)
+            videoclip_object.url     = torrent_info.url
+            return videoclip_object
+
     def get_media_objects_for_url(self, url, play_func):
         torrent_info = self.get_torrent_info_for_url(url)
 
@@ -60,9 +107,6 @@ class TorrentProvider:
             media_object = MediaObject()
             media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet)))
             return [media_object]
-
-    def get_torrent_info_for_url(self, url):
-        pass
 
     def add_torrent_info(self, torrent_infos, movie_key, torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url):
         torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
@@ -72,4 +116,3 @@ class TorrentProvider:
 
         if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
             torrent_infos.append(torrent_info)
-

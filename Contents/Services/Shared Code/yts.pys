@@ -10,7 +10,7 @@ YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 
 ################################################################################
 class YTSProvider(common.TorrentProvider):
-    def get_popular_movie_torrents(self, torrent_infos):
+    def movies_get_popular_torrents(self, torrent_infos):
         json_url  = YTS + '/api/list.json?limit=50&sort=seeds'
         json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
@@ -21,7 +21,7 @@ class YTSProvider(common.TorrentProvider):
                                                        int(json_item['TorrentPeers']),
                                                        json_item['MovieUrl'])
 
-    def search_movies(self, query, torrent_infos):
+    def movies_search(self, query, torrent_infos):
         json_url  = YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query))
         json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
@@ -32,7 +32,7 @@ class YTSProvider(common.TorrentProvider):
                                                        int(json_item['TorrentPeers']),
                                                        json_item['MovieUrl'])
 
-    def get_specific_movie_torrents(self, movie_info, torrent_infos):
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
 
         json_query = imdb_id if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
