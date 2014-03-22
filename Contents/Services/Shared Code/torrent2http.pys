@@ -2,6 +2,7 @@
 import common
 import json
 import os
+import platform
 import socket
 import subprocess
 import time
@@ -100,7 +101,10 @@ def get_exec_dir():
 	if Platform.OS == 'MacOSX':
 		return os.path.join(get_bin_dir(), 'MacOSX')
 	elif Platform.OS == 'Linux':
-		return os.path.join(get_bin_dir(), 'Linux')
+		if platform.architecture()[0] == '64bit':
+			return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x64')
+		elif platform.architecture()[0] == '32bit':
+			return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x86')
 	elif Platform.OS == 'Windows':
 		return os.path.join(get_bin_dir(), 'Windows')
 	
