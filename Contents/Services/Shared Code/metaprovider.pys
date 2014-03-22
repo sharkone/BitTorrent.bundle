@@ -8,7 +8,7 @@ import yts
 class MetaProvider(common.TorrentProvider):
     def __init__(self):
         self.providers = []
-        self.providers.append(kickasstorrents.KickAssTorrentsProvider())
+        self.providers.append(kickasstorrents.KickassTorrentsProvider())
         self.providers.append(thepiratebay.ThePirateBayProvider())
         self.providers.append(yts.YTSProvider())
 

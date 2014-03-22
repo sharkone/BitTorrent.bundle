@@ -7,7 +7,7 @@ import tmdb
 KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
-class KickAssTorrentsProvider(common.TorrentProvider):
+class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
     # MOVIES
     ############################################################################
@@ -67,12 +67,15 @@ class KickAssTorrentsProvider(common.TorrentProvider):
     # INTERNAL
     ############################################################################
     def parse_result_page(self, url, torrent_infos, movie_key=None):
-        rss_url  = url
-        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+        try:
+            rss_url  = url
+            rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
 
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, movie_key, rss_entry.torrent_magneturi,
-                                                            rss_entry.title,
-                                                            int(rss_entry.torrent_seeds),
-                                                            int(rss_entry.torrent_peers),
-                                                            rss_entry.link)
+            for rss_entry in rss_data.entries:
+                self.add_torrent_info(torrent_infos, movie_key, rss_entry.torrent_magneturi,
+                                                                rss_entry.title,
+                                                                int(rss_entry.torrent_seeds),
+                                                                int(rss_entry.torrent_peers),
+                                                                rss_entry.link)
+        except Exception as exception:
+            Log.Error('[BitTorrent][KickassTorrentsProvider] Unhandled exception: {0}'.format(exception))
