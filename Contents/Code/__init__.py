@@ -29,5 +29,6 @@ def Main():
 	else:
 		object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
 		object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
+		object_container.add(PrefsObject(title='Preferences'))
 
 	return object_container
