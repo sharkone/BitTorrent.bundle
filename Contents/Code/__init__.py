@@ -23,7 +23,7 @@ def Main():
 
 	object_container = ObjectContainer(title2=TITLE)
 
-	if Platform.OS not in ('MacOSX', 'Windows'):
+	if Platform.OS not in ('Linux', 'MacOSX', 'Windows'):
 		object_container.header  = 'Not supported'
 		object_container.message = 'The {0} channel is not supported on {1} servers.'.format(TITLE, Platform.OS)
 	else:

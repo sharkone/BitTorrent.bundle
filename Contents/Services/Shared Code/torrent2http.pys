@@ -97,18 +97,24 @@ def get_bin_dir():
 
 ###############################################################################
 def get_exec_dir():
-	if Platform.OS == 'Windows':
-		return os.path.join(get_bin_dir(), 'Windows')
-	elif Platform.OS == 'MacOSX':
+	if Platform.OS == 'MacOSX':
 		return os.path.join(get_bin_dir(), 'MacOSX')
+	elif Platform.OS == 'Linux':
+		return os.path.join(get_bin_dir(), 'Linux')
+	elif Platform.OS == 'Windows':
+		return os.path.join(get_bin_dir(), 'Windows')
+	
 	Log.Error('[BitTorrent][torrent2http] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
 def get_exec_path():
-	if Platform.OS == 'Windows':
-		return os.path.join(get_exec_dir(), 'torrent2http.exe')
-	elif Platform.OS == 'MacOSX':
+	if Platform.OS == 'MacOSX':
 		return os.path.join(get_exec_dir(), 'torrent2http')
+	elif Platform.OS == 'Linux':
+		return os.path.join(get_exec_dir(), 'torrent2http')
+	elif Platform.OS == 'Windows':
+		return os.path.join(get_exec_dir(), 'torrent2http.exe')
+	
 	Log.Error('[BitTorrent][torrent2http] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
