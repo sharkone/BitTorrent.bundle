@@ -12,67 +12,24 @@ class KickAssTorrentsProvider(common.TorrentProvider):
     # MOVIES
     ############################################################################
     def movies_get_popular_torrents(self, torrent_infos):
-        rss_url  = KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1'
-        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
-
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
-                                                       rss_entry.title,
-                                                       int(rss_entry.torrent_seeds),
-                                                       int(rss_entry.torrent_peers),
-                                                       rss_entry.link)
+        self.parse_result_page(KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
     def movies_search(self, query, torrent_infos):
-        rss_url  = KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query))
-        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
-
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
-                                                       rss_entry.title,
-                                                       int(rss_entry.torrent_seeds),
-                                                       int(rss_entry.torrent_peers),
-                                                       rss_entry.link)
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
 
     def movies_get_specific_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
-
-        rss_query = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
-        rss_url   = KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(rss_query))
-        rss_data  = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
-
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, movie_info.key, rss_entry.torrent_magneturi,
-                                                                 rss_entry.title,
-                                                                 int(rss_entry.torrent_seeds),
-                                                                 int(rss_entry.torrent_peers),
-                                                                 rss_entry.link)
+        query   = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos, movie_info.key)
 
     ############################################################################
     # TVSHOWS
     ############################################################################
     def tvshows_get_popular_torrents(self, torrent_infos):
-        rss_url  = KICKASSTORRENTS + '/tv/?field=seeders&sorder=desc&rss=1'
-        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
-
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
-                                                       rss_entry.title,
-                                                       int(rss_entry.torrent_seeds),
-                                                       int(rss_entry.torrent_peers),
-                                                       rss_entry.link)
-
+        self.parse_result_page(KICKASSTORRENTS + '/tv/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
     def tvshows_search(self, query, torrent_infos):
-        rss_url  = KICKASSTORRENTS + '/usearch/category%3Atv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query))
-        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
-
-        for rss_entry in rss_data.entries:
-            self.add_torrent_info(torrent_infos, None, rss_entry.torrent_magneturi,
-                                                       rss_entry.title,
-                                                       int(rss_entry.torrent_seeds),
-                                                       int(rss_entry.torrent_peers),
-                                                       rss_entry.link)
-
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%tv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
 
     def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
         pass
@@ -105,3 +62,17 @@ class KickAssTorrentsProvider(common.TorrentProvider):
                 pass
 
             return torrent_info
+
+    ############################################################################
+    # INTERNAL
+    ############################################################################
+    def parse_result_page(self, url, torrent_infos, movie_key=None):
+        rss_url  = url
+        rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+        for rss_entry in rss_data.entries:
+            self.add_torrent_info(torrent_infos, movie_key, rss_entry.torrent_magneturi,
+                                                            rss_entry.title,
+                                                            int(rss_entry.torrent_seeds),
+                                                            int(rss_entry.torrent_peers),
+                                                            rss_entry.link)
