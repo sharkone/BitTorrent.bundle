@@ -4,6 +4,7 @@ import json
 import os
 import platform
 import socket
+import stat
 import subprocess
 import time
 
@@ -67,6 +68,8 @@ def start_torrent2http(url, magnet):
 		downloader_port_fd   = os.open(downloader_port_file, os.O_CREAT | os.O_RDWR)
 		os.write(downloader_port_fd, url)
 		os.close(downloader_port_fd)
+
+		os.chmod(get_exec_path(), stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR)
 
 		env = os.environ.copy()
 		if Platform.OS == 'MacOSX':
