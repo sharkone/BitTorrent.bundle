@@ -1,36 +1,99 @@
 ################################################################################
 import common
+import movies
 import tmdb
 
 ################################################################################
 KICKASSTORRENTS = 'http://kickass.to'
 
 ################################################################################
-def MetadataObjectForURL(url):
-	html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-	seeders  = html.xpath('//strong[@itemprop="seeders"]/text()')[0]
-	leechers = html.xpath('//strong[@itemprop="leechers"]/text()')[0]
+class KickassTorrentsProvider(common.TorrentProvider):
+    ############################################################################
+    # ANIME
+    ############################################################################
+    def anime_get_popular_torrents(self, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/anime/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
-	metadata_object    = MovieObject()
-	metadata_object.title = html.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
+    def anime_search(self, query, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Aanime%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
 
-	movie_info = common.get_movie_info(metadata_object.title)
-	if movie_info['tmdb_id']:
-		metadata_object = tmdb.create_movie_object(movie_info['tmdb_id'])
-	
-	metadata_object.summary = '{0}\nSeeders: {1}, Leechers: {2}\n\n{3}'.format(movie_info['release'], seeders, leechers, metadata_object.summary if metadata_object.summary else '')
+    def anime_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
 
-	return metadata_object
+    ############################################################################
+    # MOVIES
+    ############################################################################
+    def movies_get_popular_torrents(self, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
-################################################################################
-def MediaObjectsForURL(url, play_func):
-	html   = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-	magnet = html.xpath('//*[@class="magnetlinkButton"]/@href')[0]
+    def movies_search(self, query, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
 
-	media_objects = []
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
+        imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
+        query   = 'imdb:{0}'.format(imdb_id[2:]) if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos, movie_info.key)
 
-	media_object = MediaObject()
-	media_object.add(PartObject(key=Callback(play_func, url=url, magnet=magnet)))
-	media_objects.append(media_object)
+    ############################################################################
+    # TVSHOWS
+    ############################################################################
+    def tvshows_get_popular_torrents(self, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/tv/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
-	return media_objects
+    def tvshows_search(self, query, torrent_infos):
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%tv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
+
+    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+        pass
+
+    ############################################################################
+    # COMMON
+    ############################################################################
+    def get_torrent_info_for_url(self, url):
+        if url.startswith(KICKASSTORRENTS):
+            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+
+            torrent_url      = url
+            torrent_magnet   = page_data.xpath('//*[@class="magnetlinkButton"]/@href')[0]
+            torrent_title    = page_data.xpath('//*[@class="torrentName novertmarg"]/a/span/text()')[0]
+            torrent_seeders  = int(page_data.xpath('//strong[@itemprop="seeders"]/text()')[0])
+            torrent_leechers = int(page_data.xpath('//strong[@itemprop="leechers"]/text()')[0])
+
+            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            
+            try:
+                if page_data.xpath('//*[@id="tab-main"]/div[3]/div/div/ul[1]/li[6]/strong/text()')[0] == 'Anime type:':
+                    torrent_info.data['category'] = 'anime'
+            except:
+                pass
+
+            try:
+                torrent_info.data['imdb_id']  = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
+                torrent_info.data['category'] = 'movies'
+            except:
+                pass
+                
+            try:
+                torrent_info.data['tv_show_title'] = page_data.xpath('//*[@id="tab-main"]/div[3]/div/ul[1]/li[1]/a/strong/text()')[0]
+                torrent_info.data['category']      = 'tvshows'
+            except:
+                pass
+
+            return torrent_info
+
+    ############################################################################
+    # INTERNAL
+    ############################################################################
+    def parse_result_page(self, url, torrent_infos, movie_key=None):
+        try:
+            rss_url  = url
+            rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+
+            for rss_entry in rss_data.entries:
+                self.add_torrent_info(torrent_infos, movie_key, rss_entry.torrent_magneturi,
+                                                                rss_entry.title,
+                                                                int(rss_entry.torrent_seeds),
+                                                                int(rss_entry.torrent_peers),
+                                                                rss_entry.link)
+        except Exception as exception:
+            Log.Error('[BitTorrent][KickassTorrentsProvider] Unhandled exception: {0}'.format(exception))

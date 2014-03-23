@@ -1,0 +1,115 @@
+################################################################################
+import common
+import kickasstorrents
+import thepiratebay
+import yts
+
+################################################################################
+class MetaProvider(common.TorrentProvider):
+    def __init__(self):
+        self.providers = []
+        self.providers.append(kickasstorrents.KickassTorrentsProvider())
+        self.providers.append(thepiratebay.ThePirateBayProvider())
+        self.providers.append(yts.YTSProvider())
+
+    ############################################################################
+    # ANIME
+    ############################################################################
+    def anime_get_popular_torrents(self, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_get_popular_torrents(torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def anime_search(self, query, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_search(query, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def anime_get_specific_torrents(self, movie_info, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.anime_get_specific_torrents(movie_info, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    ############################################################################
+    # MOVIES
+    ############################################################################
+    def movies_get_popular_torrents(self, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.movies_get_popular_torrents(torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def movies_search(self, query, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.movies_search(query, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.movies_get_specific_torrents(movie_info, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    ############################################################################
+    # TVSHOWS
+    ############################################################################
+    def tvshows_get_popular_torrents(self, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.tvshows_get_popular_torrents(torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def tvshows_search(self, query, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.tvshows_search(query, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+        for provider in self.providers:
+            try:
+                provider.tvshows_get_specific_torrents(movie_info, torrent_infos)
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    ############################################################################
+    # COMMON
+    ############################################################################
+    def get_metadata_object_for_url(self, url):
+        for provider in self.providers:
+            try:
+                metadata_object = provider.get_metadata_object_for_url(url)
+                if metadata_object:
+                    return metadata_object
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def get_media_objects_for_url(self, url, play_func):
+        for provider in self.providers:
+            try:
+                media_objects = provider.get_media_objects_for_url(url, play_func)
+                if media_objects:
+                    return media_objects
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))
+
+    def get_torrent_info_for_url(self, url):
+        for provider in self.providers:
+            try:
+                torrent_info = provider.get_torrent_info_for_url(url)
+                if torrent_info:
+                    return torrent_info
+            except Exception as exception:
+                Log.Error('[BitTorrent][MetaProvider] Unhandled exception: {0}'.format(exception))

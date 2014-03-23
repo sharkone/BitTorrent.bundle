@@ -1,0 +1,36 @@
+################################################################################
+import common
+import tmdb
+
+################################################################################
+class MovieInfo:
+    def __init__(self, torrent_title=''):
+        self.title   = torrent_title
+        self.year    = ''
+        self.tmdb_id = ''
+        self.key     = torrent_title
+
+        title_re_result = common.RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+        if title_re_result:
+            self.title = title_re_result.group(1)
+            self.year  = title_re_result.group(3)
+
+            self.tmdb_id, self.title = tmdb.get_tmdb_id_from_title(self.title, self.year)
+            self.key                 = self.tmdb_id if self.tmdb_id else self.title
+
+    def to_dict(self):
+        return { 
+                    'title':    self.title,
+                    'year':     self.year,
+                    'tmdb_id':  self.tmdb_id,
+                    'key':      self.key
+               }
+
+    @staticmethod
+    def from_dict(dict):
+        result          = MovieInfo()
+        result.title    = dict['title']
+        result.year     = dict['year']
+        result.tmdb_id  = dict['tmdb_id']
+        result.key      = dict['key']
+        return result

@@ -54,12 +54,12 @@ def search_internal(title, movie_list, query, genre, sort, only_3d, page):
 	for movie in json['MovieList']:
 		if movie['Quality'] != '3D' or only_3d:
 			if movie['ImdbCode'] not in movie_list:
-				movie_object = SharedCodeService.tmdb.create_movie_object(movie['ImdbCode'])
-				if movie_object:
-					movie_object.url = movie['MovieUrl']
-					movie_list.append(movie['ImdbCode'])
-					object_container.add(movie_object)
-
+				movie_object = MovieObject()
+				SharedCodeService.tmdb.fill_metadata_object(movie_object, movie['ImdbCode'])
+				movie_object.url = movie['MovieUrl']
+				movie_list.append(movie['ImdbCode'])
+				object_container.add(movie_object)
+					
 	if (page * 50) < int(json['MovieCount']):
 		if query == '':
 			query = '__EMPTY__'

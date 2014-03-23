@@ -1,41 +1,30 @@
 ################################################################################
-import kickasstorrents
-import thepiratebay
+import metaprovider
 import torrent2http
 import yts
 
 ################################################################################
 def MetadataObjectForURL(url):
-	metadata_object = None
+    torrent_provider = metaprovider.MetaProvider()
+    metadata_object  = torrent_provider.get_metadata_object_for_url(url)
 
-	if url.startswith(kickasstorrents.KICKASSTORRENTS):
-		metadata_object = kickasstorrents.MetadataObjectForURL(url)
-	elif url.startswith(thepiratebay.THEPIRATEBAY):
-		metadata_object = thepiratebay.MetadataObjectForURL(url)
-	elif url.startswith(yts.YTS):
-		metadata_object = yts.MetadataObjectForURL(url)
+    if metadata_object:
+        metadata_object.thumb = Callback(get_image_async, url=metadata_object.thumb)
+        metadata_object.art   = Callback(get_image_async, url=metadata_object.art)
 
-	if metadata_object:
-		metadata_object.art   = Callback(get_image_async, url=metadata_object.art)
-		metadata_object.thumb = Callback(get_image_async, url=metadata_object.thumb)
-
-	return metadata_object
+    return metadata_object
 
 ################################################################################
 @deferred
 def MediaObjectsForURL(url):
-	if url.startswith(kickasstorrents.KICKASSTORRENTS):
-		return kickasstorrents.MediaObjectsForURL(url, play_torrent)
-	elif url.startswith(thepiratebay.THEPIRATEBAY):
-		return thepiratebay.MediaObjectsForURL(url, play_torrent)
-	elif url.startswith(yts.YTS):
-		return yts.MediaObjectsForURL(url, play_torrent)
+    torrent_provider = metaprovider.MetaProvider()
+    return torrent_provider.get_media_objects_for_url(url, play_torrent)
 
 ################################################################################
 def get_image_async(url):
-	return Redirect(url)
+    return Redirect(url)
 
 ###############################################################################
 @indirect
 def play_torrent(url, magnet, port=-1):
-	return torrent2http.play_torrent(url, magnet, play_torrent, port)
+    return torrent2http.play_torrent(url, magnet, play_torrent, port)

@@ -9,59 +9,119 @@ YTS_LIST_VERSIONS = YTS + '/api/list.json?limit=50&keywords={0}'
 YTS_MOVIE         = YTS + '/api/movie.json?id={0}'
 
 ################################################################################
+class YTSProvider(common.TorrentProvider):
+    def movies_get_popular_torrents(self, torrent_infos):
+        json_url  = YTS + '/api/list.json?limit=50&sort=seeds'
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+        for json_item in json_data['MovieList']:
+            self.add_torrent_info(torrent_infos, None, json_item['TorrentMagnetUrl'],
+                                                       '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
+                                                       int(json_item['TorrentSeeds']),
+                                                       int(json_item['TorrentPeers']),
+                                                       json_item['MovieUrl'])
+
+    def movies_search(self, query, torrent_infos):
+        json_url  = YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query))
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+        for json_item in json_data['MovieList']:
+            self.add_torrent_info(torrent_infos, None, json_item['TorrentMagnetUrl'],
+                                                       '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
+                                                       int(json_item['TorrentSeeds']),
+                                                       int(json_item['TorrentPeers']),
+                                                       json_item['MovieUrl'])
+
+    def movies_get_specific_torrents(self, movie_info, torrent_infos):
+        imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
+
+        json_query = imdb_id if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
+        json_url   = YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(json_query))
+        json_data  = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+        for json_item in json_data['MovieList']:
+            self.add_torrent_info(torrent_infos, movie_info.key, json_item['TorrentMagnetUrl'],
+                                                                 '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
+                                                                 int(json_item['TorrentSeeds']),
+                                                                 int(json_item['TorrentPeers']),
+                                                                 json_item['MovieUrl'])
+
+    def get_torrent_info_for_url(self, url):
+        if url.startswith(YTS):
+            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+
+            movie_id = page_data.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
+
+            json_url  = YTS + '/api/movie.json?id={0}'.format(movie_id)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1DAY)
+
+            torrent_url      = url
+            torrent_magnet   = json_data['TorrentMagnetUrl']
+            torrent_title    = '{0} ({1}) {2}'.format(json_data['MovieTitleClean'], json_data['MovieYear'], json_data['Quality'])
+            torrent_seeders  = int(json_data['TorrentSeeds'])
+            torrent_leechers = int(json_data['TorrentPeers'])
+
+            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            torrent_info.data['imdb_id'] = json_data['ImdbCode']
+
+            return torrent_info
+
+################################################################################
 def MetadataObjectForURL(url):
-	return tmdb.create_movie_object(get_imdb_id(url))
+    metadata_object = MovieObject()
+    tmdb.fill_metadata_object(metadata_object, get_imdb_id(url))
+    return metadata_object
 
 ################################################################################
 def MediaObjectsForURL(url, play_func):
-	media_objects = []
+    media_objects = []
 
-	html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-	movie_id = html.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
+    html     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+    movie_id = html.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
 
-	movie_data_url = YTS_MOVIE.format(movie_id)
-	movie_data     = JSON.ObjectFromURL(movie_data_url, cacheTime=CACHE_1DAY)
+    movie_data_url = YTS_MOVIE.format(movie_id)
+    movie_data     = JSON.ObjectFromURL(movie_data_url, cacheTime=CACHE_1DAY)
 
-	if movie_data['Quality'] == '3D':
-			media_object = MediaObject()
-			media_object.add(PartObject(key=Callback(play_func, url=url, magnet=magnet)))
-			media_object.video_resolution = get_closest_resolution(int(movie_data['Resolution'].partition('*')[2]))
-			media_object.video_frame_rate = movie_data['FrameRate']
-			media_objects.append(media_object)
-	else:
-		version_list_url  = YTS_LIST_VERSIONS.format(movie_data['ImdbCode'])
-		version_list_data = JSON.ObjectFromURL(version_list_url, cacheTime=CACHE_1DAY)
+    if movie_data['Quality'] == '3D':
+            media_object = MediaObject()
+            media_object.add(PartObject(key=Callback(play_func, url=url, magnet=magnet)))
+            media_object.video_resolution = get_closest_resolution(int(movie_data['Resolution'].partition('*')[2]))
+            media_object.video_frame_rate = movie_data['FrameRate']
+            media_objects.append(media_object)
+    else:
+        version_list_url  = YTS_LIST_VERSIONS.format(movie_data['ImdbCode'])
+        version_list_data = JSON.ObjectFromURL(version_list_url, cacheTime=CACHE_1DAY)
 
-		for version in version_list_data['MovieList']:
-			if version['Quality'] != '3D':
-				version_url  = YTS_MOVIE.format(version['MovieID'])
-				version_data = JSON.ObjectFromURL(version_url, cacheTime=CACHE_1DAY)
+        for version in version_list_data['MovieList']:
+            if version['Quality'] != '3D':
+                version_url  = YTS_MOVIE.format(version['MovieID'])
+                version_data = JSON.ObjectFromURL(version_url, cacheTime=CACHE_1DAY)
 
-				media_object = MediaObject()
-				media_object.add(PartObject(key=Callback(play_func, url=version_data['MovieUrl'], magnet=version_data['TorrentMagnetUrl'])))
-				media_object.video_resolution = get_closest_resolution(int(version_data['Resolution'].partition('*')[2]))
-				media_object.video_frame_rate = version_data['FrameRate']
-				media_objects.append(media_object)
+                media_object = MediaObject()
+                media_object.add(PartObject(key=Callback(play_func, url=version_data['MovieUrl'], magnet=version_data['TorrentMagnetUrl'])))
+                media_object.video_resolution = get_closest_resolution(int(version_data['Resolution'].partition('*')[2]))
+                media_object.video_frame_rate = version_data['FrameRate']
+                media_objects.append(media_object)
 
-	media_objects.sort(key=lambda obj: obj.video_resolution, reverse=True)
-	return media_objects
+    media_objects.sort(key=lambda obj: obj.video_resolution, reverse=True)
+    return media_objects
 
 ################################################################################
 def get_imdb_id(url):
-	html      = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
-	imdb_link = html.xpath('//*[@id="movie-wrapper"]/div[1]/div[2]/a[1]/@href')[0]
-	imdb_id   = imdb_link.replace('http://www.imdb.com/title/', '').replace('/', '')
-	return imdb_id
+    html      = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+    imdb_link = html.xpath('//*[@id="movie-wrapper"]/div[1]/div[2]/a[1]/@href')[0]
+    imdb_id   = imdb_link.replace('http://www.imdb.com/title/', '').replace('/', '')
+    return imdb_id
 
 ################################################################################
 def get_closest_resolution(height):
-	if height <= 240:
-		return 240
-	elif height <= 320:
-		return 320
-	elif height <= 480:
-		return 480
-	elif height <= 720:
-		return 720
-	else:
-		return 1080
+    if height <= 240:
+        return 240
+    elif height <= 320:
+        return 320
+    elif height <= 480:
+        return 480
+    elif height <= 720:
+        return 720
+    else:
+        return 1080
