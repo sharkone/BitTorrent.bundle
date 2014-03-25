@@ -1,5 +1,4 @@
 ################################################################################
-import movies
 import re
 import tmdb
 
@@ -11,12 +10,14 @@ RE_MOVIE_TITLE      = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 
 ################################################################################
 class TorrentInfo:
-    def __init__(self, magnet, title, url, seeders=0, leechers=0, size=0):
+    def __init__(self, magnet, title, url, key, category, seeders=0, leechers=0, size=0):
         self.magnet    = magnet
         self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
         self.title     = title
         self.release   = get_torrent_release(title)
         self.url       = url
+        self.key       = key
+        self.category  = category
         self.seeders   = seeders
         self.leechers  = leechers
         
@@ -31,8 +32,6 @@ class TorrentInfo:
             self.size = '%.2f KB' % size_kb
         else:
             self.size = '%.2f B' % size
-
-        self.data = { 'category': None }
 
 ################################################################################
 def get_torrent_release(torrent_title):
@@ -55,7 +54,7 @@ class TorrentProvider:
 
     def anime_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.data['category'] == 'anime':
+        if torrent_info and torrent_info.category == 'anime':
             metadata_object         = MovieObject()
             metadata_object.title   = torrent_info.title
             metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
@@ -71,21 +70,15 @@ class TorrentProvider:
     def movies_search(self, query, torrent_infos):
         pass
 
-    def movies_get_specific_torrents(self, movie_info, torrent_infos):
+    def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         pass
 
     def movies_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.data['category'] == 'movies':
-            metadata_object       = MovieObject()
-            metadata_object.title = torrent_info.title
-
-            movie_info = movies.MovieInfo(metadata_object.title)
-            if movie_info.tmdb_id:
-                tmdb.fill_metadata_object(metadata_object, movie_info.tmdb_id)
-            elif 'imdb_id' in torrent_info.data:
-                tmdb.fill_metadata_object(metadata_object, torrent_info.data['imdb_id'])
+        if torrent_info and torrent_info.category == 'movies':
+            metadata_object = MovieObject()
             
+            tmdb.fill_metadata_object(metadata_object, torrent_info.key)
             metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
 
             return metadata_object
@@ -104,7 +97,7 @@ class TorrentProvider:
 
     def tvshows_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.data['category'] == 'tvshows':
+        if torrent_info and torrent_info.category == 'tvshows':
             metadata_object         = MovieObject()
             metadata_object.title   = torrent_info.title
             metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
@@ -138,11 +131,11 @@ class TorrentProvider:
         torrent_info = self.get_torrent_info_for_url(url)
 
         if torrent_info:
-            if torrent_info.data['category'] == 'anime':
+            if torrent_info.category == 'anime':
                 download_dir = Prefs['ANIME_DOWNLOAD_DIR']
-            elif torrent_info.data['category'] == 'movies':
+            elif torrent_info.category == 'movies':
                 download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
-            elif torrent_info.data['category'] == 'tvshows':
+            elif torrent_info.category == 'tvshows':
                 download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
             else:
                 download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
@@ -151,10 +144,10 @@ class TorrentProvider:
             media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet, download_dir=download_dir)))
             return [media_object]
 
-    def add_torrent_info(self, torrent_infos, movie_key, torrent_magnet, torrent_title, torrent_url, torrent_seeders=0, torrent_leechers=0, torrent_size=0):
-        torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers, torrent_size)
+    def add_torrent_info(self, torrent_infos, ref_torrent_key, torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders=0, torrent_leechers=0, torrent_size=0):
+        torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders, torrent_leechers, torrent_size)
 
-        if movie_key and movies.MovieInfo(torrent_info.title).key != movie_key:
+        if ref_torrent_key and ref_torrent_key != torrent_key:
             return
 
         if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:

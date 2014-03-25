@@ -2,9 +2,6 @@
 SUBPREFIX = 'tvshows'
 
 ################################################################################
-ALLOW_UNRECOGNIZED = False
-
-################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='TV Shows')

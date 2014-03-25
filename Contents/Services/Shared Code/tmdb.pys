@@ -1,8 +1,11 @@
 ###############################################################################
 import decorators
+import re
 
 ###############################################################################
 API_KEY = '3974ccf2babc35fdc8c19e460937396e'
+
+RE_MOVIE_TITLE = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
 
 ###############################################################################
 @decorators.memoized
@@ -31,6 +34,17 @@ def get_tmdb_id_from_title(movie_title, movie_year):
 
     #Log.Error('[BitTorrent][tmdb] Failed to determine tmdb_id for {0} ({1})'.format(movie_title, movie_year))
     return (None, movie_title)
+
+###############################################################################
+@decorators.memoized
+def get_imdb_id_from_torrent_title(torrent_title):
+    try:
+        movie_title = RE_MOVIE_TITLE.search(torrent_title).group(1)
+        movie_year  = RE_MOVIE_TITLE.search(torrent_title).group(3)
+
+        return get_imdb_id_from_title(movie_title, movie_year)
+    except:
+        return None
 
 ###############################################################################
 @decorators.memoized

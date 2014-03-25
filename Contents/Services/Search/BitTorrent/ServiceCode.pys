@@ -1,0 +1,44 @@
+################################################################################
+import metaprovider
+import tmdb
+
+################################################################################
+def Search(query):
+    torrent_provider = metaprovider.MetaProvider()
+
+    anime_torrent_infos = []
+    torrent_provider.anime_search(query, anime_torrent_infos)
+
+    movie_torrent_infos = []
+    torrent_provider.movies_search(query, movie_torrent_infos)
+
+    tvshows_torrent_infos = []
+    torrent_provider.tvshows_search(query, tvshows_torrent_infos)
+
+    torrent_infos = anime_torrent_infos[:5] + movie_torrent_infos[:5] + tvshows_torrent_infos[:5]
+    torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
+
+    object_container = ObjectContainer(title2='Search')
+    for torrent_info in torrent_infos[:10]:
+        if torrent_info.category == 'movies':
+            seeders_leechers_line = 'Seeders: {0}, Leechers: {1}'.format(torrent_info.seeders, torrent_info.leechers)
+
+            movie_object = MovieObject()
+
+            tmdb.fill_metadata_object(movie_object, torrent_info.key)
+            movie_object.title   = torrent_info.release
+            movie_object.summary = seeders_leechers_line
+            movie_object.url     = torrent_info.url
+
+            object_container.add(movie_object)
+        else:
+            seeders_leechers_line = '{0}\nSeeders: {1}, Leechers: {2}'.format(torrent_info.size, torrent_info.seeders, torrent_info.leechers)
+
+            videoclip_object         = VideoClipObject()
+            videoclip_object.title   = torrent_info.title
+            videoclip_object.summary = seeders_leechers_line
+            videoclip_object.url     = torrent_info.url
+
+            object_container.add(videoclip_object)
+
+    return object_container

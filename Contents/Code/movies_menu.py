@@ -2,9 +2,6 @@
 SUBPREFIX = 'movies'
 
 ################################################################################
-ALLOW_UNRECOGNIZED = False
-
-################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='Movies')
@@ -20,12 +17,11 @@ def popular(per_page, movie_count=0):
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
     torrent_provider.movies_get_popular_torrents(torrent_infos)
 
-    movie_infos = []
-    movie_count = fill_movie_list(torrent_infos, movie_count, per_page, movie_infos)
-
     object_container = ObjectContainer(title2='Popular')
-    parse_movie_infos(object_container, movie_infos)
+    movie_count      = fill_object_container(object_container, torrent_infos, movie_count, per_page)
+    
     object_container.add(NextPageObject(key=Callback(popular, per_page=per_page, movie_count=movie_count), title="More..."))
+    
     return object_container
 
 ################################################################################
@@ -36,78 +32,68 @@ def search(query, per_page, movie_count=0):
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
     torrent_provider.movies_search(query, torrent_infos)
 
-    movie_infos = []
-    movie_count = fill_movie_list(torrent_infos, movie_count, per_page, movie_infos)
-
     object_container = ObjectContainer(title2='Search')
-    parse_movie_infos(object_container, movie_infos)
-    #object_container.add(NextPageObject(key=Callback(search, per_page=per_page, movie_count=movie_count), title="More..."))
+    movie_count      = fill_object_container(object_container, torrent_infos, movie_count, per_page)
+
+    object_container.add(NextPageObject(key=Callback(search, per_page=per_page, movie_count=movie_count), title="More..."))
+
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie', movie_info=dict)
-def movie(movie_info):
-    movie_info    = SharedCodeService.movies.MovieInfo.from_dict(movie_info)
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie')
+def movie(imdb_id):
     torrent_infos = []
     
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
-    torrent_provider.movies_get_specific_torrents(movie_info, torrent_infos)
+    torrent_provider.movies_get_specific_torrents(imdb_id, torrent_infos)
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 
-    object_container = ObjectContainer(title2=movie_info.title)
+    object_container = ObjectContainer()
+    
     for torrent_info in torrent_infos:
         seeders_leechers_line = '{0}\nSeeders: {1}, Leechers: {2}'.format(torrent_info.size, torrent_info.seeders, torrent_info.leechers)
 
-        movie_object         = MovieObject()
-        movie_object.title   = movie_info.title
-        movie_object.summary = seeders_leechers_line
+        movie_object = MovieObject()
 
-        if movie_info.tmdb_id:
-            SharedCodeService.tmdb.fill_metadata_object(movie_object, movie_info.tmdb_id)
-            movie_object.title = torrent_info.release
+        SharedCodeService.tmdb.fill_metadata_object(movie_object, imdb_id)
+        object_container.title2 = movie_object.title
 
-            if seeders_leechers_line != movie_object.summary:
-                movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary) 
-                #movie_object.summary = '{3}\n{2}\n{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary, torrent_info['info_hash'], torrent_info['title'])
-
-        movie_object.url = torrent_info.url
+        movie_object.title    = torrent_info.release
+        movie_object.summary  = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary) 
+        movie_object.url      = torrent_info.url
 
         object_container.add(movie_object)
 
     return object_container
 
 ################################################################################
-def fill_movie_list(torrent_infos, cur_movie_count, max_movie_count, movie_infos):
+def fill_object_container(object_container, torrent_infos, cur_movie_count, max_movie_count):
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 
-    movie_infos_keys      = set()
-    movie_infos_skip_keys = set()
+    imdb_ids      = []
+    imdb_ids_skip = set()
 
     for torrent_info in torrent_infos:
-        movie_info = SharedCodeService.movies.MovieInfo(torrent_info.title)
-        
-        if movie_info.tmdb_id or ALLOW_UNRECOGNIZED:
-            if len(movie_infos_skip_keys) < cur_movie_count:
-                movie_infos_skip_keys.add(movie_info.key)
+        if torrent_info.category == 'movies':
+            imdb_id = torrent_info.key
+
+            if len(imdb_ids_skip) < cur_movie_count:
+                imdb_ids_skip.add(imdb_id)
             else:
-                if not movie_info.key in movie_infos_skip_keys and not movie_info.key in movie_infos_keys:
-                    movie_infos_keys.add(movie_info.key)
-                    movie_infos.append(movie_info)
-                    if len(movie_infos) == max_movie_count:
+                if imdb_id not in imdb_ids and imdb_id not in imdb_ids_skip:
+                    imdb_ids.append(imdb_id)
+                    if len(imdb_ids) == max_movie_count:
                         break
 
-    return len(movie_infos_skip_keys) + len(movie_infos_keys)
+    for imdb_id in imdb_ids:
+        directory_object = DirectoryObject()
 
-################################################################################
-def parse_movie_infos(object_container, movie_infos):
-    for movie_info in movie_infos:
-        directory_object         = DirectoryObject()
-        directory_object.title   = movie_info.title
+        SharedCodeService.tmdb.fill_metadata_object(directory_object, imdb_id)
+        if not directory_object.title:
+            continue
 
-        if movie_info.tmdb_id:
-            SharedCodeService.tmdb.fill_metadata_object(directory_object, movie_info.tmdb_id)
-
-        directory_object.key = Callback(movie, movie_info=movie_info.to_dict())
+        directory_object.key = Callback(movie, imdb_id=imdb_id)
         object_container.add(directory_object)
 
+    return len(imdb_ids_skip) + len(imdb_ids)
