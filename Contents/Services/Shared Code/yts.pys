@@ -61,8 +61,9 @@ class YTSProvider(common.TorrentProvider):
             torrent_seeders  = int(json_data['TorrentSeeds'])
             torrent_leechers = int(json_data['TorrentPeers'])
 
-            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
-            torrent_info.data['imdb_id'] = json_data['ImdbCode']
+            torrent_info                  = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            torrent_info.data['category'] = 'movies'
+            torrent_info.data['imdb_id']  = json_data['ImdbCode']
 
             return torrent_info
 

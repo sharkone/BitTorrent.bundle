@@ -19,7 +19,7 @@ class TorrentInfo:
         self.seeders   = seeders
         self.leechers  = leechers
         self.url       = url
-        self.data      = {}
+        self.data      = { 'category': None }
 
 ################################################################################
 def get_torrent_release(torrent_title):
