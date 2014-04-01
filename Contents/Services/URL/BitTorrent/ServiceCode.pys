@@ -1,6 +1,6 @@
 ################################################################################
+import cherrytorrent
 import metaprovider
-import torrent2http
 import yts
 
 ################################################################################
@@ -27,4 +27,4 @@ def get_image_async(url):
 ###############################################################################
 @indirect
 def play_torrent(url, magnet, download_dir, port=-1):
-    return torrent2http.play_torrent(url, magnet, download_dir, play_torrent, port)
+    return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, port)

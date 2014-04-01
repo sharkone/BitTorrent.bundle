@@ -1,5 +1,12 @@
 [
     {
+        "id":       "INCOMING_PORT",
+        "label":    "Torrent incoming port",
+        "type":     "text",
+        "default":  "6900"
+    },
+
+    {
         "id":       "MAX_DOWNLOAD_RATE",
         "label":    "Maximum download rate (in kb/s, 0 = Unlimited)",
         "type":     "text",

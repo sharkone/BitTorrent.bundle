@@ -1,0 +1,162 @@
+###############################################################################
+import os
+import platform
+import socket
+import stat
+import subprocess
+import threading
+import time
+
+###############################################################################
+def play_torrent(url, magnet, download_dir, play_func, port):
+    if port == -1:
+        port = start_cherrytorrent(url, magnet, download_dir)
+
+    while True:
+        status_json = None
+
+        try:
+            status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
+        except Exception as exception:
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Server not ready yet: {1}'.format(port, exception))
+
+        need_slow_mode      = str(Client.Platform) == 'Plex Home Theater'
+        is_video_ready_slow = status_json and ('video_file' in status_json) and status_json['video_file']['is_ready_slow']
+        is_video_ready_fast = status_json and ('video_file' in status_json) and status_json['video_file']['is_ready_fast']
+
+        if is_video_ready_slow or (not need_slow_mode and is_video_ready_fast):
+            return IndirectResponse(VideoClipObject, key=get_url(port, 'video'))
+        else:
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Video not ready yet ({1})'.format(port, 'slow mode' if need_slow_mode else 'fast mode'))
+            time.sleep(2)
+            
+            need_redirect = str(Client.Platform) == 'Plex Home Theater'
+            if need_redirect:
+                return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, port=port))                
+
+###############################################################################
+def start_cherrytorrent(url, magnet, download_dir):
+    clean_zombie_port_files()
+
+    downloader_port    = 5001
+    downloader_running = False
+
+    for file_name in os.listdir(get_bin_dir()):
+        file_path = os.path.join(get_bin_dir(), file_name)
+        if os.path.isfile(file_path) and file_name.isdigit():
+            file_fd      = os.open(file_path, os.O_RDONLY)
+            file_content = os.read(file_fd, 1024)
+            os.close(file_fd)
+            if file_content == url:
+                if is_instance_running(int(file_name)):
+                    downloader_port = int(file_name)
+                    downloader_running = True
+                    Log.Info('[BitTorrent][cherrytorrent][{0}] Found port file'.format(downloader_port))
+                    break
+
+    if not downloader_running:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('', 0))
+        downloader_port = s.getsockname()[1]
+        s.close()
+
+        Log.Info('[BitTorrent][cherrytorrent][{0}] Writing port file'.format(downloader_port))
+        downloader_port_file = os.path.join(get_bin_dir(), str(downloader_port))
+        downloader_port_fd   = os.open(downloader_port_file, os.O_CREAT | os.O_RDWR)
+        os.write(downloader_port_fd, url)
+        os.close(downloader_port_fd)
+
+        # chmod 755
+        os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+        executable = get_exec_path()
+        command =   [
+                        '\"' + executable + '\"',
+                        '-hl', '\"' + get_bin_dir() + '\"',
+                        '-hp', str(downloader_port),
+                        '-ht', str(30),
+                        '-tp', Prefs['INCOMING_PORT'],
+                        '-tdl', Prefs['MAX_DOWNLOAD_RATE'],
+                        '-tul', Prefs['MAX_UPLOAD_RATE'],
+                        '-td', '\"' + download_dir + '\"'
+                    ]
+
+        if Prefs['KEEP_FILES']:
+            command.append('-tk')
+
+        command.append('\"' + magnet + '\"')
+
+        env = os.environ.copy()
+        if 'PYTHONHOME' in env:
+           del env['PYTHONHOME']
+
+        if Platform.OS == 'Windows':
+            print '[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command))
+            process = os.spawnve(os.P_DETACH, executable, command, os.environ)
+        else:
+            command.append('&')
+            print '[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command))
+            os.system(' '.join(command))
+
+        return downloader_port
+    
+    return downloader_port
+
+###############################################################################
+def get_url(port, page):
+    return 'http://' + Network.Address + ':' + str(port) + '/' + page
+
+###############################################################################
+def get_bin_dir():
+    bundle_directory = os.path.join(os.getcwd(), '..', '..', '..', 'Plug-ins', 'BitTorrent.bundle')
+    bundle_directory = bundle_directory.replace('\\\\?\\', '')
+    return os.path.normpath(os.path.join(bundle_directory, 'Contents', 'Bin'))
+
+###############################################################################
+def get_exec_dir():
+    if Platform.OS == 'MacOSX':
+        return os.path.join(get_bin_dir(), 'MacOSX')
+    elif Platform.OS == 'Linux':
+        if platform.architecture()[0] == '64bit':
+            return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x64')
+        elif platform.architecture()[0] == '32bit':
+            return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x86')
+    elif Platform.OS == 'Windows':
+        return os.path.join(get_bin_dir(), 'Windows')
+    
+    Log.Error('[BitTorrent][cherrytorrent] Unsupported OS: {0}'.format(Platform.OS))
+
+###############################################################################
+def get_exec_path():
+    if Platform.OS == 'MacOSX':
+        return os.path.join(get_exec_dir(), 'cherrytorrent')
+    elif Platform.OS == 'Linux':
+        return os.path.join(get_exec_dir(), 'cherrytorrent')
+    elif Platform.OS == 'Windows':
+        return os.path.join(get_exec_dir(), 'cherrytorrent.exe')
+    
+    Log.Error('[BitTorrent][cherrytorrent] Unsupported OS: {0}'.format(Platform.OS))
+
+###############################################################################
+def clean_zombie_port_files():
+    files_to_delete = []
+
+    for file_name in os.listdir(get_bin_dir()):
+        file_path = os.path.join(get_bin_dir(), file_name)
+        if os.path.isfile(file_path) and file_name.isdigit():
+            if not is_instance_running(int(file_name)):
+                files_to_delete.append(file_name)
+
+    for file_name in files_to_delete:
+        Log.Info('[BitTorrent][cherrytorrent][clean_zombie_port_files][{0}] Removing zombie port file'.format(int(file_name)))
+        file_path = os.path.join(get_bin_dir(), file_name)
+        os.remove(file_path)
+
+###############################################################################
+def is_instance_running(port):
+    try:
+        status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0, timeout=5)
+        return True
+    except Exception as exception:
+        Log.Error('[BitTorrent][cherrytorrent][is_instance_running][{0}] Unhandled exception: {1}'.format(port, exception))
+        return False
