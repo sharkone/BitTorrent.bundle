@@ -33,13 +33,14 @@ class YTSProvider(common.TorrentProvider):
             json_url  = YTS + '/api/movie.json?id={0}'.format(movie_id)
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1DAY)
 
-            torrent_url      = url
             torrent_magnet   = json_data['TorrentMagnetUrl']
             torrent_title    = '{0} ({1}) {2}'.format(json_data['MovieTitleClean'], json_data['MovieYear'], json_data['Quality'])
+            torrent_url      = url
             torrent_seeders  = int(json_data['TorrentSeeds'])
             torrent_leechers = int(json_data['TorrentPeers'])
+            torrent_size     = int(json_data['SizeByte'])
 
-            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers)
             torrent_info.data['imdb_id'] = json_data['ImdbCode']
 
             return torrent_info
@@ -55,8 +56,9 @@ class YTSProvider(common.TorrentProvider):
             for json_item in json_data['MovieList']:
                 self.add_torrent_info(torrent_infos, movie_key, json_item['TorrentMagnetUrl'],
                                                                 '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
+                                                                json_item['MovieUrl']
                                                                 int(json_item['TorrentSeeds']),
                                                                 int(json_item['TorrentPeers']),
-                                                                json_item['MovieUrl'])
+                                                                int(json_item['SizeByte']))
         except Exception as exception:
             Log.Error('[BitTorrent][YTSProvider] Unhandled exception: {0}'.format(exception))

@@ -9,6 +9,7 @@ THEPIRATEBAY = 'http://thepiratebay.se'
 RE_IMDB_ID  = re.compile('http://www.imdb.com/title/(.+)/')
 RE_SEEDERS  = re.compile('<dt>Seeders:</dt>\s*<dd>(\d+)</dd>')
 RE_LEECHERS = re.compile('<dt>Leechers:</dt>\s*<dd>(\d+)</dd>')
+RE_SIZE     = re.compile('(\s|(&nbsp;))*(\d+\.\d+)(\s|(&nbsp;))((MiB)|(GiB))')
 
 ################################################################################
 class ThePirateBayProvider(common.TorrentProvider):
@@ -57,14 +58,26 @@ class ThePirateBayProvider(common.TorrentProvider):
             try:
                 torrent_seeders = int(RE_SEEDERS.search(page_data_raw).group(1))
             except:
-                torrent_seeders = 'Unknown'
+                torrent_seeders = 0
 
             try:
                 torrent_leechers = int(RE_LEECHERS.search(page_data_raw).group(1))
             except:
-                torrent_leechers = 'Unknown'
+                torrent_leechers = 0
 
-            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            try:
+                torrent_size_str  = page_data.xpath('//*[@id="details"]/dl[1]/dd[3]/text()')[0]
+                torrent_size_num  = float(RE_SIZE.search(size_str).group(3))
+                torrent_size_type = RE_RESULT_SIZE.search(size_str).group(6)
+
+                if torrent_size_type == 'MiB':
+                    torrent_size = int(torrent_size_num * 1024.0 * 1024.0)
+                elif torrent_size_type == 'GiB':
+                    torrent_size = int(torrent_size_num * 1024.0 * 1024.0 * 1024.0)
+            except:
+                torrent_size = 0
+
+            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers, torrent_size)
             
             try:
                 if page_data.xpath('//*[@id="details"]/dl[1]/dd[1]/a/@href')[0] in ('/browse/201', '/browse/207'):
@@ -91,11 +104,24 @@ class ThePirateBayProvider(common.TorrentProvider):
             html_url  = url
             html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
 
-            for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
+            for html_item in html_data.xpath('//*[@id="searchResult"]/tbody/tr'):
+                try:
+                    size_str  = html_item.xpath('.td[2]/font[@class="detDesc"]/text()')[0]
+                    size_num  = float(RE_SIZE.search(size_str).group(3))
+                    size_type = RE_RESULT_SIZE.search(size_str).group(6)
+
+                    if size_type == 'MiB':
+                        size = int(size_num * 1024.0 * 1024.0)
+                    elif size_type == 'GiB':
+                        size = int(size_num * 1024.0 * 1024.0 * 1024.0)
+                except:
+                    size = 0
+
                 self.add_torrent_info(torrent_infos, movie_key, html_item.xpath('./td[2]/a[1]/@href')[0],
                                                                 html_item.xpath('./td[2]/div/a/text()')[0],
+                                                                THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0],
                                                                 int(html_item.xpath('./td[3]/text()')[0]),
                                                                 int(html_item.xpath('./td[4]/text()')[0]),
-                                                                THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0])
+                                                                size)
         except Exception as exception:
             Log.Error('[BitTorrent][ThePirateBayProvider] Unhandled exception: {0}'.format(exception))
