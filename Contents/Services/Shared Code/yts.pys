@@ -3,7 +3,8 @@ import common
 import tmdb
 
 ################################################################################
-YTS = 'http://yts.re'
+YTS      = 'http://yts.re'
+YTS_LIST = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&sort={3}&set={4}'
 
 ################################################################################
 class YTSProvider(common.TorrentProvider):
