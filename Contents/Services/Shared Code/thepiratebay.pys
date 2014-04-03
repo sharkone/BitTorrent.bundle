@@ -7,7 +7,9 @@ import tmdb
 ################################################################################
 THEPIRATEBAY = 'http://thepiratebay.se'
 
-RE_IMDB_ID = re.compile('http://www.imdb.com/title/(.+)/')
+RE_IMDB_ID  = re.compile('http://www.imdb.com/title/(.+)/')
+RE_SEEDERS  = re.compile('<dt>Seeders:</dt>\s*<dd>(\d+)</dd>')
+RE_LEECHERS = re.compile('<dt>Leechers:</dt>\s*<dd>(\d+)</dd>')
 
 ################################################################################
 class ThePirateBayProvider(common.TorrentProvider):
@@ -46,28 +48,31 @@ class ThePirateBayProvider(common.TorrentProvider):
     ############################################################################
     def get_torrent_info_for_url(self, url):
         if url.startswith(THEPIRATEBAY):
-            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+            page_data     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+            page_data_raw = HTML.StringFromElement(page_data)
 
             torrent_url      = url
             torrent_magnet   = page_data.xpath('//a[@title="Get this torrent"]/@href')[0]
             torrent_title    = page_data.xpath('//div[@id="title"]')[0].text.strip()
             
             try:
-                torrent_seeders = int(page_data.xpath('//*[@id="details"]/dl[1]/dd[9]/text()')[0].strip())
+                torrent_seeders = int(RE_SEEDERS.search(page_data_raw).group(1))
             except:
                 torrent_seeders = 'Unknown'
 
             try:
-                torrent_leechers = int(page_data.xpath('//*[@id="details"]/dl[1]/dd[10]/text()')[0].strip())
+                torrent_leechers = int(RE_LEECHERS.search(page_data_raw).group(1))
             except:
                 torrent_leechers = 'Unknown'
 
             torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
             
             try:
-                imdb_link                     = page_data.xpath('//a[@title="IMDB"]/@href')[0]
-                torrent_info.data['imdb_id']  = RE_IMDB_ID.search(imdb_link).group(1)
-                torrent_info.data['category'] = 'movies'
+                if page_data.xpath('//*[@id="details"]/dl[1]/dd[1]/a/@href')[0] in ('/browse/201', '/browse/207'):
+                    torrent_info.data['category'] = 'movies'
+
+                    imdb_link                    = page_data.xpath('//a[@title="IMDB"]/@href')[0]
+                    torrent_info.data['imdb_id'] = RE_IMDB_ID.search(imdb_link).group(1)
             except:
                 pass
 
