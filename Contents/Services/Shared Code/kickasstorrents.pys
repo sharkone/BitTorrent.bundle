@@ -89,7 +89,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
                 pass
                 
             try:
-                torrent_info.data['tv_show_title'] = page_data.xpath('//*[@id="tab-main"]/div[3]/div/ul[1]/li[1]/a/strong/text()')[0]
+                torrent_info.data['tv_show_title'] = page_data.xpath('//*[@id="tab-main"]/div[2]/div/ul[1]/li[1]/a/strong/text()')[0]
                 torrent_info.data['category']      = 'tvshows'
             except:
                 pass

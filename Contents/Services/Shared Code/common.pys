@@ -138,8 +138,17 @@ class TorrentProvider:
         torrent_info = self.get_torrent_info_for_url(url)
 
         if torrent_info:
+            if torrent_info.data['category'] == 'anime':
+                download_dir = Prefs['ANIME_DOWNLOAD_DIR']
+            elif torrent_info.data['category'] == 'movies':
+                download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
+            elif torrent_info.data['category'] == 'tvshows':
+                download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
+            else:
+                download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
+
             media_object = MediaObject()
-            media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet)))
+            media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet, download_dir=download_dir)))
             return [media_object]
 
     def add_torrent_info(self, torrent_infos, movie_key, torrent_magnet, torrent_title, torrent_url, torrent_seeders=0, torrent_leechers=0, torrent_size=0):

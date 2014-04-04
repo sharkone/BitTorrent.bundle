@@ -18,8 +18,20 @@
         "default":  "false"
     },
     {
-        "id":       "DOWNLOAD_DIR",
-        "label":    "Download directory",
+        "id":       "ANIME_DOWNLOAD_DIR",
+        "label":    "Anime download directory",
+        "type":     "text",
+        "default":  "."
+    },
+    {
+        "id":       "MOVIES_DOWNLOAD_DIR",
+        "label":    "Movies download directory",
+        "type":     "text",
+        "default":  "."
+    },
+    {
+        "id":       "TVSHOWS_DOWNLOAD_DIR",
+        "label":    "TV Shows download directory",
         "type":     "text",
         "default":  "."
     },

@@ -10,10 +10,10 @@ import threading
 import time
 
 ###############################################################################
-def play_torrent(url, magnet, play_func, port):
+def play_torrent(url, magnet, download_dir, play_func, port):
     try:
         if port == -1:
-            port = start_torrent2http(url, magnet)
+            port = start_torrent2http(url, magnet, download_dir)
         
         status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0, timeout=5)
             
@@ -36,10 +36,10 @@ def play_torrent(url, magnet, play_func, port):
         Log.Error('[BitTorrent][torrent2http] Unhandled exception: {0}'.format(exception))
 
     time.sleep(2)
-    return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, port=port))
+    return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, port=port))
 
 ###############################################################################
-def start_torrent2http(url, magnet):
+def start_torrent2http(url, magnet, download_dir):
     clean_zombie_port_files()
 
     downloader_port    = 5001
@@ -81,7 +81,7 @@ def start_torrent2http(url, magnet):
                     '{0}'.format(get_exec_path()),
                     '-bind=:{0}'.format(downloader_port),
                     '-keep={0}'.format(Prefs['KEEP_FILES']),
-                    '-dlpath={0}'.format(Prefs['DOWNLOAD_DIR']),
+                    '-dlpath={0}'.format(download_dir),
                     '-dlrate={0}'.format(Prefs['MAX_DOWNLOAD_RATE']),
                     '-ulrate={0}'.format(Prefs['MAX_UPLOAD_RATE']),
                     '-max-idle={0}'.format(30),
