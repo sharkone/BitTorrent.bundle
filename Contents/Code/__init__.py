@@ -32,7 +32,10 @@ def Main():
         object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
         object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
         object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
-        object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
+        
+        if Prefs['USE_YTS_PROVIDER']:
+            object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
+            
         object_container.add(PrefsObject(title='Preferences'))
 
     return object_container

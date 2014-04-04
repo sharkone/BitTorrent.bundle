@@ -6,11 +6,18 @@ import yts
 
 ################################################################################
 class MetaProvider(common.TorrentProvider):
+    ############################################################################
     def __init__(self):
         self.providers = []
-        self.providers.append(kickasstorrents.KickassTorrentsProvider())
-        self.providers.append(thepiratebay.ThePirateBayProvider())
-        self.providers.append(yts.YTSProvider())
+
+        if Prefs['USE_KICKASSTORRENTS_PROVIDER']:
+            self.providers.append(kickasstorrents.KickassTorrentsProvider())
+
+        if Prefs['USE_THEPIRATEBAY_PROVIDER']:
+            self.providers.append(thepiratebay.ThePirateBayProvider())
+
+        if Prefs['USE_YTS_PROVIDER']:
+            self.providers.append(yts.YTSProvider())
 
     ############################################################################
     # ANIME

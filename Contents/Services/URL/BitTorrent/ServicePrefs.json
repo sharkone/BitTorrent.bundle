@@ -22,5 +22,23 @@
         "label":    "Download directory",
         "type":     "text",
         "default":  "."
+    },
+    {
+        "id":       "USE_KICKASSTORRENTS_PROVIDER",
+        "label":    "Use KickAssTorrents provider",
+        "type":     "bool",
+        "default":  "True"
+    },
+    {
+        "id":       "USE_THEPIRATEBAY_PROVIDER",
+        "label":    "Use The Pirate Bay provider",
+        "type":     "bool",
+        "default":  "True"
+    },
+    {
+        "id":       "USE_YTS_PROVIDER",
+        "label":    "Use YTS provider",
+        "type":     "bool",
+        "default":  "True"
     }
 ]
