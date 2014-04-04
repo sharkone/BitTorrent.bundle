@@ -1,10 +1,12 @@
 ################################################################################
 import common
-import movies
+import re
 import tmdb
 
 ################################################################################
 KICKASSTORRENTS = 'http://kickass.to'
+
+RE_URL_SIZE = re.compile('(\d+.\d+) (MB|GB)')
 
 ################################################################################
 class KickassTorrentsProvider(common.TorrentProvider):
@@ -53,13 +55,26 @@ class KickassTorrentsProvider(common.TorrentProvider):
         if url.startswith(KICKASSTORRENTS):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 
-            torrent_url      = url
             torrent_magnet   = page_data.xpath('//*[@title="Magnet link"]/@href')[0]
-            torrent_title    = page_data.xpath('//*[@class="novertmarg"]/a/span/text()')[0]
+            torrent_title    = page_data.xpath('//h1/a/span[@itemprop="name"]/text()')[0]
+            torrent_url      = url
             torrent_seeders  = int(page_data.xpath('//strong[@itemprop="seeders"]/text()')[0])
             torrent_leechers = int(page_data.xpath('//strong[@itemprop="leechers"]/text()')[0])
 
-            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_seeders, torrent_leechers, torrent_url)
+            try:
+                torrent_size_str  = page_data.xpath('//*[@id="tab-main"]/div[3]/span/text()')[0]
+                torrent_size_str  = torrent_size_str + page_data.xpath('//*[@id="tab-main"]/div[3]/span/span/text()')[0]
+                torrent_size_num  = float(RE_URL_SIZE.search(torrent_size_str).group(1))
+                torrent_size_type = RE_URL_SIZE.search(torrent_size_str).group(2)
+
+                if torrent_size_type == 'MB':
+                    torrent_size = int(torrent_size_num * 1024.0 * 1024.0)
+                elif torrent_size_type == 'GB':
+                    torrent_size = int(torrent_size_num * 1024.0 * 1024.0 * 1024.0)
+            except:
+                torrent_size = 0
+
+            torrent_info = common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers, torrent_size)
             
             try:
                 if page_data.xpath('//*[@id="tab-main"]/div[2]/div/div/ul[1]/li[6]/strong/text()')[0] == 'Anime type:':
@@ -92,8 +107,9 @@ class KickassTorrentsProvider(common.TorrentProvider):
             for rss_entry in rss_data.entries:
                 self.add_torrent_info(torrent_infos, movie_key, rss_entry.torrent_magneturi,
                                                                 rss_entry.title,
+                                                                rss_entry.link,
                                                                 int(rss_entry.torrent_seeds),
                                                                 int(rss_entry.torrent_peers),
-                                                                rss_entry.link)
+                                                                int(rss_entry.torrent_contentlength))
         except Exception as exception:
             Log.Error('[BitTorrent][KickassTorrentsProvider] Unhandled exception: {0}'.format(exception))
