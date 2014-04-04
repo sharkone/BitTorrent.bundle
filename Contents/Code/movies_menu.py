@@ -57,7 +57,7 @@ def movie(movie_info):
 
     object_container = ObjectContainer(title2=movie_info.title)
     for torrent_info in torrent_infos:
-        seeders_leechers_line = 'Seeders: {0}, Leechers: {1}'.format(torrent_info.seeders, torrent_info.leechers)
+        seeders_leechers_line = '{0}\nSeeders: {1}, Leechers: {2}'.format(torrent_info.size, torrent_info.seeders, torrent_info.leechers)
 
         movie_object         = MovieObject()
         movie_object.title   = movie_info.title

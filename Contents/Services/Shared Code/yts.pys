@@ -20,7 +20,7 @@ class YTSProvider(common.TorrentProvider):
     def movies_get_specific_torrents(self, movie_info, torrent_infos):
         imdb_id = tmdb.get_imdb_id_from_title(movie_info.title, movie_info.year)
         query   = imdb_id if imdb_id else movie_info.title.replace('.', ' ').replace('-', ' ')
-        self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(json_query)), torrent_infos, movie_info.key)
+        self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query)), torrent_infos, movie_info.key)
 
     ############################################################################
     # COMMON
@@ -41,8 +41,9 @@ class YTSProvider(common.TorrentProvider):
             torrent_leechers = int(json_data['TorrentPeers'])
             torrent_size     = int(json_data['SizeByte'])
 
-            torrent_info                 = common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers)
-            torrent_info.data['imdb_id'] = json_data['ImdbCode']
+            torrent_info                  = common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_seeders, torrent_leechers, torrent_size)
+            torrent_info.data['imdb_id']  = json_data['ImdbCode']
+            torrent_info.data['category'] = 'movies'
 
             return torrent_info
 
@@ -57,7 +58,7 @@ class YTSProvider(common.TorrentProvider):
             for json_item in json_data['MovieList']:
                 self.add_torrent_info(torrent_infos, movie_key, json_item['TorrentMagnetUrl'],
                                                                 '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
-                                                                json_item['MovieUrl']
+                                                                json_item['MovieUrl'],
                                                                 int(json_item['TorrentSeeds']),
                                                                 int(json_item['TorrentPeers']),
                                                                 int(json_item['SizeByte']))

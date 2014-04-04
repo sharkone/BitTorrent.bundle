@@ -19,8 +19,20 @@ class TorrentInfo:
         self.url       = url
         self.seeders   = seeders
         self.leechers  = leechers
-        self.size      = 0
-        self.data      = {}
+        
+        size_gb = float(size) / 1024.0 / 1024.0 / 1024.0
+        size_mb = float(size) / 1024.0 / 1024.0
+        size_kb = float(size) / 1024.0
+        if size_gb > 1.0:
+            self.size = '%.2f GB' % size_gb
+        elif size_mb > 1.0:
+            self.size = '%.2f MB' % size_mb
+        elif size_kb > 1.0:
+            self.size = '%.2f KB' % size_kb
+        else:
+            self.size = '%.2f B' % size
+
+        self.data = { 'category': None }
 
 ################################################################################
 def get_torrent_release(torrent_title):
