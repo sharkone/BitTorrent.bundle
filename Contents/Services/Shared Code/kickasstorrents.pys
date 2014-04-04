@@ -43,7 +43,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
         self.parse_result_page(KICKASSTORRENTS + '/tv/?field=seeders&sorder=desc&rss=1', torrent_infos)
 
     def tvshows_search(self, query, torrent_infos):
-        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%tv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
+        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Atv%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), torrent_infos)
 
     def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
         pass
