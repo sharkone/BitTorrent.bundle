@@ -78,22 +78,19 @@ def fill_object_container(object_container, torrent_infos, cur_movie_count, max_
         if torrent_info.category == 'movies':
             imdb_id = torrent_info.key
 
+            directory_object = DirectoryObject()
+            SharedCodeService.tmdb.fill_metadata_object(directory_object, imdb_id)
+            if not directory_object.title:
+                continue
+            directory_object.key = Callback(movie, imdb_id=imdb_id)
+
             if len(imdb_ids_skip) < cur_movie_count:
                 imdb_ids_skip.add(imdb_id)
             else:
                 if imdb_id not in imdb_ids and imdb_id not in imdb_ids_skip:
+                    object_container.add(directory_object)
                     imdb_ids.append(imdb_id)
                     if len(imdb_ids) == max_movie_count:
                         break
-
-    for imdb_id in imdb_ids:
-        directory_object = DirectoryObject()
-
-        SharedCodeService.tmdb.fill_metadata_object(directory_object, imdb_id)
-        if not directory_object.title:
-            continue
-
-        directory_object.key = Callback(movie, imdb_id=imdb_id)
-        object_container.add(directory_object)
 
     return len(imdb_ids_skip) + len(imdb_ids)
