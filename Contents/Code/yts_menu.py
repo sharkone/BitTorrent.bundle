@@ -55,7 +55,7 @@ def search_internal(title, movie_list, query, genre, sort, only_3d, page):
 		if movie['Quality'] != '3D' or only_3d:
 			if movie['ImdbCode'] not in movie_list:
 				movie_object = MovieObject()
-				SharedCodeService.tmdb.fill_metadata_object(movie_object, movie['ImdbCode'])
+				SharedCodeService.trakt.fill_metadata_object(movie_object, movie['ImdbCode'])
 				movie_object.url = movie['MovieUrl']
 				movie_list.append(movie['ImdbCode'])
 				object_container.add(movie_object)

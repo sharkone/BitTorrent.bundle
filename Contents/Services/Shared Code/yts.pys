@@ -1,6 +1,5 @@
 ################################################################################
 import common
-import tmdb
 
 ################################################################################
 YTS      = 'http://yts.re'
@@ -11,12 +10,6 @@ class YTSProvider(common.TorrentProvider):
     ############################################################################
     # MOVIES
     ############################################################################
-    def movies_get_popular_torrents(self, torrent_infos):
-        self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds', 'movies', torrent_infos)
-
-    def movies_search(self, query, torrent_infos):
-        self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query)), 'movies', torrent_infos)
-
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         query = imdb_id
         self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
@@ -52,14 +45,15 @@ class YTSProvider(common.TorrentProvider):
             json_url  = url
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
-            for json_item in json_data['MovieList']:
-                self.add_torrent_info(torrent_infos, ref_torrent_key, json_item['TorrentMagnetUrl'],
-                                                                      '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
-                                                                      json_item['MovieUrl'],
-                                                                      json_item['ImdbCode'],
-                                                                      category,
-                                                                      int(json_item['TorrentSeeds']),
-                                                                      int(json_item['TorrentPeers']),
-                                                                      int(json_item['SizeByte']))
+            if 'MovieList' in json_data:
+                for json_item in json_data['MovieList']:
+                    self.add_torrent_info(torrent_infos, ref_torrent_key, json_item['TorrentMagnetUrl'],
+                                                                          '{0} ({1}) {2}'.format(json_item['MovieTitleClean'], json_item['MovieYear'], json_item['Quality']),
+                                                                          json_item['MovieUrl'],
+                                                                          json_item['ImdbCode'],
+                                                                          category,
+                                                                          int(json_item['TorrentSeeds']),
+                                                                          int(json_item['TorrentPeers']),
+                                                                          int(json_item['SizeByte']))
         except Exception as exception:
             Log.Error('[BitTorrent][YTSProvider] Unhandled exception: {0}'.format(exception))

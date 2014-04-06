@@ -32,14 +32,6 @@ class ThePirateBayProvider(common.TorrentProvider):
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_popular_torrents(self, torrent_infos):
-        self.parse_result_page(THEPIRATEBAY + '/top/205', 'tvshows', torrent_infos)
-        self.parse_result_page(THEPIRATEBAY + '/top/208', 'tvshows', torrent_infos)
-
-    def tvshows_search(self, query, torrent_infos):
-        self.parse_result_page(THEPIRATEBAY + '/search/{0}/0/7/205'.format(String.Quote(query)), 'tvshows', torrent_infos)
-        self.parse_result_page(THEPIRATEBAY + '/search/{0}/0/7/208'.format(String.Quote(query)), 'tvshows', torrent_infos)
-
     def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
         pass
 

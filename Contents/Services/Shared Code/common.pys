@@ -1,6 +1,6 @@
 ################################################################################
 import re
-import tmdb
+import trakt
 
 ################################################################################
 PREFIX = '/video/bittorrent'
@@ -64,12 +64,6 @@ class TorrentProvider:
     ############################################################################
     # MOVIES
     ############################################################################
-    def movies_get_popular_torrents(self, torrent_infos):
-        pass
-
-    def movies_search(self, query, torrent_infos):
-        pass
-
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         pass
 
@@ -78,7 +72,7 @@ class TorrentProvider:
         if torrent_info and torrent_info.category == 'movies':
             metadata_object = MovieObject()
             
-            tmdb.fill_metadata_object(metadata_object, torrent_info.key)
+            trakt.fill_metadata_object(metadata_object, torrent_info.key)
             metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
 
             return metadata_object

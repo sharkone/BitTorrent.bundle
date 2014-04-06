@@ -1,6 +1,6 @@
 ################################################################################
 import metaprovider
-import tmdb
+import trakt
 
 ################################################################################
 def Search(query):
@@ -10,7 +10,13 @@ def Search(query):
     torrent_provider.anime_search(query, anime_torrent_infos)
 
     movie_torrent_infos = []
-    torrent_provider.movies_search(query, movie_torrent_infos)
+    movie_ids = []
+    trakt.movies_search(query, movie_ids)
+    for movie_id in movie_ids:
+        directory_object = DirectoryObject()
+        imdb_id = trakt.fill_metadata_object(directory_object, movie_id)
+        if imdb_id:
+            torrent_provider.movies_get_specific_torrents(imdb_id, movie_torrent_infos)
 
     tvshows_torrent_infos = []
     torrent_provider.tvshows_search(query, tvshows_torrent_infos)
@@ -25,7 +31,7 @@ def Search(query):
 
             movie_object = MovieObject()
 
-            tmdb.fill_metadata_object(movie_object, torrent_info.key)
+            trakt.fill_metadata_object(movie_object, torrent_info.key)
             movie_object.title   = torrent_info.release
             movie_object.summary = seeders_leechers_line
             movie_object.url     = torrent_info.url

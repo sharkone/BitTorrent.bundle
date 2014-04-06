@@ -26,12 +26,6 @@ class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
     # MOVIES
     ############################################################################
-    def movies_get_popular_torrents(self, torrent_infos):
-        self.parse_result_page(KICKASSTORRENTS + '/movies/?field=seeders&sorder=desc&rss=1', 'movies', torrent_infos)
-
-    def movies_search(self, query, torrent_infos):
-        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Amovies%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'movies', torrent_infos)
-
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         query = 'imdb:{0}'.format(imdb_id[2:])
         self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
@@ -109,10 +103,9 @@ class KickassTorrentsProvider(common.TorrentProvider):
                 torrent_key = rss_entry.title
 
                 if category == 'movies':
-                    imdb_id_re_result = RE_IMDB_ID.search(rss_entry.description)
-                    if imdb_id_re_result:
-                        torrent_key = imdb_id_re_result.group(1)
-                    else:
+                    try:
+                        torrent_key = RE_IMDB_ID.search(rss_entry.description).group(1)
+                    except:
                         torrent_key = tmdb.get_imdb_id_from_torrent_title(rss_entry.title)
 
                 if torrent_key:
