@@ -4,6 +4,8 @@ import movies_menu
 import tvshows_menu
 import yts_menu
 
+import tracking
+
 ################################################################################
 TITLE  = 'BitTorrent'
 ART    = 'art-default.jpg'
@@ -20,6 +22,8 @@ def Start():
 ################################################################################
 @handler(SharedCodeService.common.PREFIX, TITLE, thumb=ICON, art=ART)
 def Main():
+    tracking.track('Started channel')
+
     Log.Info('Server Platform: {0} ({1})'.format(Platform.OS, Platform.CPU))
     Log.Info('Client Platform: {0}'.format(Client.Platform))
 
