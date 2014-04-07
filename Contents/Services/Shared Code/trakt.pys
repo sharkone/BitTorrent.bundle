@@ -1,11 +1,45 @@
 ###############################################################################
+import common
 import decorators
+import re
 
 ###############################################################################
 TRAKT     = 'http://trakt.tv'
 TRAKT_API = 'http://api.trakt.tv'
 API_KEY   = '480555541c12a378b1aac15054a95698'
 
+###############################################################################
+# COMMON
+###############################################################################
+def get_ids_from_page(page, ids, cur_count, max_count):
+    ids_skip = set()
+
+    page_index = 0
+    while len(ids) != max_count:
+        page_index = page_index + 1
+        html_url   = TRAKT + page + '/' + str(page_index)
+        html_data  = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+
+        has_items = False
+        for html_item in html_data.xpath('//*[@class="library-show"]/h4/a[@class="title"]/@href'):
+            has_items = True
+            id = html_item[html_item.rfind('/') + 1:]
+
+            if len(ids_skip) < cur_count:
+                ids_skip.add(id)
+            else:
+                if id not in ids and id not in ids_skip:
+                    ids.append(id)
+                    if len(ids) == max_count:
+                        break
+
+        if not has_items:
+            break
+
+    return len(ids_skip) + len(ids)
+
+###############################################################################
+# MOVIES
 ###############################################################################
 def movies_search(query, movie_ids):
     json_url  = TRAKT_API + '/search/movies.json/' + API_KEY + '?query=' + String.Quote(query)
@@ -15,186 +49,445 @@ def movies_search(query, movie_ids):
         movie_ids.append(json_item['imdb_id'])
 
 ###############################################################################
-def movies_get_from_page(page, movie_ids, cur_movie_count, max_movie_count):
-    movie_ids_skip = set()
-
-    page_index = 0
-    while len(movie_ids) != max_movie_count:
-        page_index = page_index + 1
-        html_url   = TRAKT + page + '/' + str(page_index)
-        html_data  = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
-
-        has_items = False
-        for html_item in html_data.xpath('//*[@class="library-show"]/h4/a[@class="title"]/@href'):
-            has_items = True
-            movie_id  = html_item[7:]
-
-            if len(movie_ids_skip) < cur_movie_count:
-                movie_ids_skip.add(movie_id)
-            else:
-                if movie_id not in movie_ids and movie_id not in movie_ids_skip:
-                    movie_ids.append(movie_id)
-                    if len(movie_ids) == max_movie_count:
-                        break
-
-        if not has_items:
-            break
-
-    return len(movie_ids_skip) + len(movie_ids)
-
-###############################################################################
-def fill_metadata_object(metadata_object, movie_id):
-    movie_metadata = get_movie_metadata(movie_id)
-    if not movie_metadata:
-        return
-
-    try:
-        metadata_object.duration = movie_metadata['duration']
-    except:
-        pass
-    
-    try:
-        metadata_object.title = movie_metadata['title']
-    except:
-        pass
-
-    try:
-        metadata_object.tagline = movie_metadata['tagline']
-    except:
-        pass
-
-    try:
-        metadata_object.summary = movie_metadata['summary']
-    except:
-        pass
-
-    try:
-        metadata_object.rating = movie_metadata['rating']
-    except:
-        pass
-
-    try:
-        metadata_object.thumb = movie_metadata['thumb']
-    except:
-        pass
-
-    try:
-        metadata_object.art = movie_metadata['art']
-    except:
-        pass
-    
-    try:
-        metadata_object.originally_available_at = movie_metadata['originally_available_at']
-        metadata_object.year                    = metadata_object.originally_available_at.year
-    except:
-        pass
-
-    try:
-        metadata_object.studio = movie_metadata['studio']
-    except:
-        pass
-
-    try:
-        for genre in movie_metadata['genres']:
-            metadata_object.genres.add(genre)
-    except:
-        pass
-
-    try:
-        for director in movie_metadata['directors']:
-            metadata_object.directors.add(director)
-    except:
-        pass
-
-    try:
-        for writer in movie_metadata['writers']:
-            metadata_object.writers.add(writer)
-    except:
-        pass
-
-    try:
-        for producer in movie_metadata['producers']:
-            metadata_object.producers.add(producer)
-    except:
-        pass
-
-    try:
-        for role in movie_metadata['roles']:
-            new_role       = metadata_object.roles.new()
-            new_role.actor = role['character']
-            new_role.role  = role['name']
-            new_role.photo = role['photo']
-    except:
-        pass
-
-    try:
-        for country in movie_metadata['countries']:
-            metadata_object.countries.add(country)
-    except:
-        pass
-
-    return movie_metadata['imdb_id']
-
-###############################################################################
 @decorators.memoized
-def get_movie_metadata(movie_id):
+def movies_get_imdb_id_from_title(movie_title):
     try:
-        movie_data = get_data(movie_id)
-    except Exception as exception:
-        Log.Error('[BitTorrent][trakt] Unhandled exception: {0}'.format(exception))
-        return
-
-    movie_metadata = {}
-
-    movie_metadata['imdb_id'] = movie_data['imdb_id']
-
-    try:
-        movie_metadata['duration'] = int(movie_data['runtime']) * 60 * 1000
-        movie_metadata['title']    = movie_data['title']
-        movie_metadata['tagline']  = movie_data['tagline']
-        movie_metadata['summary']  = movie_data['overview']
-        movie_metadata['rating']   = float(movie_data['ratings']['percentage']) / 10.0
-        movie_metadata['thumb']    = movie_data['images']['poster']
-        movie_metadata['art']      = movie_data['images']['fanart']
+        if movie_title:
+            json_url  = TRAKT_API + '/search/movies.json/' + API_KEY + '?query=' + String.Quote(movie_title)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+            return json_data[0]['imdb_id']
     except:
         pass
 
+    return None
+
+###############################################################################
+def movies_get_imdb_id_from_torrent_title(torrent_title):
     try:
-        movie_metadata['originally_available_at'] = Datetime.FromTimestamp(int(movie_data['released']))
-        movie_metadata['year']                    = movie_metadata['year']
-    except:
-        pass
+        torrent_title = torrent_title.replace('.', ' ')
         
-    movie_metadata['genres'] = []
-    for genre in movie_data['genres']:
-        movie_metadata['genres'].append(genre)
+        movie_title = common.RE_MOVIE_TITLE.search(torrent_title).group(1)
+        movie_year  = common.RE_MOVIE_TITLE.search(torrent_title).group(3)
+        return movies_get_imdb_id_from_title(movie_title)
+    except:
+        return None
 
-    movie_metadata['directors'] = []
-    for member in movie_data['people']['directors']:
-        movie_metadata['directors'].append(member['name'])
+###############################################################################
+def movies_fill_movie_object(movie_object, movie_id):
+    movie_data = movies_get_data(movie_id)
+    if not movie_data:
+        return
+    
+    try:
+        for genre in movie_data['genres']:
+            movie_object.genres.add(genre)
+    except:
+        pass
 
-    movie_metadata['writers'] = []
-    for member in movie_data['people']['writers']:
-        movie_metadata['writers'].append(member['name'])
+    try:
+        movie_object.duration = int(movie_data['runtime']) * 60 * 1000
+    except:
+        pass
 
-    movie_metadata['producers'] = []
-    for member in movie_data['people']['producers']:
-        movie_metadata['producers'].append(member['name'])
+    try:
+        movie_object.rating = float(movie_data['ratings']['percentage']) / 10.0
+    except:
+        pass
 
-    movie_metadata['roles'] = []
-    for member in movie_data['people']['actors']:
-        role = { 'character': member['character'], 'name': member['name'], 'photo': member['images']['headshot'] }
-        movie_metadata['roles'].append(role)
+    try:
+        movie_object.title = movie_data['title']
+    except:
+        pass
 
-    movie_metadata['actors'] = []
-    for member in movie_data['people']['actors']:
-        movie_metadata['actors'].append(member['name'])
+    try:
+        movie_object.year = int(movie_data['year'])
+    except:
+        pass
 
-    return movie_metadata
+    try:
+        movie_object.originally_available_at = Datetime.FromTimestamp(int(movie_data['released']))
+    except:
+        pass
+
+    try:
+        movie_object.tagline = movie_data['tagline']
+    except:
+        pass
+
+    try:
+        movie_object.summary = movie_data['overview']
+    except:
+        pass
+
+    try:
+        movie_object.content_rating = movie_data['certification']
+    except:
+        pass
+
+    try:
+        movie_object.thumb = movie_data['images']['poster']
+    except:
+        pass
+
+    try:
+        movie_object.art = movie_data['images']['fanart']
+    except:
+        pass
+
+    try:
+        for member in movie_data['people']['actors']:
+            new_role       = movie_object.roles.new()
+            new_role.actor = member['character']
+            new_role.role  = member['name']
+            new_role.photo = member['images']['headshot']
+    except:
+        pass
+
+    try:
+        for member in movie_data['people']['directors']:
+            movie_object.directors.add(member['name'])
+    except:
+        pass
+
+    try:
+        for member in movie_data['people']['producers']:
+            movie_object.producers.add(member['name'])
+    except:
+        pass
+
+    try:
+        for member in movie_data['people']['writers']:
+            movie_object.writers.add(member['name'])
+    except:
+        pass
+
+    return movie_data['imdb_id']
 
 ###############################################################################
 @decorators.memoized
-def get_data(movie_id):
+def movies_get_data(movie_id):
     json_url  = TRAKT_API + '/movie/summary.json/' + API_KEY + '/' + movie_id
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
     return json_data
+
+###############################################################################
+# TVSHOWS
+###############################################################################
+def tvshows_search(query, tvshow_ids):
+    json_url  = TRAKT_API + '/search/shows.json/' + API_KEY + '?query=' + String.Quote(query)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+    for json_item in json_data:
+        tvshow_ids.append(json_item['tvdb_id'])
+
+###############################################################################
+def tvshows_get_title(tvshow_id):
+    tvshow_data = tvshow_get_data(tvshow_id)
+    return tvshow_data['title']
+
+###############################################################################
+def tvshows_get_season_index_list(tvshow_id):
+    season_index_list = []
+
+    tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return season_index_list
+
+    for season_data in tvshow_data['seasons']:
+        season_index_list.append(season_data['season'])
+
+    return sorted(season_index_list)
+
+###############################################################################
+def tvshows_get_season_episode_count(tvshow_id, season_index):
+    tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return 0
+
+    season_data = None
+    for season in tvshow_data['seasons']:
+        if season['season'] == season_index:
+            season_data = season
+            break
+    if not season_data:
+        return 0
+
+    return len(season_data['episodes'])
+
+###############################################################################
+def tvshows_is_future_episode(tvshow_id, season_index, episode_index):
+    tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return True
+    
+    season_data = None
+    for season in tvshow_data['seasons']:
+        if season['season'] == season_index:
+            season_data = season
+            break
+    if not season_data:
+        return True
+
+    episode_data = None
+    for episode in season_data['episodes']:
+        if episode['episode'] == episode_index:
+            episode_data = episode
+            break
+    if not episode_data:
+        return True
+
+    if not int(episode_data['first_aired']):
+        return True
+
+    return Datetime.FromTimestamp(int(episode_data['first_aired'])) > Datetime.Now()
+
+###############################################################################
+@decorators.memoized
+def tvshows_get_tvdb_id_from_title(tvshow_title):
+    try:
+        if tvshow_title:
+            json_url  = TRAKT_API + '/search/shows.json/' + API_KEY + '?query=' + String.Quote(tvshow_title)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+            return json_data[0]['tvdb_id']
+    except:
+        pass
+
+    return None
+
+###############################################################################
+def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index):
+    if not tvdb_id:
+        return None
+
+    return (int(tvdb_id), int(season_index), int(episode_index))
+
+###############################################################################
+def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
+    try:
+        torrent_title = torrent_title.replace('.', ' ')
+
+        tvshow_title  = common.RE_TVSHOW_TITLE.search(torrent_title).group(1)
+        season_index  = common.RE_TVSHOW_TITLE.search(torrent_title).group(2)
+        episode_index = common.RE_TVSHOW_TITLE.search(torrent_title).group(3)
+
+        tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
+        
+        return tvshows_get_episode_tvdb_id(tvshow_tvdb_id, season_index, episode_index)
+    except:
+        return None
+
+###############################################################################
+def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
+    tvshow_data = tvshow_get_data(tvshow_id)
+
+    try:
+        tvshow_object.title = tvshow_data['title']
+    except:
+        pass
+
+    try:
+        tvshow_object.summary = tvshow_data['overview']
+    except:
+        pass
+
+    try:
+        tvshow_object.rating = float(tvshow_data['ratings']['percentage']) / 10.0
+    except:
+        pass
+
+    try:
+        for genre in tvshow_data['genres']:
+            tvshow_object.genres.add(genre)
+    except:
+        pass
+
+    try:
+        tvshow_object.duration = int(tvshow_data['runtime']) * 60 * 1000
+    except:
+        pass
+
+    try:
+        tvshow_object.originally_available_at = Datetime.FromTimestamp(int(tvshow_data['first_aired']))
+    except:
+        pass
+
+    try:
+        tvshow_object.content_rating = tvshow_data['certification']
+    except:
+        pass
+
+    try:
+        tvshow_object.studio = tvshow_data['network']
+    except:
+        pass
+
+    try:
+        tvshow_object.countries = [tvshow_data['country']]
+    except:
+        pass
+
+    try:
+        tvshow_object.thumb = tvshow_data['images']['poster']
+    except:
+        pass
+
+    try:
+        tvshow_object.art = tvshow_data['images']['fanart']
+    except:
+        pass
+
+    return tvshow_data['tvdb_id']
+
+###############################################################################
+def tvshows_fill_season_object(season_object, tvshow_id, season_index):
+    tvshow_data = tvshow_get_data(tvshow_id)
+
+    season_data = None
+    for season in tvshow_data['seasons']:
+        if season['season'] == season_index:
+            season_data = season
+            break
+    if not season_data:
+        return
+
+    try:
+        season_object.summary = tvshow_data['overview']
+    except:
+        pass
+
+    try:
+        season_object.index = int(season_data['season'])
+    except:
+        pass
+
+    try:
+        season_object.title = 'Season ' + str(season_data['season'])
+    except:
+        pass
+
+    try:
+        season_object.show = tvshow_data['title']
+    except:
+        pass
+
+    try:
+        season_object.episode_count = len(season_data['episodes'])
+    except:
+        pass
+
+    try:
+        season_object.thumb = season_data['images']['poster']
+    except:
+        pass
+
+    try:
+        season_object.art = tvshow_data['images']['fanart']
+    except:
+        pass
+
+###############################################################################
+def tvshows_fill_episode_object(episode_object, tvshow_id, season_index, episode_index):
+    tvshow_data  = tvshow_get_data(tvshow_id)
+    
+    season_data = None
+    for season in tvshow_data['seasons']:
+        if season['season'] == season_index:
+            season_data = season
+            break
+    if not season_data:
+        return
+
+    episode_data = None
+    for episode in season_data['episodes']:
+        if episode['episode'] == episode_index:
+            episode_data = episode
+            break
+    if not episode_data:
+        return
+
+    try:
+        episode_object.title = episode_data['title']
+    except:
+        pass
+
+    try:
+        episode_object.summary = episode_data['overview']
+    except:
+        pass
+
+    try:
+        episode_object.thumb = episode_data['images']['screen']
+    except:
+        pass
+
+    try:
+        episode_object.art = episode_data['images']['screen']
+    except:
+        pass
+
+    try:
+        episode_object.duration = int(tvshow_data['runtime']) * 60 * 1000
+    except:
+        pass
+
+    try:
+        episode_object.originally_available_at = Datetime.FromTimestamp(int(episode_data['first_aired']))
+    except:
+        pass
+
+    try:
+        episode_object.rating = float(episode_data['ratings']['percentage']) / 10.0
+    except:
+        pass
+
+    try:
+        episode_object.show = tvshow_data['title']
+    except:
+        pass
+
+    try:
+        episode_object.season = int(episode_data['season'])
+    except:
+        pass
+
+    try:
+        episode_object.index = int(episode_data['episode'])
+    except:
+        pass
+
+    try:
+        for member in tvshow_data['people']['actors']:
+            new_role       = episode_object.roles.new()
+            new_role.actor = member['character']
+            new_role.role  = member['name']
+            new_role.photo = member['images']['headshot']
+    except:
+        pass
+
+    try:
+        for member in tvshow_data['people']['directors']:
+            episode_object.directors.add(member['name'])
+    except:
+        pass
+
+    try:
+        for member in tvshow_data['people']['producers']:
+            episode_object.producers.add(member['name'])
+    except:
+        pass
+
+    try:
+        for member in tvshow_data['people']['writers']:
+            episode_object.writers.add(member['name'])
+    except:
+        pass
+
+###############################################################################
+@decorators.memoized
+def tvshow_get_data(tvshow_id):
+    try:
+        json_url  = TRAKT_API + '/show/summary.json/' + API_KEY + '/' + str(tvshow_id) + '/full'
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+        return json_data
+    except Exception as exception:
+        Log.Error('[BitTorrent][trakt] Unhandled exception: {0}'.format(exception))

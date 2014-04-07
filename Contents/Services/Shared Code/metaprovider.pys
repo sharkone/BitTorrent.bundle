@@ -44,17 +44,9 @@ class MetaProvider(common.TorrentProvider):
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_popular_torrents(self, torrent_infos):
+    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, torrent_infos):
         for provider in self.providers:
-            provider.tvshows_get_popular_torrents(torrent_infos)
-
-    def tvshows_search(self, query, torrent_infos):
-        for provider in self.providers:
-            provider.tvshows_search(query, torrent_infos)
-
-    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
-        for provider in self.providers:
-            provider.tvshows_get_specific_torrents(movie_info, torrent_infos)
+            provider.tvshows_get_specific_torrents(tvdb_id, season_index, episode_index, torrent_infos)
 
     ############################################################################
     # COMMON

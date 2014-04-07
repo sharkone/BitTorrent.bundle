@@ -5,8 +5,10 @@ import trakt
 ################################################################################
 PREFIX = '/video/bittorrent'
 
-RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
-RE_MOVIE_TITLE      = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
+RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+RE_MOVIE_TITLE       = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
+RE_TVSHOW_TITLE      = re.compile('(.+)\s+S(\d+)E(\d+)\s+(.+)')
+RE_TVSHOW_TITLE_YEAR = re.compile('(.+)\s+\((\d+)\)$')
 
 ################################################################################
 class TorrentInfo:
@@ -14,7 +16,7 @@ class TorrentInfo:
         self.magnet    = magnet
         self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
         self.title     = title
-        self.release   = get_torrent_release(title)
+        self.release   = get_torrent_release(title, category)
         self.url       = url
         self.key       = key
         self.category  = category
@@ -34,9 +36,16 @@ class TorrentInfo:
             self.size = '%.2f B' % size
 
 ################################################################################
-def get_torrent_release(torrent_title):
-    movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
-    return movie_title_result.group(5) if movie_title_result else torrent_title
+def get_torrent_release(torrent_title, category):
+    try:
+        if category == 'movies':
+            movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+            return movie_title_result.group(5)
+        elif category == 'tvshows':
+            movie_title_result = RE_TVSHOW_TITLE.search(torrent_title.replace('.', ' '))
+            return movie_title_result.group(4)
+    except:
+        return torrent_title
 
 ################################################################################
 class TorrentProvider:
@@ -55,10 +64,9 @@ class TorrentProvider:
     def anime_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
         if torrent_info and torrent_info.category == 'anime':
-            metadata_object         = MovieObject()
+            metadata_object         = VideoClipObject()
             metadata_object.title   = torrent_info.title
             metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
-
             return metadata_object
 
     ############################################################################
@@ -70,33 +78,24 @@ class TorrentProvider:
     def movies_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
         if torrent_info and torrent_info.category == 'movies':
-            metadata_object = MovieObject()
-            
-            trakt.fill_metadata_object(metadata_object, torrent_info.key)
-            metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
-
-            return metadata_object
+            movie_object = MovieObject()
+            trakt.movies_fill_movie_object(movie_object, torrent_info.key)
+            movie_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, movie_object.summary)
+            return movie_object
 
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_popular_torrents(self, torrent_infos):
-        pass
-
-    def tvshows_search(self, query, torrent_infos):
-        pass
-
-    def tvshows_get_specific_torrents(self, movie_info, torrent_infos):
+    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, torrent_infos):
         pass
 
     def tvshows_get_metadata_object_for_url(self, url):
         torrent_info = self.get_torrent_info_for_url(url)
         if torrent_info and torrent_info.category == 'tvshows':
-            metadata_object         = MovieObject()
-            metadata_object.title   = torrent_info.title
-            metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
-
-            return metadata_object
+            episode_object = EpisodeObject()
+            trakt.tvshows_fill_episode_object(episode_object, torrent_info.key[0], torrent_info.key[1], torrent_info.key[2])
+            episode_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, episode_object.summary)
+            return episode_object
 
     ############################################################################
     # COMMON
@@ -105,6 +104,10 @@ class TorrentProvider:
         pass
 
     def get_metadata_object_for_url(self, url):
+        metadata_object = self.anime_get_metadata_object_for_url(url)
+        if metadata_object:
+            return metadata_object
+
         metadata_object = self.movies_get_metadata_object_for_url(url)
         if metadata_object:
             return metadata_object

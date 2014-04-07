@@ -11,25 +11,25 @@ def menu():
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/list_menu', per_page=int, movie_count=int)
-def list_menu(title, page, per_page, movie_count=0):
-    movie_ids   = []
-    movie_count = SharedCodeService.trakt.movies_get_from_page(page, movie_ids, movie_count, per_page)
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/list_menu', per_page=int, count=int)
+def list_menu(title, page, per_page, count=0):
+    ids   = []
+    count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
     object_container = ObjectContainer(title2=title)
-    fill_object_container(object_container, movie_ids)
-    object_container.add(NextPageObject(key=Callback(list_menu, title=title, page=page, per_page=per_page, movie_count=movie_count), title="More..."))
+    fill_object_container(object_container, ids)
+    object_container.add(NextPageObject(key=Callback(list_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
     
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(query, per_page, movie_count=0):
-    movie_ids   = []
-    movie_count = SharedCodeService.trakt.movies_search(query, movie_ids)
+def search(query, per_page, count=0):
+    ids   = []
+    count = SharedCodeService.trakt.movies_search(query, ids)
 
     object_container = ObjectContainer(title2='Search')
-    fill_object_container(object_container, movie_ids)
+    fill_object_container(object_container, ids)
     return object_container
 
 ################################################################################
@@ -49,7 +49,7 @@ def movie(imdb_id):
 
         movie_object = MovieObject()
 
-        SharedCodeService.trakt.fill_metadata_object(movie_object, imdb_id)
+        SharedCodeService.trakt.movies_fill_movie_object(movie_object, imdb_id)
         object_container.title2 = movie_object.title
 
         movie_object.title    = torrent_info.release
@@ -61,10 +61,10 @@ def movie(imdb_id):
     return object_container
 
 ################################################################################
-def fill_object_container(object_container, movie_ids):
-    for movie_id in movie_ids:
+def fill_object_container(object_container, ids):
+    for id in ids:
         directory_object = DirectoryObject()
-        imdb_id = SharedCodeService.trakt.fill_metadata_object(directory_object, movie_id)
+        imdb_id = SharedCodeService.trakt.movies_fill_movie_object(directory_object, id)
         if imdb_id:
             directory_object.key = Callback(movie, imdb_id=imdb_id)
             object_container.add(directory_object)
