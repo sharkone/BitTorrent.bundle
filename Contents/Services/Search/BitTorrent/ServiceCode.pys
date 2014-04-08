@@ -12,7 +12,7 @@ def Search(query):
     movie_torrent_infos = []
     movie_ids = []
     trakt.movies_search(query, movie_ids)
-    for movie_id in movie_ids:
+    for movie_id in movie_ids[:5]:
         directory_object = DirectoryObject()
         imdb_id = trakt.movies_fill_movie_object(directory_object, movie_id)
         if imdb_id:
@@ -21,7 +21,8 @@ def Search(query):
     #tvshows_torrent_infos = []
     #torrent_provider.tvshows_search(query, tvshows_torrent_infos)
 
-    torrent_infos = anime_torrent_infos[:5] + movie_torrent_infos[:5] + tvshows_torrent_infos[:5]
+    #torrent_infos = anime_torrent_infos[:5] + movie_torrent_infos[:5] + tvshows_torrent_infos[:5]
+    torrent_infos = anime_torrent_infos[:5] + movie_torrent_infos[:5]
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 
     object_container = ObjectContainer(title2='Search')
@@ -32,7 +33,7 @@ def Search(query):
             movie_object = MovieObject()
             trakt.movies_fill_movie_object(movie_object, torrent_info.key)
             movie_object.title   = torrent_info.release
-            movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, episode_object.summary)
+            movie_object.summary = '{0}\n\n{1}'.format(seeders_leechers_line, movie_object.summary)
             movie_object.url     = torrent_info.url
             object_container.add(movie_object)
 
