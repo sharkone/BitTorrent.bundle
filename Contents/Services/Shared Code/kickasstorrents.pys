@@ -116,7 +116,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
                     try:
                         torrent_key = RE_IMDB_ID.search(rss_entry.description).group(1)
                     except:
-                        torrent_key = trakt.get_imdb_id_from_torrent_title(rss_entry.title)
+                        torrent_key = trakt.movies_get_imdb_id_from_torrent_title(rss_entry.title)
                 elif category == 'tvshows':
                     torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(rss_entry.title)
 

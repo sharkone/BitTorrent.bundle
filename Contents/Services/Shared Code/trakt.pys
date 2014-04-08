@@ -46,7 +46,8 @@ def movies_search(query, movie_ids):
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     for json_item in json_data:
-        movie_ids.append(json_item['imdb_id'])
+        if json_item['imdb_id']:
+            movie_ids.append(json_item['imdb_id'])
 
 ###############################################################################
 @decorators.memoized

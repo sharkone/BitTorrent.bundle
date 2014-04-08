@@ -102,7 +102,7 @@ class ThePirateBayProvider(common.TorrentProvider):
                 torrent_key   = torrent_title
 
                 if category == 'movies':
-                    torrent_key = trakt.get_imdb_id_from_torrent_title(torrent_key)
+                    torrent_key = trakt.movies_get_imdb_id_from_torrent_title(torrent_key)
                 elif category == 'tvshows':
                     torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(torrent_key)
 
