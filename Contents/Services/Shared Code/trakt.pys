@@ -167,9 +167,12 @@ def movies_fill_movie_object(movie_object, movie_id):
 ###############################################################################
 @decorators.memoized
 def movies_get_data(movie_id):
-    json_url  = TRAKT_API + '/movie/summary.json/' + API_KEY + '/' + movie_id
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
-    return json_data
+    try:
+        json_url  = TRAKT_API + '/movie/summary.json/' + API_KEY + '/' + movie_id
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+        return json_data
+    except Exception as exception:
+        Log.Error('[BitTorrent][trakt] Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
 # TVSHOWS
