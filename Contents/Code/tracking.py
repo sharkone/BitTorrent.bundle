@@ -21,6 +21,7 @@ def track(event, properties={}):
         if user_id_file_content:
             properties['Server OS']       = str(Platform.OS)
             properties['Server CPU']      = str(Platform.CPU)
+            properties['Client Product']  = str(Client.Product)
             properties['Client Platform'] = str(Client.Platform)
 
             mixpanel = SharedCodeService.mixpanel.Mixpanel('6e7ecd86cf4fa3cf08ddaf8ab3de81d6')

@@ -25,7 +25,7 @@ def Main():
     tracking.track('Started channel')
 
     Log.Info('Server Platform: {0} ({1})'.format(Platform.OS, Platform.CPU))
-    Log.Info('Client Platform: {0}'.format(Client.Platform))
+    Log.Info('Client Product: {0} ({1})'.format(Client.Product, Client.Platform))
 
     object_container = ObjectContainer(title2=TITLE)
 
