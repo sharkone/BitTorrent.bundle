@@ -177,7 +177,7 @@ def get_server_status(port, log_func):
     try:
         status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
         return status_json
-    except urllib2.URLError as exception:
+    except Exception as exception:
         log_func('[BitTorrent][cherrytorrent][{0}] Server unreachable: {1}'.format(port, exception.reason))
 
     return None
