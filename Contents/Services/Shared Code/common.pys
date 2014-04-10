@@ -38,7 +38,10 @@ class TorrentInfo:
 ################################################################################
 def get_torrent_release(torrent_title, category):
     try:
-        if category == 'movies':
+        if category == 'anime':
+            # TODO
+            return torrent_title
+        elif category == 'movies':
             movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
             return movie_title_result.group(5)
         elif category == 'tvshows':
@@ -139,6 +142,41 @@ class TorrentProvider:
 
             media_object = MediaObject()
             media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet, download_dir=download_dir)))
+
+            if self.release_contains_pattern(torrent_info.release, ['avi']):
+                media_object.container = 'avi'
+            elif self.release_contains_pattern(torrent_info.release, ['flv']):
+                media_object.container = 'flv'
+            elif self.release_contains_pattern(torrent_info.release, ['mkv']):
+                media_object.container = 'mkv'
+            elif self.release_contains_pattern(torrent_info.release, ['mov']):
+                media_object.container = 'mov'
+            elif self.release_contains_pattern(torrent_info.release, ['mp4']):
+                media_object.container = 'mp4'
+
+            if self.release_contains_pattern(torrent_info.release, ['aac']):
+                media_object.audio_codec = 'aac'
+            elif self.release_contains_pattern(torrent_info.release, ['ac3']):
+                media_object.audio_codec = 'ac3'
+            elif self.release_contains_pattern(torrent_info.release, ['dts']):
+                media_object.audio_codec = 'dts'
+            elif self.release_contains_pattern(torrent_info.release, ['mp3']):
+                media_object.audio_codec = 'mp3'
+
+            if self.release_contains_pattern(torrent_info.release, ['x264', 'h264']):
+                media_object.video_codec = 'h264'
+            elif self.release_contains_pattern(torrent_info.release, ['divx']):
+                media_object.video_codec = 'divx'
+            elif self.release_contains_pattern(torrent_info.release, ['xvid']):
+                media_object.video_codec = 'xvid'
+
+            if self.release_contains_pattern(torrent_info.release, ['1080p', '1920x1080']):
+                media_object.video_resolution = 1080
+            elif self.release_contains_pattern(torrent_info.release, ['720p', '1280x720']):
+                media_object.video_resolution = 720
+            elif self.release_contains_pattern(torrent_info.release, ['480p']):
+                media_object.video_resolution = 480
+
             return [media_object]
 
     def add_torrent_info(self, torrent_infos, ref_torrent_key, torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders=0, torrent_leechers=0, torrent_size=0):
@@ -149,3 +187,9 @@ class TorrentProvider:
 
         if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
             torrent_infos.append(torrent_info)
+
+    def release_contains_pattern(self, release, pattern_list):
+        for pattern in pattern_list:
+            if pattern.lower() in release.lower():
+                return True
+        return False
