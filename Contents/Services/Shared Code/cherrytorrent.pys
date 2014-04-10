@@ -125,7 +125,7 @@ def start_cherrytorrent(url, magnet, download_dir):
            del env['PYTHONHOME']
 
         if Platform.OS == 'Windows':
-        Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
+            Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
             process = os.spawnve(os.P_DETACH, executable, command, os.environ)
         else:
             command.append('&')
