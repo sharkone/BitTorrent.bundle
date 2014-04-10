@@ -18,18 +18,31 @@ def play_torrent(url, magnet, download_dir, play_func, port):
         try:
             status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
         except Exception as exception:
-            Log.Info('[BitTorrent][cherrytorrent][{0}] Server not ready yet: {1}'.format(port, exception))
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Server not ready: {1}'.format(port, exception))
 
         need_slow_mode      = str(Client.Platform) == 'Plex Home Theater'
         is_video_ready_slow = status_json and ('video_file' in status_json) and status_json['video_file']['is_ready_slow']
         is_video_ready_fast = status_json and ('video_file' in status_json) and status_json['video_file']['is_ready_fast']
 
+        Log.Info('[BitTorrent][cherrytorrent][{0}] Server running'.format(port))
+        if status_json and ('session' in status_json):
+            session_json = status_json['session']
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: {1}'.format(port, session_json['state']))
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: S:{1}/{2} P:{3}/{4}'.format(port, session_json['num_seeds'], session_json['total_seeds'], session_json['num_peers'], session_json['total_peers']))
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: D:{1} kB/s U:{2} kB/s'.format(port, session_json['download_rate'], session_json['upload_rate']))
+        else:
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Session not ready'.format(port))
+
+        if status_json and ('video_file' in status_json):
+            video_file_json = status_json['video_file']
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Video state: {1}/{2} (total: {3} pieces)'.format(port, video_file_json['complete_pieces'], video_file_json['preload_buffer_pieces'], video_file_json['total_pieces']))
+
         if is_video_ready_slow or (not need_slow_mode and is_video_ready_fast):
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Video is ready ({1})'.format(port, 'slow mode' if need_slow_mode else 'fast mode'))
             return IndirectResponse(VideoClipObject, key=get_url(port, 'video'))
         else:
-            Log.Info('[BitTorrent][cherrytorrent][{0}] Video not ready yet ({1})'.format(port, 'slow mode' if need_slow_mode else 'fast mode'))
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Video not ready'.format(port))
             time.sleep(2)
-            
             need_redirect = str(Client.Platform) == 'Plex Home Theater'
             if need_redirect:
                 return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, port=port))                
