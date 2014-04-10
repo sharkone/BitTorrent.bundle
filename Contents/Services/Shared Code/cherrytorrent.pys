@@ -21,7 +21,7 @@ def play_torrent(url, magnet, download_dir, play_func, server_start_time, sessio
             server_start_time = time.time()
 
     while True:
-        status_json = get_server_status(port)
+        status_json = get_server_status(port, Log.Info)
 
         if status_json:
             Log.Info('[BitTorrent][cherrytorrent][{0}] Server running'.format(port))
@@ -30,9 +30,7 @@ def play_torrent(url, magnet, download_dir, play_func, server_start_time, sessio
 
             if 'session' in status_json:
                 session_json = status_json['session']
-                Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: {1}'.format(port, session_json['state']))
-                Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: S:{1}/{2} P:{3}/{4}'.format(port, session_json['num_seeds'], session_json['total_seeds'], session_json['num_peers'], session_json['total_peers']))
-                Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: D:{1} kB/s U:{2} kB/s'.format(port, session_json['download_rate'], session_json['upload_rate']))
+                Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: {1} S:{2}/{3} P:{4}/{5} D:{6} kB/s U:{7} kB/s'.format(port, session_json['state'], session_json['num_seeds'], session_json['total_seeds'], session_json['num_peers'], session_json['total_peers'], session_json['download_rate'], session_json['upload_rate']))
                 if not torrent_start_time:
                     torrent_start_time = time.time()
 
@@ -82,7 +80,7 @@ def start_cherrytorrent(url, magnet, download_dir):
             file_content = os.read(file_fd, 1024)
             os.close(file_fd)
             if file_content == url:
-                if get_server_status(int(file_name)):
+                if get_server_status(int(file_name), Log.Error):
                     downloader_port = int(file_name)
                     downloader_running = True
                     Log.Info('[BitTorrent][cherrytorrent][{0}] Found port file'.format(downloader_port))
@@ -103,9 +101,8 @@ def start_cherrytorrent(url, magnet, download_dir):
         # chmod 755
         os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
 
-        executable = get_exec_path()
         command =   [
-                        '\"' + executable + '\"',
+                        '\"' + get_exec_path() + '\"',
                         '-hl', '\"' + get_bin_dir() + '\"',
                         '-hp', str(downloader_port),
                         '-ht', str(30),
@@ -126,7 +123,7 @@ def start_cherrytorrent(url, magnet, download_dir):
 
         if Platform.OS == 'Windows':
             Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
-            process = os.spawnve(os.P_DETACH, executable, command, os.environ)
+            process = os.spawnve(os.P_DETACH, get_exec_path(), command, os.environ)
         else:
             command.append('&')
             Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
@@ -147,28 +144,17 @@ def get_bin_dir():
     return os.path.normpath(os.path.join(bundle_directory, 'Contents', 'Bin'))
 
 ###############################################################################
-def get_exec_dir():
-    if Platform.OS == 'MacOSX':
-        return os.path.join(get_bin_dir(), 'MacOSX')
-    elif Platform.OS == 'Linux':
-        if platform.architecture()[0] == '64bit':
-            return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x64')
-        elif platform.architecture()[0] == '32bit':
-            return os.path.join(os.path.join(get_bin_dir(), 'Linux'), 'x86')
-    elif Platform.OS == 'Windows':
-        return os.path.join(get_bin_dir(), 'Windows')
-    
-    Log.Error('[BitTorrent][cherrytorrent] Unsupported OS: {0}'.format(Platform.OS))
-
-###############################################################################
 def get_exec_path():
     if Platform.OS == 'MacOSX':
-        return os.path.join(get_exec_dir(), 'cherrytorrent')
+        return os.path.join(get_bin_dir(), 'MacOSX', 'cherrytorrent')
     elif Platform.OS == 'Linux':
-        return os.path.join(get_exec_dir(), 'cherrytorrent')
+        if platform.architecture()[0] == '64bit':
+            return os.path.join(get_bin_dir(), 'Linux', 'x64', 'cherrytorrent')
+        elif platform.architecture()[0] == '32bit':
+            return os.path.join(get_bin_dir(), 'Linux', 'x86', 'cherrytorrent')
     elif Platform.OS == 'Windows':
-        return os.path.join(get_exec_dir(), 'cherrytorrent.exe')
-    
+        return os.path.join(get_bin_dir(), 'Windows', 'cherrytorrent.exe')
+
     Log.Error('[BitTorrent][cherrytorrent] Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
@@ -178,23 +164,21 @@ def clean_zombie_port_files():
     for file_name in os.listdir(get_bin_dir()):
         file_path = os.path.join(get_bin_dir(), file_name)
         if os.path.isfile(file_path) and file_name.isdigit():
-            if not get_server_status(int(file_name)):
+            if not get_server_status(int(file_name), Log.Info):
                 files_to_delete.append(file_name)
 
     for file_name in files_to_delete:
-        Log.Info('[BitTorrent][cherrytorrent][{0}][clean_zombie_port_files] Removing zombie port file'.format(int(file_name)))
+        Log.Info('[BitTorrent][cherrytorrent][{0}] Removing zombie port file'.format(int(file_name)))
         file_path = os.path.join(get_bin_dir(), file_name)
         os.remove(file_path)
 
 ###############################################################################
-def get_server_status(port):
+def get_server_status(port, log_func):
     try:
         status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
         return status_json
     except urllib2.URLError as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}][get_server_status] URLError: {1}'.format(port, exception))
-    except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}][get_server_status] Unhandled exception: {1}'.format(port, exception))
+        log_func('[BitTorrent][cherrytorrent][{0}] Server unreachable: {1}'.format(port, exception.reason))
 
     return None
 
