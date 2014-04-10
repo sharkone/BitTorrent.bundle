@@ -182,7 +182,7 @@ def clean_zombie_port_files():
                 files_to_delete.append(file_name)
 
     for file_name in files_to_delete:
-        Log.Info('[BitTorrent][cherrytorrent][clean_zombie_port_files][{0}] Removing zombie port file'.format(int(file_name)))
+        Log.Info('[BitTorrent][cherrytorrent][{0}][clean_zombie_port_files] Removing zombie port file'.format(int(file_name)))
         file_path = os.path.join(get_bin_dir(), file_name)
         os.remove(file_path)
 
@@ -192,9 +192,9 @@ def get_server_status(port):
         status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
         return status_json
     except urllib2.URLError as exception:
-        Log.Error('[BitTorrent][cherrytorrent][get_server_status][{0}] URLError: {1}'.format(port, exception))
+        Log.Error('[BitTorrent][cherrytorrent][{0}][get_server_status] URLError: {1}'.format(port, exception))
     except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][get_server_status][{0}] Unhandled exception: {1}'.format(port, exception))
+        Log.Error('[BitTorrent][cherrytorrent][{0}][get_server_status] Unhandled exception: {1}'.format(port, exception))
 
     return None
 
@@ -203,8 +203,8 @@ def shutdown_server(port):
     try:
         shutdown_html = HTML.ElementFromURL(get_url(port, 'shutdown'), cacheTime=0)
     except urllib2.URLError as exception:
-        Log.Error('[BitTorrent][cherrytorrent][shutdown_server][{0}] URLError: {1}'.format(port, exception))
+        Log.Error('[BitTorrent][cherrytorrent][{0}][shutdown_server] URLError: {1}'.format(port, exception))
     except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][shutdown_server][{0}] Unhandled exception: {1}'.format(port, exception))
+        Log.Error('[BitTorrent][cherrytorrent][{0}][shutdown_server] Unhandled exception: {1}'.format(port, exception))
 
     raise Ex.MediaNotAvailable
