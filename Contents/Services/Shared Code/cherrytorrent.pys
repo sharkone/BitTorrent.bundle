@@ -1,196 +1,66 @@
 ###############################################################################
 import os
-import platform
-import socket
-import stat
-import subprocess
-import threading
+import re
 import time
 import urllib2
 
 ###############################################################################
-SERVER_START_TIMEOUT  = 15
-SESSION_START_TIMEOUT = 15
+HTTP_PORT = 8042
+
 TORRENT_START_TIMEOUT = 30
 
+RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+
 ###############################################################################
-def play_torrent(url, magnet, download_dir, play_func, server_start_time, session_start_time, torrent_start_time, port):
-    if port == -1:
-        port = start_cherrytorrent(url, magnet, download_dir)
-        if not server_start_time:
-            server_start_time = time.time()
-
+def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
     while True:
-        status_json = get_server_status(port, Log.Info)
+        status_json = None
 
-        if status_json:
-            Log.Info('[BitTorrent][cherrytorrent][{0}] Server running'.format(port))
-            if not session_start_time:
-                session_start_time = time.time()
+        try:
+            download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
+            add_json     = JSON.ObjectFromURL(get_url(HTTP_PORT, 'add?uri={0}&download_dir={1}'.format(String.Quote(magnet), String.Quote(download_dir))), cacheTime=0)
+            status_json  = JSON.ObjectFromURL(get_url(HTTP_PORT, ''), cacheTime=0)
+        except urllib2.URLError as exception:
+            Log.Error('[BitTorrent][cherrytorrent][{0}] Server unreachable: {1}'.format(HTTP_PORT, exception.reason))
+        except Exception as exception:
+            Log.Error('[BitTorrent][cherrytorrent][{0}] Unhandled exception: {1}'.format(HTTP_PORT, exception))
 
-            if 'session' in status_json:
-                session_json = status_json['session']
-                Log.Info('[BitTorrent][cherrytorrent][{0}] Session state: {1} S:{2}/{3} P:{4}/{5} D:{6} kB/s U:{7} kB/s'.format(port, session_json['state'], session_json['num_seeds'], session_json['total_seeds'], session_json['num_peers'], session_json['total_peers'], session_json['download_rate'], session_json['upload_rate']))
-                if not torrent_start_time:
-                    torrent_start_time = time.time()
+        if not status_json:
+            raise Ex.MediaNotAvailable
 
-                if session_json['state_index'] >= 3:
-                    if 'video_file' in status_json:
-                        video_file_json = status_json['video_file']
-                        Log.Info('[BitTorrent][cherrytorrent][{0}] Video state: {1}/{2} (total: {3} pieces)'.format(port, video_file_json['complete_pieces'], video_file_json['preload_buffer_pieces'], video_file_json['total_pieces']))
+        magnet_info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
+        
+        session_json  = status_json['session']
+        torrents_json = [x for x in session_json['torrents'] if x['info_hash'] == magnet_info_hash]
+        torrent_json  = torrents_json[0] if torrents_json else None
 
-                        need_slow_mode = str(Client.Platform) == 'Plex Home Theater'
-                        if video_file_json['is_ready_slow'] or (not need_slow_mode and video_file_json['is_ready_fast']):
-                            Log.Info('[BitTorrent][cherrytorrent][{0}] Video is ready ({1})'.format(port, 'slow mode' if need_slow_mode else 'fast mode'))
-                            return IndirectResponse(VideoClipObject, key=get_url(port, 'video'))
-                        else:
-                            Log.Info('[BitTorrent][cherrytorrent][{0}] Video not ready'.format(port))
-                else:
-                    if (time.time() - torrent_start_time) > TORRENT_START_TIMEOUT:
-                        Log.Error('[BitTorrent][cherrytorrent][{0}] Torrent could not get ready in time. Aborting.'.format(port))
-                        shutdown_server(port)
-                        
+        if torrent_json:
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Torrent state: {1} S:{2}/{3} P:{4}/{5} D:{6} kB/s U:{7} kB/s'.format(HTTP_PORT, torrent_json['state'], torrent_json['num_seeds'], torrent_json['total_seeds'], torrent_json['num_peers'], torrent_json['total_peers'], torrent_json['download_rate'], torrent_json['upload_rate']))
+            if not torrent_start_time:
+                torrent_start_time = time.time()
+
+            if torrent_json['state_index'] >= 3:
+                if 'video_file' in torrent_json:
+                    video_file_json = torrent_json['video_file']
+                    Log.Info('[BitTorrent][cherrytorrent][{0}] Video state: {1}/{2} (total: {3} pieces)'.format(HTTP_PORT, video_file_json['complete_pieces'], video_file_json['preload_buffer_pieces'], video_file_json['total_pieces']))
+
+                    need_slow_mode = str(Client.Platform) == 'Plex Home Theater'
+                    if video_file_json['is_ready_slow'] or (not need_slow_mode and video_file_json['is_ready_fast']):
+                        Log.Info('[BitTorrent][cherrytorrent][{0}] Video is ready ({1})'.format(HTTP_PORT, 'slow mode' if need_slow_mode else 'fast mode'))
+                        return IndirectResponse(VideoClipObject, key=get_url(HTTP_PORT, 'video?info_hash={0}'.format(magnet_info_hash)))
+                    else:
+                        Log.Info('[BitTorrent][cherrytorrent][{0}] Video not ready'.format(HTTP_PORT))
             else:
-                Log.Info('[BitTorrent][cherrytorrent][{0}] Session not ready'.format(port))
-                if (time.time() - session_start_time) > SESSION_START_TIMEOUT:
-                    Log.Error('[BitTorrent][cherrytorrent][{0}] Session could not get ready in time. Aborting.'.format(port))
-                    shutdown_server(port)
+                if (time.time() - torrent_start_time) > TORRENT_START_TIMEOUT:
+                    Log.Error('[BitTorrent][cherrytorrent][{0}] Torrent could not get ready in time. Aborting.'.format(HTTP_PORT))
         else:
-            Log.Info('[BitTorrent][cherrytorrent][{0}] Server not ready'.format(port))
-            if (time.time() - server_start_time) > SERVER_START_TIMEOUT:
-                Log.Error('[BitTorrent][cherrytorrent][{0}] Server could not get ready in time. Aborting.'.format(port))
-                shutdown_server(port)
+            Log.Info('[BitTorrent][cherrytorrent][{0}] Torrent not ready'.format(HTTP_PORT))
 
         time.sleep(2)
         need_redirect = str(Client.Platform) == 'Plex Home Theater'
         if need_redirect:
-            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, server_start_time=server_start_time, session_start_time=session_start_time, torrent_start_time=torrent_start_time, port=port))
-
-###############################################################################
-def start_cherrytorrent(url, magnet, download_dir):
-    clean_zombie_port_files()
-
-    downloader_port    = 5001
-    downloader_running = False
-
-    for file_name in os.listdir(get_bin_dir()):
-        file_path = os.path.join(get_bin_dir(), file_name)
-        if os.path.isfile(file_path) and file_name.isdigit():
-            file_fd      = os.open(file_path, os.O_RDONLY)
-            file_content = os.read(file_fd, 1024)
-            os.close(file_fd)
-            if file_content == url:
-                if get_server_status(int(file_name), Log.Error):
-                    downloader_port = int(file_name)
-                    downloader_running = True
-                    Log.Info('[BitTorrent][cherrytorrent][{0}] Found port file'.format(downloader_port))
-                    break
-
-    if not downloader_running:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(('', 0))
-        downloader_port = s.getsockname()[1]
-        s.close()
-
-        Log.Info('[BitTorrent][cherrytorrent][{0}] Writing port file'.format(downloader_port))
-        downloader_port_file = os.path.join(get_bin_dir(), str(downloader_port))
-        downloader_port_fd   = os.open(downloader_port_file, os.O_CREAT | os.O_RDWR)
-        os.write(downloader_port_fd, url)
-        os.close(downloader_port_fd)
-
-        # chmod 755
-        os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-
-        command =   [
-                        '\"' + get_exec_path() + '\"',
-                        '-hl', '\"' + get_bin_dir() + '\"',
-                        '-hp', str(downloader_port),
-                        '-ht', str(30),
-                        '-tp', Prefs['INCOMING_PORT'],
-                        '-tdl', Prefs['MAX_DOWNLOAD_RATE'],
-                        '-tul', Prefs['MAX_UPLOAD_RATE'],
-                        '-td', '\"' + download_dir + '\"'
-                    ]
-
-        if Prefs['KEEP_FILES']:
-            command.append('-tk')
-
-        command.append('\"' + magnet + '\"')
-
-        env = os.environ.copy()
-        if 'PYTHONHOME' in env:
-           del env['PYTHONHOME']
-
-        if Platform.OS == 'Windows':
-            Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
-            process = os.spawnve(os.P_DETACH, get_exec_path(), command, os.environ)
-        else:
-            command.append('&')
-            Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(downloader_port, ' '.join(command)))
-            os.system(' '.join(command))
-
-        return downloader_port
-    
-    return downloader_port
+            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, torrent_start_time=torrent_start_time))
 
 ###############################################################################
 def get_url(port, page):
     return 'http://' + Network.Address + ':' + str(port) + '/' + page
-
-###############################################################################
-def get_bin_dir():
-    bundle_directory = os.path.join(os.getcwd(), '..', '..', '..', 'Plug-ins', 'BitTorrent.bundle')
-    bundle_directory = bundle_directory.replace('\\\\?\\', '')
-    return os.path.normpath(os.path.join(bundle_directory, 'Contents', 'Bin'))
-
-###############################################################################
-def get_exec_path():
-    if Platform.OS == 'MacOSX':
-        return os.path.join(get_bin_dir(), 'MacOSX', 'cherrytorrent')
-    elif Platform.OS == 'Linux':
-        if platform.architecture()[0] == '64bit':
-            return os.path.join(get_bin_dir(), 'Linux', 'x64', 'cherrytorrent')
-        elif platform.architecture()[0] == '32bit':
-            return os.path.join(get_bin_dir(), 'Linux', 'x86', 'cherrytorrent')
-    elif Platform.OS == 'Windows':
-        return os.path.join(get_bin_dir(), 'Windows', 'cherrytorrent.exe')
-
-    Log.Error('[BitTorrent][cherrytorrent] Unsupported OS: {0}'.format(Platform.OS))
-
-###############################################################################
-def clean_zombie_port_files():
-    files_to_delete = []
-
-    for file_name in os.listdir(get_bin_dir()):
-        file_path = os.path.join(get_bin_dir(), file_name)
-        if os.path.isfile(file_path) and file_name.isdigit():
-            if not get_server_status(int(file_name), Log.Info):
-                files_to_delete.append(file_name)
-
-    for file_name in files_to_delete:
-        Log.Info('[BitTorrent][cherrytorrent][{0}] Removing zombie port file'.format(int(file_name)))
-        file_path = os.path.join(get_bin_dir(), file_name)
-        os.remove(file_path)
-
-###############################################################################
-def get_server_status(port, log_func):
-    try:
-        status_json = JSON.ObjectFromURL(get_url(port, 'status'), cacheTime=0)
-        return status_json
-    except urllib2.URLError as exception:
-        log_func('[BitTorrent][cherrytorrent][{0}] Server unreachable: {1}'.format(port, exception.reason))
-    except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}] Unhandled exception: {1}'.format(port, exception))
-
-    return None
-
-###############################################################################
-def shutdown_server(port):
-    try:
-        shutdown_html = HTML.ElementFromURL(get_url(port, 'shutdown'), cacheTime=0)
-    except urllib2.URLError as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}][shutdown_server] URLError: {1}'.format(port, exception))
-    except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}][shutdown_server] Unhandled exception: {1}'.format(port, exception))
-
-    raise Ex.MediaNotAvailable

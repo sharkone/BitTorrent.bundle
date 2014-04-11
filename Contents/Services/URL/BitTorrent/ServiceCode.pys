@@ -26,5 +26,5 @@ def get_image_async(url):
 
 ###############################################################################
 @indirect
-def play_torrent(url, magnet, download_dir, server_start_time=0, session_start_time=0, torrent_start_time=0, port=-1):
-    return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, server_start_time, session_start_time, torrent_start_time, port)
+def play_torrent(url, magnet, download_dir, torrent_start_time=0):
+    return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, torrent_start_time)

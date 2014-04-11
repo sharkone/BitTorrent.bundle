@@ -1,5 +1,6 @@
 ################################################################################
 import anime_menu
+import cherrytorrent_launcher
 import movies_menu
 import tvshows_menu
 import yts_menu
@@ -19,6 +20,8 @@ def Start():
     VideoClipObject.art    = R(ART)
     VideoClipObject.thumb  = R(ICON)
 
+    cherrytorrent_launcher.start_cherrytorrent()
+
 ################################################################################
 @handler(SharedCodeService.common.PREFIX, TITLE, thumb=ICON, art=ART)
 def Main():
@@ -28,18 +31,10 @@ def Main():
     Log.Info('Client Product: {0} ({1})'.format(Client.Product, Client.Platform))
 
     object_container = ObjectContainer(title2=TITLE)
-
-    if Platform.OS not in ('Linux', 'MacOSX', 'Windows'):
-        object_container.header  = 'Not supported'
-        object_container.message = 'The {0} channel is not supported on {1} servers.'.format(TITLE, Platform.OS)
-    else:
-        object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
-        object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
-        object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
-        
-        if Prefs['USE_YTS_PROVIDER']:
-            object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
-            
-        object_container.add(PrefsObject(title='Preferences'))
-
+    object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
+    if Prefs['USE_YTS_PROVIDER']:
+        object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
+    object_container.add(PrefsObject(title='Preferences'))
     return object_container
