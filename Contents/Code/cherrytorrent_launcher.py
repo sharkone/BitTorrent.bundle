@@ -1,6 +1,7 @@
 ###############################################################################
 import atexit
 import os
+import platform
 import stat
 import subprocess
 import time
