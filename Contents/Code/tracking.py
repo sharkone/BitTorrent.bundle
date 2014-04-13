@@ -1,4 +1,5 @@
 ###############################################################################
+import mixpanel
 import os
 import uuid
 
@@ -24,8 +25,8 @@ def track(event, properties={}):
             properties['Client Product']  = str(Client.Product)
             properties['Client Platform'] = str(Client.Platform)
 
-            mixpanel = SharedCodeService.mixpanel.Mixpanel('6e7ecd86cf4fa3cf08ddaf8ab3de81d6')
-            mixpanel.track(user_id_file_content, event, properties)
+            mp = mixpanel.Mixpanel('6e7ecd86cf4fa3cf08ddaf8ab3de81d6')
+            mp.track(user_id_file_content, event, properties)
             Log.Info('[BitTorrent][Tracking] Sent tracking event: {0}'.format(event))
     except Exception as exception:
         Log.Error('[BitTorrent][Tracking] Unhandled exception: {0}'.format(exception))
