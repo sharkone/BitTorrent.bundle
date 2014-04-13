@@ -3,4 +3,4 @@ import platform
 
 ################################################################################
 if platform.system() == 'Darwin':
-	from MacOSX import libtorrent
+	from macosx.libtorrent import *
