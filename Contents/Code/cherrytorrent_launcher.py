@@ -17,7 +17,7 @@ def thread_proc():
         if not get_server_status(HTTP_PORT):
             http_config = {
                             'port':     HTTP_PORT,
-                            'log_dir':  get_bin_dir(),
+                            'log_dir':  get_bundle_dir(),
                           }
 
             torrent_config = {
@@ -29,14 +29,16 @@ def thread_proc():
             
             server = cherrytorrent.Server(http_config, torrent_config)
             server.run()
+        else:
+             Log.Info('[BitTorrent][cherrytorrent][{0}] Server is running'.format(port))
 
         time.sleep(10)
 
 ###############################################################################
-def get_bin_dir():
+def get_bundle_dir():
     bundle_directory = os.path.join(os.getcwd(), '..', '..', '..', 'Plug-ins', 'BitTorrent.bundle')
     bundle_directory = bundle_directory.replace('\\\\?\\', '')
-    return os.path.normpath(os.path.join(bundle_directory, 'Contents', 'Bin'))
+    return os.path.normpath(bundle_directory)
 
 ###############################################################################
 def get_server_status(port):
