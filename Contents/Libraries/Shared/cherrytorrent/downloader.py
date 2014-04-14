@@ -98,6 +98,9 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
 
     ############################################################################
     def remove_torrent(self, torrent_handle, wait_for_alert=False):
+        self.bus.connection_monitor.remove_torrent(str(torrent_handle.info_hash()))
+        self.torrent_handles.remove(torrent_handle)
+
         remove_torrent_flags = libtorrent.options_t.delete_files if not self.torrent_config['keep_files'] else 0
         self.session.remove_torrent(torrent_handle, remove_torrent_flags)
 
@@ -111,9 +114,6 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
                     self.bus.log('[Downloader] Removing torrent took too long, skipping.')
                     break
                 time.sleep(0.1)
-
-        self.bus.connection_monitor.remove_torrent(str(torrent_handle.info_hash()))
-        self.torrent_handles.remove(torrent_handle)
 
     ############################################################################
     def remove_paused_torrents(self):
