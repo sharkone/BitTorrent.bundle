@@ -106,7 +106,11 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
             self.expected_alert_received = False
             self.expected_alert_types    = ['torrent_removed_alert'] if self.torrent_config['keep_files'] else ['torrent_deleted_alert', 'torrent_delete_failed_alert']
             
+            start_time = time.time()
             while not self.expected_alert_received:
+                if (time.time() - start_time) > 30.0:
+                    self.bus.log('[Downloader] Removing torrent took too long, skipping.')
+                    break
                 time.sleep(0.1)
 
         self.torrent_handles.remove(torrent_handle)

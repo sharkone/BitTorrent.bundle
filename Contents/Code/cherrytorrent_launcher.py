@@ -13,11 +13,20 @@ def start_cherrytorrent():
 
 ###############################################################################
 def thread_proc():
+    class CustomLoggerStream:
+        def __init__(self, port):
+            self.port = port
+
+        def write(self, str):
+            Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(self.port, str.rstrip()))
+
+        def flush(self):
+            pass
+
     while True:
         if not get_server_status(HTTP_PORT):
             http_config = {
-                            'port':     HTTP_PORT,
-                            'log_dir':  get_bundle_dir(),
+                            'port': HTTP_PORT
                           }
 
             torrent_config = {
@@ -27,18 +36,8 @@ def thread_proc():
                                 'keep_files':           Prefs['KEEP_FILES']
                              }
             
-            server = cherrytorrent.Server(http_config, torrent_config)
+            server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
             server.run()
-        else:
-             Log.Info('[BitTorrent][cherrytorrent][{0}] Server is running'.format(port))
-
-        time.sleep(10)
-
-###############################################################################
-def get_bundle_dir():
-    bundle_directory = os.path.join(os.getcwd(), '..', '..', '..', 'Plug-ins', 'BitTorrent.bundle')
-    bundle_directory = bundle_directory.replace('\\\\?\\', '')
-    return os.path.normpath(bundle_directory)
 
 ###############################################################################
 def get_server_status(port):

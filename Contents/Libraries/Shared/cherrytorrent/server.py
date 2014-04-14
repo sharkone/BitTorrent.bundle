@@ -2,11 +2,14 @@
 import cherrypy
 import downloader
 import json
+import logging
 import mimetypes
 import os
 import psutil
 import static
 import time
+
+from cherrypy import _cplogging
 
 ################################################################################
 class ConnectionMonitor(cherrypy.process.plugins.Monitor):
@@ -90,49 +93,36 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
 ################################################################################
 class Server:
     ############################################################################
-    def __init__(self, http_config, torrent_config):
-        self.http_config    = http_config
-        self.torrent_config = torrent_config
+    def __init__(self, http_config, torrent_config, custom_log_stream=None):
+        self.http_config       = http_config
+        self.torrent_config    = torrent_config
+        self.custom_log_stream = custom_log_stream
 
         cherrypy.engine.connection_monitor = ConnectionMonitor(cherrypy.engine, self.http_config)
         cherrypy.engine.connection_monitor.subscribe()
 
         cherrypy.engine.downloader_monitor = downloader.DownloaderMonitor(cherrypy.engine, self.http_config, self.torrent_config)
         cherrypy.engine.downloader_monitor.subscribe()
-
-        self.log_path = os.path.abspath(os.path.join(self.http_config['log_dir'], 'cherrytorrent.log'))
         
     ############################################################################
     def run(self):
-        if os.path.isfile(self.log_path):
-            os.remove(self.log_path)
-
-        cherrypy.config.update({'log.error_file':self.log_path})
         cherrypy.config.update({'server.socket_host':'0.0.0.0'})
         cherrypy.config.update({'server.socket_port':self.http_config['port']})
 
-        cherrypy.quickstart(ServerRoot(self.log_path))
+        if self.custom_log_stream:
+            handler = logging.StreamHandler(self.custom_log_stream)
+            handler.setLevel(logging.INFO)
+            handler.setFormatter(_cplogging.logfmt)
+            cherrypy.log.error_log.addHandler(handler)
+
+        cherrypy.quickstart(ServerRoot())
 
 ################################################################################
 class ServerRoot:
     ############################################################################
-    def __init__(self, log_path):
-        self.log_path = log_path
-
-    ############################################################################
     @cherrypy.expose
     def index(self):
         return json.dumps(cherrypy.engine.downloader_monitor.get_status())
-
-    ############################################################################
-    @cherrypy.expose
-    def log(self):
-        result = ''
-        with open(self.log_path, 'r') as f:
-            for line in iter(f.readline, ''):
-                result = result + line + '<br/>'
-        
-        return result
 
     ############################################################################
     @cherrypy.expose
