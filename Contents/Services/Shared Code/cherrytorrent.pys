@@ -53,6 +53,7 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
             else:
                 if (time.time() - torrent_start_time) > TORRENT_START_TIMEOUT:
                     Log.Error('[BitTorrent][cherrytorrent][{0}] Torrent could not get ready in time. Aborting.'.format(HTTP_PORT))
+                    raise Ex.MediaNotAvailable
         else:
             Log.Info('[BitTorrent][cherrytorrent][{0}] Torrent not ready'.format(HTTP_PORT))
 

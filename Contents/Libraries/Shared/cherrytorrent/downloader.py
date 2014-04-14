@@ -18,7 +18,6 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
         self.connections     = []
         self.monitor_running = False
         self.torrent_handles = []
-        self.last_cleanup    = time.time()
 
         self.expected_alert_types    = []
         self.expected_alert_received = False
@@ -113,6 +112,7 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
                     break
                 time.sleep(0.1)
 
+        self.bus.connection_monitor.remove_torrent(str(torrent_handle.info_hash()))
         self.torrent_handles.remove(torrent_handle)
 
     ############################################################################
@@ -245,14 +245,19 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
             time.sleep(0.1)
 
         while self.monitor_running:
+            torrent_handles_to_remove = []            
+
             for torrent_handle in self.torrent_handles:
                 if not self.bus.connection_monitor.has_video_connections(str(torrent_handle.info_hash())):
-                    if not torrent_handle.status().paused:
-                        torrent_handle.pause()
+                    timestamp = self.bus.connection_monitor.get_last_video_connection_timestamp(str(torrent_handle.info_hash()))
+                    if (time.time() - timestamp) > 600.0:
+                        torrent_handles_to_remove.append(torrent_handle)
+                    elif (time.time() - timestamp) > 30.0:
+                        if not torrent_handle.status().paused:
+                            torrent_handle.pause()
 
-            if (time.time() - self.last_cleanup) > 18000: # 5 hours
-                self.remove_paused_torrents()
-                self.last_cleanup = time.time()
+            for torrent_handle in torrent_handles_to_remove:
+                self.remove_torrent(torrent_handle)
 
             self._alert_pump()
 

@@ -37,12 +37,16 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
             self.torrent_connections[info_hash]['timestamp'] = time.time()
 
     ############################################################################
+    def remove_torrent(self, info_hash):
+        if info_hash in self.torrent_connections:
+            del self.torrent_connections[info_hash]
+
+    ############################################################################
     def add_video_connection(self, info_hash):
         current_connections = self._get_connections()
         for connection in current_connections:
             if connection not in self.connections:
-                if info_hash not in self.torrent_connections:
-                    self.torrent_connections[info_hash] = { 'timestamp': time.time(), 'set': set() }
+                self.add_torrent(info_hash)
 
                 if connection not in self.torrent_connections[info_hash]:
                     self.torrent_connections[info_hash]['set'].add(connection)
@@ -51,7 +55,13 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
 
     ############################################################################
     def has_video_connections(self, info_hash):
-        return info_hash in self.torrent_connections
+        return info_hash in self.torrent_connections and self.torrent_connections[info_hash]['set']
+
+    ############################################################################
+    def get_last_video_connection_timestamp(self, info_hash):
+        if info_hash not in self.torrent_connections:
+            return 0
+        return self.torrent_connections[info_hash]['timestamp']
 
     ############################################################################
     def _get_connections(self):
@@ -78,12 +88,6 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
                 connection_set['timestamp'] = time.time()
                 connection_set['set'].remove(connection)
                 self.connections.remove(connection)
-
-            if not connection_set['set'] and (time.time() - connection_set['timestamp']) > 30.0:
-                connection_sets_to_remove.append(info_hash)
-
-        for info_hash in connection_sets_to_remove:
-            del self.torrent_connections[info_hash]
 
         current_process = psutil.Process()
         if (not current_process.parent() or current_process.parent().pid == 1) or (not current_process.parent().parent() or current_process.parent().parent().pid == 1):
