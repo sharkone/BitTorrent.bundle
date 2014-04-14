@@ -34,3 +34,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+user_id.txt
