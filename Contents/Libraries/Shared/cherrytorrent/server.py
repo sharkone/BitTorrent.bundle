@@ -76,7 +76,7 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
                     connections.append(line)
 
         elif platform.system() == 'Darwin':
-            lines = subprocess.check_output(['lsof', '-i4' 'TCP', '-n', '-P']).split('\n')
+            lines = subprocess.check_output(['lsof', '-nPi4TCP']).split('\n')
             for line in lines:
                 if ':{0}->'.format(self.http_config['port']) in line and 'ESTABLISHED' in line:
                     connections.append(line)
