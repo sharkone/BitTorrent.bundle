@@ -5,8 +5,9 @@ import json
 import logging
 import mimetypes
 import os
-import psutil
+import platform
 import static
+import subprocess
 import time
 
 from cherrypy import _cplogging
@@ -66,10 +67,27 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
     ############################################################################
     def _get_connections(self):
         connections = []
-        current_process = psutil.Process()
-        for connection in current_process.connections('tcp'):
-            if connection.laddr[1] == self.http_config['port'] and connection.status == 'ESTABLISHED':
-                connections.append(connection)
+
+        if platform.system() == 'Linux':
+            lines = subprocess.check_output(['netstat', '-ant']).split('\n')
+            for line in lines:
+                words = line.split()
+                if len(words) == 6 and words[3].endswith(str(self.http_config['port'])) and words[5] == 'ESTABLISHED':
+                    connections.append(line)
+
+        elif platform.system() == 'Darwin':
+            lines = subprocess.check_output(['lsof', '-i4' 'TCP', '-n', '-P']).split('\n')
+            for line in lines:
+                if ':{0}->'.format(self.http_config['port']) in line and 'ESTABLISHED' in line:
+                    connections.append(line)
+
+        elif platform.system() == 'Windows':
+            lines = subprocess.check_output(['netstat', '-anp', 'TCP']).split('\n')
+            for line in lines:
+                words = line.split()
+                if len(words) == 4 and words[1].endswith(str(self.http_config['port'])) and words[3] == 'ESTABLISHED':
+                    connections.append(line)
+        
         return connections
 
     ############################################################################
@@ -88,11 +106,6 @@ class ConnectionMonitor(cherrypy.process.plugins.Monitor):
                 connection_set['timestamp'] = time.time()
                 connection_set['set'].remove(connection)
                 self.connections.remove(connection)
-
-        current_process = psutil.Process()
-        if (not current_process.parent() or current_process.parent().pid == 1) or (not current_process.parent().parent() or current_process.parent().parent().pid == 1):
-            self.bus.log('Parent process is dead, exiting')
-            cherrypy.engine.exit()
 
 ################################################################################
 class Server:
