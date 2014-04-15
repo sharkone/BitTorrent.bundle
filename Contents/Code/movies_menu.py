@@ -1,18 +1,25 @@
 ################################################################################
+import tracking
+
+################################################################################
 SUBPREFIX = 'movies'
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
+    tracking.track('Entered Movies')
+
     object_container = ObjectContainer(title2='Movies')
     object_container.add(DirectoryObject(key=Callback(list_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular'))
     object_container.add(DirectoryObject(key=Callback(list_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating'))
-    object_container.add(InputDirectoryObject(key=Callback(search, per_page=31), title='Search', thumb=R('search.png')))
+    object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/list_menu', per_page=int, count=int)
 def list_menu(title, page, per_page, count=0):
+    tracking.track('Entered Movies/' + title)
+
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
@@ -24,11 +31,13 @@ def list_menu(title, page, per_page, count=0):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(query, per_page, count=0):
+def search(title, query, per_page, count=0):
+    tracking.track('Entered Movies/' + title)
+
     ids   = []
     count = SharedCodeService.trakt.movies_search(query, ids)
 
-    object_container = ObjectContainer(title2='Search')
+    object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
     return object_container
 

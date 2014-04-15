@@ -29,6 +29,7 @@ def Main():
 
     Log.Info('Server Platform: {0} ({1})'.format(Platform.OS, Platform.CPU))
     Log.Info('Client Product: {0} ({1})'.format(Client.Product, Client.Platform))
+    Log.Info('Channel Version: {0}'.format(SharedCodeService.common.VERSION))
 
     object_container = ObjectContainer(title2=TITLE)
     object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))

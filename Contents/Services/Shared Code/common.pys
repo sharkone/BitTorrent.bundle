@@ -3,7 +3,8 @@ import re
 import trakt
 
 ################################################################################
-PREFIX = '/video/bittorrent'
+PREFIX  = '/video/bittorrent'
+VERSION = '0.5.0'
 
 RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 RE_MOVIE_TITLE       = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
