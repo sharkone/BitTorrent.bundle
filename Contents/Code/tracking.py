@@ -5,20 +5,21 @@ import mixpanel
 TOKEN = '6e7ecd86cf4fa3cf08ddaf8ab3de81d6'
 
 ###############################################################################
-def people_set(properties={}):
+def people_set(properties={}, meta={}):
     try:
-        properties['$ip'] = Network.PublicAddress
+        meta['$ip'] = Network.PublicAddress
 
         mp = mixpanel.Mixpanel(TOKEN)
-        mp.people_set(Network.PublicAddress, properties)
+        mp.people_set(Network.PublicAddress, properties, meta)
         Log.Info('[BitTorrent][Tracking] Sent people properties')
     except Exception as exception:
         Log.Error('[BitTorrent][Tracking] Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
-def track(event, properties={}):
+def track(event, properties={}, meta={}):
     try:
-        properties['$ip'] = Network.PublicAddress
+        meta['$ip'] = Network.PublicAddress
+
         properties['Server OS']       = str(Platform.OS)
         properties['Server CPU']      = str(Platform.CPU)
         properties['Client Product']  = str(Client.Product)
@@ -26,7 +27,7 @@ def track(event, properties={}):
         properties['Channel Version'] = SharedCodeService.common.VERSION
 
         mp = mixpanel.Mixpanel(TOKEN)
-        mp.track(Network.PublicAddress, event, properties)
+        mp.track(Network.PublicAddress, event, properties, meta)
         Log.Info('[BitTorrent][Tracking] Sent tracking event: {0}'.format(event))
     except Exception as exception:
         Log.Error('[BitTorrent][Tracking] Unhandled exception: {0}'.format(exception))
