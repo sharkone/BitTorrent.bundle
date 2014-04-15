@@ -14,8 +14,8 @@ from psutil import _common
 from psutil import _psposix
 from psutil._common import conn_tmap, usage_percent, isfile_strict
 from psutil._compat import namedtuple, wraps
-import _psutil_osx as cext
-import _psutil_posix
+import psutil.osx._psutil_osx as cext
+import psutil.osx._psutil_posix as _psutil_posix
 
 
 __extra__all__ = []

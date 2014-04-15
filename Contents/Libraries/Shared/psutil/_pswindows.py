@@ -13,7 +13,7 @@ import sys
 from psutil import _common
 from psutil._common import conn_tmap, usage_percent, isfile_strict
 from psutil._compat import PY3, xrange, wraps, lru_cache, namedtuple
-import _psutil_windows as cext
+import psutil.windows._psutil_windows as cext
 
 # process priority constants, import from __init__.py:
 # http://msdn.microsoft.com/en-us/library/ms686219(v=vs.85).aspx
