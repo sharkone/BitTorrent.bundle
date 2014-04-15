@@ -25,6 +25,7 @@ def Start():
 ################################################################################
 @handler(SharedCodeService.common.PREFIX, TITLE, thumb=ICON, art=ART)
 def Main():
+    tracking.people_set()
     tracking.track('Started channel')
 
     Log.Info('Server Platform: {0} ({1})'.format(Platform.OS, Platform.CPU))
