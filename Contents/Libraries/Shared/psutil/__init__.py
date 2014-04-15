@@ -136,7 +136,7 @@ if sys.platform.startswith("linux"):
 
 elif sys.platform.startswith("win32"):
     import psutil._pswindows as _psplatform
-    from _psutil_windows import (ABOVE_NORMAL_PRIORITY_CLASS,
+    from psutil.windows._psutil_windows import (ABOVE_NORMAL_PRIORITY_CLASS,
                                  BELOW_NORMAL_PRIORITY_CLASS,
                                  HIGH_PRIORITY_CLASS,
                                  IDLE_PRIORITY_CLASS,
