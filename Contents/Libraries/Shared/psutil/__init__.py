@@ -96,7 +96,7 @@ if sys.platform.startswith("linux"):
                                  IOPRIO_CLASS_IDLE)
     # Linux >= 2.6.36
     if _psplatform.HAS_PRLIMIT:
-        from _psutil_linux import (RLIM_INFINITY,
+        from psutil.linux_x86._psutil_linux import (RLIM_INFINITY,
                                    RLIMIT_AS,
                                    RLIMIT_CORE,
                                    RLIMIT_CPU,
@@ -111,7 +111,7 @@ if sys.platform.startswith("linux"):
         # Kinda ugly but considerably faster than using hasattr() and
         # setattr() against the module object (we are at import time:
         # speed matters).
-        import _psutil_linux
+        import psutil.linux_x86._psutil_linux as _psutil_linux
         try:
             RLIMIT_MSGQUEUE = _psutil_linux.RLIMIT_MSGQUEUE
         except AttributeError:
