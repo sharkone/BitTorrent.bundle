@@ -12,6 +12,7 @@ def menu():
     object_container = ObjectContainer(title2='TV Shows')
     object_container.add(DirectoryObject(key=Callback(list_menu, title='Popular', page='/shows/trending', per_page=31), title='Popular'))
     object_container.add(DirectoryObject(key=Callback(list_menu, title='Rating', page='/shows/popular', per_page=31), title='Rating'))
+    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres'))
     object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
     return object_container
 
@@ -27,6 +28,18 @@ def list_menu(title, page, per_page, count=0):
     fill_object_container(object_container, ids)
     object_container.add(NextPageObject(key=Callback(list_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
     
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres_menu')
+def genres_menu(title):
+    tracking.track('Entered TV Shows/' + title)
+
+    genres = SharedCodeService.trakt.tvshows_genres()
+
+    object_container = ObjectContainer(title2=title)
+    for genre in genres:
+        object_container.add(DirectoryObject(key=Callback(list_menu, title=genre[0], page='/shows/popular/' + genre[1], per_page=31), title=genre[0]))
     return object_container
 
 ################################################################################

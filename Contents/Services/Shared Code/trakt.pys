@@ -188,6 +188,16 @@ def movies_get_data(movie_id):
 ###############################################################################
 # TVSHOWS
 ###############################################################################
+@decorators.memoized
+def tvshows_genres():
+    json_url  = TRAKT_API + '/genres/shows.json/' + API_KEY
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+
+    result = []
+    for json_item in json_data:
+        result.append((json_item['name'], json_item['slug']))
+    return result
+
 def tvshows_search(query, tvshow_ids):
     json_url  = TRAKT_API + '/search/shows.json/' + API_KEY + '?query=' + String.Quote(query)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
