@@ -31,7 +31,7 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
         magnet_info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
         
         session_json  = status_json['session']
-        torrents_json = [x for x in session_json['torrents'] if x['info_hash'] == magnet_info_hash]
+        torrents_json = [x for x in session_json['torrents'] if 'info_hash' in x and x['info_hash'] == magnet_info_hash]
         torrent_json  = torrents_json[0] if torrents_json else None
 
         if torrent_json:

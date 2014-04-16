@@ -99,7 +99,8 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
     ############################################################################
     def remove_torrent(self, torrent_handle, wait_for_alert=False):
         self.bus.connection_monitor.remove_torrent(str(torrent_handle.info_hash()))
-        self.torrent_handles.remove(torrent_handle)
+        if torrent_handle in self.torrent_handles:
+            self.torrent_handles.remove(torrent_handle)
 
         remove_torrent_flags = libtorrent.options_t.delete_files if not self.torrent_config['keep_files'] else 0
         self.session.remove_torrent(torrent_handle, remove_torrent_flags)
@@ -144,11 +145,11 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
 
             result['session']['torrents'] = []
             for torrent_handle in self.torrent_handles:
-                torrent_status = torrent_handle.status()
-
-                torrent = {}
+                torrent_valid  = torrent_handle.has_metadata()
+                torrent_status = torrent_handle.status() if torrent_valid else None
                 
                 try:
+                    torrent = {}
                     torrent['paused']        = torrent_status.paused
                     torrent['state']         = str(torrent_status.state)
                     torrent['state_index']   = int(torrent_status.state)
@@ -185,7 +186,7 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
                             else:
                                 piece_map = piece_map + '.'
                         torrent['video_file']['piece_map'] = piece_map
-                except RuntimeError:
+                except:
                     pass
 
                 result['session']['torrents'].append(torrent)
