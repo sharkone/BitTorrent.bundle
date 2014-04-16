@@ -138,7 +138,7 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
                 connection_set_status = { 'info_hash': info_hash, 'timestamp': connection_set['timestamp'], 'connections':[] }
                 
                 for connection in connection_set['set']:
-                    connection_status = { 'info_hash': info_hash, 'remote_ip': connection.raddr[0], 'remote_port': connection.raddr[1] }
+                    connection_status = { 'info_hash': info_hash, 'connection': connection }
                     connection_set_status['connections'].append(connection_status)
 
                 result['session']['connection_sets'].append(connection_set_status)
