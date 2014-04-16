@@ -219,9 +219,32 @@ def tvshows_get_season_index_list(tvshow_id):
         return season_index_list
 
     for season_data in tvshow_data['seasons']:
-        season_index_list.append(season_data['season'])
+        if season_data['season'] != 0 and tvshows_get_season_episode_index_list(tvshow_id, season_data['season']):
+            season_index_list.append(season_data['season'])
 
     return sorted(season_index_list)
+
+###############################################################################
+def tvshows_get_season_episode_index_list(tvshow_id, season_index):
+    episode_index_list = []
+
+    tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return episode_index_list
+
+    season_data = None
+    for season in tvshow_data['seasons']:
+        if season['season'] == season_index:
+            season_data = season
+            break
+    if not season_data:
+        return episode_index_list
+
+    for episode_data in season_data['episodes']:
+        if int(episode_data['first_aired']) and Datetime.FromTimestamp(int(episode_data['first_aired'])) <= Datetime.Now():
+            episode_index_list.append(episode_data['episode'])
+
+    return sorted(episode_index_list)
 
 ###############################################################################
 def tvshows_get_season_episode_count(tvshow_id, season_index):
@@ -238,33 +261,6 @@ def tvshows_get_season_episode_count(tvshow_id, season_index):
         return 0
 
     return len(season_data['episodes'])
-
-###############################################################################
-def tvshows_is_future_episode(tvshow_id, season_index, episode_index):
-    tvshow_data = tvshow_get_data(tvshow_id)
-    if not tvshow_data:
-        return True
-    
-    season_data = None
-    for season in tvshow_data['seasons']:
-        if season['season'] == season_index:
-            season_data = season
-            break
-    if not season_data:
-        return True
-
-    episode_data = None
-    for episode in season_data['episodes']:
-        if episode['episode'] == episode_index:
-            episode_data = episode
-            break
-    if not episode_data:
-        return True
-
-    if not int(episode_data['first_aired']):
-        return True
-
-    return Datetime.FromTimestamp(int(episode_data['first_aired'])) > Datetime.Now()
 
 ###############################################################################
 @decorators.memoized

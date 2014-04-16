@@ -69,8 +69,6 @@ def fill_object_container(object_container, tvshow_ids):
 def tvshow(title, tvdb_id):
     object_container = ObjectContainer(title2=title)
     for season_index in SharedCodeService.trakt.tvshows_get_season_index_list(tvdb_id):
-        if season_index == 0:
-            continue
         season_object = SeasonObject()
         SharedCodeService.trakt.tvshows_fill_season_object(season_object, tvdb_id, season_index)
         season_object.key = Callback(season, title=season_object.title, tvdb_id=tvdb_id, season_index=season_object.index)
@@ -83,13 +81,12 @@ def tvshow(title, tvdb_id):
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
 def season(title, tvdb_id, season_index):
     object_container = ObjectContainer(title2=title)
-    for episode_index in range(0, SharedCodeService.trakt.tvshows_get_season_episode_count(tvdb_id, season_index)):
-        if not SharedCodeService.trakt.tvshows_is_future_episode(tvdb_id, season_index, episode_index + 1):
-            directory_object = DirectoryObject()
-            SharedCodeService.trakt.tvshows_fill_episode_object(directory_object, tvdb_id, season_index, episode_index + 1)
-            directory_object.title = str(episode_index + 1) + '. ' + directory_object.title
-            directory_object.key  = Callback(episode, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index + 1)
-            object_container.add(directory_object)
+    for episode_index in SharedCodeService.trakt.tvshows_get_season_episode_index_list(tvdb_id, season_index):
+        directory_object = DirectoryObject()
+        SharedCodeService.trakt.tvshows_fill_episode_object(directory_object, tvdb_id, season_index, episode_index)
+        directory_object.title = str(episode_index) + '. ' + directory_object.title
+        directory_object.key  = Callback(episode, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index)
+        object_container.add(directory_object)
 
     return object_container
 
