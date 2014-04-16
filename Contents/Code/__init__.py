@@ -3,7 +3,6 @@ import anime_menu
 import cherrytorrent_launcher
 import movies_menu
 import tvshows_menu
-import yts_menu
 
 import tracking
 
@@ -36,7 +35,5 @@ def Main():
     object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
     object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
     object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
-    if Prefs['USE_YTS_PROVIDER']:
-        object_container.add(DirectoryObject(key=Callback(yts_menu.menu), title="YTS", thumb=R('yts.png')))
     object_container.add(PrefsObject(title='Preferences'))
     return object_container
