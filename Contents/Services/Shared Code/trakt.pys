@@ -41,6 +41,17 @@ def get_ids_from_page(page, ids, cur_count, max_count):
 ###############################################################################
 # MOVIES
 ###############################################################################
+@decorators.memoized
+def movies_genres():
+    json_url  = TRAKT_API + '/genres/movies.json/' + API_KEY
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+
+    result = []
+    for json_item in json_data:
+        result.append((json_item['name'], json_item['slug']))
+    return result
+
+###############################################################################
 def movies_search(query, movie_ids):
     json_url  = TRAKT_API + '/search/movies.json/' + API_KEY + '?query=' + String.Quote(query)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
