@@ -64,4 +64,4 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
 
 ###############################################################################
 def get_url(port, page):
-    return 'http://' + Network.Address + ':' + str(port) + '/' + page
+    return 'http://' + Network.Hostname + ':' + str(port) + '/' + page
