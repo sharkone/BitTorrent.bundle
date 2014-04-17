@@ -1,5 +1,8 @@
 ################################################################################
+import multiprocessing
 import tracking
+
+from multiprocessing.pool import ThreadPool
 
 ################################################################################
 SUBPREFIX = 'movies'
@@ -84,9 +87,20 @@ def movie(imdb_id):
 
 ################################################################################
 def fill_object_container(object_container, ids):
-    for id in ids:
+    def worker_task(id):
         directory_object = DirectoryObject()
         imdb_id = SharedCodeService.trakt.movies_fill_movie_object(directory_object, id)
         if imdb_id:
             directory_object.key = Callback(movie, imdb_id=imdb_id)
-            object_container.add(directory_object)
+            return directory_object
+        return -1
+
+    thread_pool = ThreadPool(10)
+    map_results = thread_pool.map(worker_task, ids)
+
+    thread_pool.terminate()
+    thread_pool.join()
+
+    for map_result in map_results:
+        if map_result and map_result != -1:
+            object_container.add(map_result)

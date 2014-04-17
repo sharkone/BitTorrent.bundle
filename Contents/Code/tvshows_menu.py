@@ -1,5 +1,8 @@
 ################################################################################
+import multiprocessing
 import tracking
+
+from multiprocessing.pool import ThreadPool
 
 ################################################################################
 SUBPREFIX = 'tvshows'
@@ -56,13 +59,24 @@ def search(title, query, per_page, count=0):
 
 ################################################################################
 def fill_object_container(object_container, tvshow_ids):
-    for tvshow_id in tvshow_ids:
+    def worker_task(tvshow_id):
         tvshow_object = TVShowObject()
         tvdb_id = SharedCodeService.trakt.tvshows_fill_tvshow_object(tvshow_object, tvshow_id)
         if tvdb_id:
             tvshow_object.key        = Callback(tvshow, title=tvshow_object.title, tvdb_id=tvdb_id)
             tvshow_object.rating_key = '{0}-{1}'.format(tvshow_object.title, tvdb_id)
-            object_container.add(tvshow_object)
+            return tvshow_object
+        return -1
+
+    thread_pool = ThreadPool(10)
+    map_results = thread_pool.map(worker_task, tvshow_ids)
+
+    thread_pool.terminate()
+    thread_pool.join()
+
+    for map_result in map_results:
+        if map_result and map_result != -1:
+            object_container.add(map_result)
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')

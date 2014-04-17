@@ -300,6 +300,8 @@ def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
 ###############################################################################
 def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
     tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return
 
     try:
         tvshow_object.title = tvshow_data['title']
@@ -362,6 +364,8 @@ def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
 ###############################################################################
 def tvshows_fill_season_object(season_object, tvshow_id, season_index):
     tvshow_data = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return
 
     season_data = None
     for season in tvshow_data['seasons']:
@@ -409,6 +413,8 @@ def tvshows_fill_season_object(season_object, tvshow_id, season_index):
 ###############################################################################
 def tvshows_fill_episode_object(episode_object, tvshow_id, season_index, episode_index):
     tvshow_data  = tvshow_get_data(tvshow_id)
+    if not tvshow_data:
+        return
     
     season_data = None
     for season in tvshow_data['seasons']:
