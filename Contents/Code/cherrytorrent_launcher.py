@@ -16,26 +16,25 @@ def thread_proc():
             self.port = port
 
         def write(self, str):
-            Log.Info('[BitTorrent][cherrytorrent][{0}] {1}'.format(self.port, str.rstrip()))
+            Log.Info('{0}'.format(str.rstrip()))
 
         def flush(self):
             pass
 
     while True:
-        if not get_server_status(HTTP_PORT):
-            http_config = {
-                            'port': HTTP_PORT
-                          }
+        http_config    = { 
+                            'port':                 HTTP_PORT
+                         }
 
-            torrent_config = {
-                                'port':                 int(Prefs['INCOMING_PORT']),
-                                'max_download_rate':    int(Prefs['MAX_DOWNLOAD_RATE']),
-                                'max_upload_rate':      int(Prefs['MAX_UPLOAD_RATE']),
-                                'keep_files':           Prefs['KEEP_FILES']
-                             }
-            
-            server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
-            server.run()
+        torrent_config = {
+                            'port':                 int(Prefs['INCOMING_PORT']),
+                            'max_download_rate':    int(Prefs['MAX_DOWNLOAD_RATE']),
+                            'max_upload_rate':      int(Prefs['MAX_UPLOAD_RATE']),
+                            'keep_files':           Prefs['KEEP_FILES']
+                         }
+        
+        server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
+        server.run()
 
 ###############################################################################
 def get_server_status(port):
@@ -43,8 +42,8 @@ def get_server_status(port):
         status_json = JSON.ObjectFromURL('http://{0}:{1}'.format(Network.Address, port), cacheTime=0)
         return status_json
     except urllib2.URLError as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}] Server unreachable: {1}'.format(port, exception.reason))
+        Log.Error('Server unreachable: {0}'.format(exception.reason))
     except Exception as exception:
-        Log.Error('[BitTorrent][cherrytorrent][{0}] Unhandled exception: {1}'.format(port, exception))
+        Log.Error('Unhandled exception: {0}'.format(exception))
 
     return None

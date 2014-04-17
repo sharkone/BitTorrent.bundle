@@ -183,7 +183,7 @@ def movies_get_data(movie_id):
         json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
         return json_data
     except Exception as exception:
-        Log.Error('[BitTorrent][trakt] Unhandled exception: {0}'.format(exception))
+        Log.Error('Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
 # TVSHOWS
@@ -517,4 +517,4 @@ def tvshow_get_data(tvshow_id):
         json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
         return json_data
     except Exception as exception:
-        Log.Error('[BitTorrent][trakt] Unhandled exception: {0}'.format(exception))
+        Log.Error('Unhandled exception: {0}'.format(exception))

@@ -128,4 +128,4 @@ class ThePirateBayProvider(common.TorrentProvider):
                                                                           int(html_item.xpath('./td[4]/text()')[0]),
                                                                           torrent_size)
         except Exception as exception:
-            Log.Error('[BitTorrent][ThePirateBayProvider] Unhandled exception: {0}'.format(exception))
+            Log.Error('Unhandled exception: {0}'.format(exception))

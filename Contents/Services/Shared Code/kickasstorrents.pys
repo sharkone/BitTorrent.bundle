@@ -130,4 +130,4 @@ class KickassTorrentsProvider(common.TorrentProvider):
                                                                           int(rss_entry.torrent_peers),
                                                                           int(rss_entry.torrent_contentlength))
         except Exception as exception:
-            Log.Error('[BitTorrent][KickassTorrentsProvider] Unhandled exception: {0}'.format(exception))
+            Log.Error('Unhandled exception: {0}'.format(exception))

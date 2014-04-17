@@ -9,11 +9,15 @@ def people_set(properties={}, meta={}):
     try:
         meta['$ip'] = Network.PublicAddress
 
+        properties['Server OS']       = str(Platform.OS)
+        properties['Server CPU']      = str(Platform.CPU)
+        properties['Channel Version'] = SharedCodeService.common.VERSION
+
         mp = mixpanel.Mixpanel(TOKEN)
         mp.people_set(Network.PublicAddress, properties, meta)
-        Log.Info('[BitTorrent][Tracking] Sent people properties')
+        Log.Info('Sent people properties')
     except Exception as exception:
-        Log.Error('[BitTorrent][Tracking] Unhandled exception: {0}'.format(exception))
+        Log.Error('Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
 def track(event, properties={}, meta={}):
@@ -28,6 +32,6 @@ def track(event, properties={}, meta={}):
 
         mp = mixpanel.Mixpanel(TOKEN)
         mp.track(Network.PublicAddress, event, properties, meta)
-        Log.Info('[BitTorrent][Tracking] Sent tracking event: {0}'.format(event))
+        Log.Info('Sent tracking event: {0}'.format(event))
     except Exception as exception:
-        Log.Error('[BitTorrent][Tracking] Unhandled exception: {0}'.format(exception))
+        Log.Error('Unhandled exception: {0}'.format(exception))

@@ -56,4 +56,4 @@ class YTSProvider(common.TorrentProvider):
                                                                           int(json_item['TorrentPeers']),
                                                                           int(json_item['SizeByte']))
         except Exception as exception:
-            Log.Error('[BitTorrent][YTSProvider] Unhandled exception: {0}'.format(exception))
+            Log.Error('Unhandled exception: {0}'.format(exception))
