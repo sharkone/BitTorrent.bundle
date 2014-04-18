@@ -59,4 +59,15 @@ def Main():
     object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
     object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
     object_container.add(PrefsObject(title='Preferences'))
+    object_container.add(DirectoryObject(key=Callback(about_menu), title='About', thumb=R('about.png')))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/about')
+def about_menu():
+    tracking.track('Entered About')
+
+    object_container = ObjectContainer(title2='About')
+    object_container.header  = 'Channel Info'
+    object_container.message = 'Channel version: {0}'.format(SharedCodeService.common.VERSION)
     return object_container
