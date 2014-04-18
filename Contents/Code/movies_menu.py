@@ -95,11 +95,16 @@ def fill_object_container(object_container, ids):
             return directory_object
         return -1
 
-    thread_pool = ThreadPool(10)
-    map_results = thread_pool.map(worker_task, ids)
+    if Platform.OS != 'Linux':
+        thread_pool = ThreadPool(10)
+        map_results = thread_pool.map(worker_task, ids)
 
-    thread_pool.terminate()
-    thread_pool.join()
+        thread_pool.terminate()
+        thread_pool.join()
+    else:
+        map_results = []
+        for id in ids:
+            map_results.append(worker_task(id))
 
     for map_result in map_results:
         if map_result and map_result != -1:
