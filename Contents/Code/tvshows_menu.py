@@ -70,13 +70,13 @@ def fill_object_container(object_container, tvshow_ids):
 
     if Platform.OS != 'Linux':
         thread_pool = ThreadPool(10)
-        map_results = thread_pool.map(worker_task, ids)
+        map_results = thread_pool.map(worker_task, tvshow_ids)
 
         thread_pool.terminate()
         thread_pool.join()
     else:
         map_results = []
-        for id in ids:
+        for id in tvshow_ids:
             map_results.append(worker_task(id))
 
     for map_result in map_results:
