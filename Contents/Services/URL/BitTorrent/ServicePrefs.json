@@ -5,7 +5,6 @@
         "type":     "text",
         "default":  "6900"
     },
-
     {
         "id":       "MAX_DOWNLOAD_RATE",
         "label":    "Maximum download rate (in kb/s, 0 = Unlimited)",
@@ -17,6 +16,12 @@
         "label":    "Maximum upload rate (in kb/s, 0 = Unlimited)",
         "type":     "text",
         "default":  "0"
+    },
+    {
+        "id":       "VPN_FIX",
+        "label":    "VPN Fix (only enable if not working already)",
+        "type":     "bool",
+        "default":  "false"
     },
     {
         "id":       "KEEP_FILES",
