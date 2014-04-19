@@ -59,7 +59,9 @@ def search(title, query, per_page, count=0):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie')
-def movie(imdb_id):
+def movie(title, imdb_id):
+    tracking.track('Entered Movies/Movie', { 'Title': title})
+
     torrent_infos = []
     
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
@@ -67,7 +69,7 @@ def movie(imdb_id):
 
     torrent_infos.sort(key=lambda torrent_info: torrent_info.seeders, reverse=True)
 
-    object_container = ObjectContainer()
+    object_container = ObjectContainer(title2=title)
     
     for torrent_info in torrent_infos:
         seeders_leechers_line = '{0}\nSeeders: {1}, Leechers: {2}'.format(torrent_info.size, torrent_info.seeders, torrent_info.leechers)
@@ -91,7 +93,7 @@ def fill_object_container(object_container, ids):
         directory_object = DirectoryObject()
         imdb_id = SharedCodeService.trakt.movies_fill_movie_object(directory_object, id)
         if imdb_id:
-            directory_object.key = Callback(movie, imdb_id=imdb_id)
+            directory_object.key = Callback(movie, title=directory_object.title, imdb_id=imdb_id)
             return directory_object
         return -1
 

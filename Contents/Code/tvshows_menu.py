@@ -86,11 +86,13 @@ def fill_object_container(object_container, tvshow_ids):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')
 def tvshow(title, tvdb_id):
+    tracking.track('Entered TV Shows/Show', { 'Title': title })
+
     object_container = ObjectContainer(title2=title)
     for season_index in SharedCodeService.trakt.tvshows_get_season_index_list(tvdb_id):
         season_object = SeasonObject()
         SharedCodeService.trakt.tvshows_fill_season_object(season_object, tvdb_id, season_index)
-        season_object.key = Callback(season, title=season_object.title, tvdb_id=tvdb_id, season_index=season_object.index)
+        season_object.key = Callback(season, title=season_object.title, show_title=title, tvdb_id=tvdb_id, season_index=season_object.index)
         season_object.rating_key = '{0}-{1}-{2}'.format(title, tvdb_id, season_index)
         object_container.add(season_object)
 
@@ -98,20 +100,24 @@ def tvshow(title, tvdb_id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
-def season(title, tvdb_id, season_index):
+def season(title, show_title, tvdb_id, season_index):
+    tracking.track('Entered TV Shows/Season', { 'Title': show_title, 'Season': season_index })
+
     object_container = ObjectContainer(title2=title)
     for episode_index in SharedCodeService.trakt.tvshows_get_season_episode_index_list(tvdb_id, season_index):
         directory_object = DirectoryObject()
         SharedCodeService.trakt.tvshows_fill_episode_object(directory_object, tvdb_id, season_index, episode_index)
         directory_object.title = str(episode_index) + '. ' + directory_object.title
-        directory_object.key  = Callback(episode, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index)
+        directory_object.key  = Callback(episode, show_title=show_title, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index)
         object_container.add(directory_object)
 
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
-def episode(tvdb_id, season_index, episode_index):
+def episode(show_title, tvdb_id, season_index, episode_index):
+    tracking.track('Entered TV Shows/Episode', { 'Title': show_title, 'Season': season_index, 'Episode': episode_index })
+
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
     torrent_infos    = []
     torrent_provider.tvshows_get_specific_torrents(tvdb_id, season_index, episode_index, torrent_infos)
