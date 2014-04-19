@@ -17,9 +17,9 @@
             <dict>
                 <key>URLPatterns</key>
                 <array>
-                    <string>^http://kickass.to/.+</string>
-                    <string>^http://thepiratebay.se/torrent/.+</string>
-                    <string>^http://yts.re/movie/.+</string>
+                    <string>^http://.*(kat|kickass).+/.+</string>
+                    <string>^http://.*(pirate|bay).+/torrent/.+</string>
+                    <string>^http://.*(yts).+/movie/.+</string>
                 </array>
             </dict>
         </dict>

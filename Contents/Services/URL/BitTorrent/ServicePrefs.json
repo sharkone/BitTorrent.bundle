@@ -54,15 +54,33 @@
         "default":  "True"
     },
     {
+        "id":       "KICKASSTORRENTS_PROVIDER_URL",
+        "label":    "KickAssTorrents URL (no trailing /)",
+        "type":     "text",
+        "default":  "http://kickass.to"
+    },
+    {
         "id":       "USE_THEPIRATEBAY_PROVIDER",
         "label":    "Use The Pirate Bay provider",
         "type":     "bool",
         "default":  "True"
     },
     {
+        "id":       "THEPIRATEBAY_PROVIDER_URL",
+        "label":    "The Pirate Bay URL (no trailing /)",
+        "type":     "text",
+        "default":  "http://thepiratebay.se"
+    },
+    {
         "id":       "USE_YTS_PROVIDER",
         "label":    "Use YTS provider",
         "type":     "bool",
         "default":  "True"
-    }
+    },
+    {
+        "id":       "YTS_PROVIDER_URL",
+        "label":    "YTS URL (no trailing /)",
+        "type":     "text",
+        "default":  "http://yts.re"
+    },
 ]

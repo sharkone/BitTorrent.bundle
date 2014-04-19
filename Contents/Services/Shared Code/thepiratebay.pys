@@ -4,8 +4,6 @@ import re
 import trakt
 
 ################################################################################
-THEPIRATEBAY = 'http://thepiratebay.se'
-
 RE_IMDB_ID     = re.compile('http://www.imdb.com/title/(.+)/')
 RE_SEEDERS     = re.compile('<dt>Seeders:</dt>\s*<dd>(\d+)</dd>')
 RE_LEECHERS    = re.compile('<dt>Leechers:</dt>\s*<dd>(\d+)</dd>')
@@ -19,7 +17,7 @@ class ThePirateBayProvider(common.TorrentProvider):
     ############################################################################
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         query = imdb_id
-        self.parse_result_page(THEPIRATEBAY + '/search/{0}/0/7/200'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
+        self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
 
     ############################################################################
     # TVSHOWS
@@ -29,18 +27,18 @@ class ThePirateBayProvider(common.TorrentProvider):
 
         title = trakt.tvshows_get_title(tvdb_id)
         query = '%s S%02dE%02d' % (title, season_index, episode_index)
-        self.parse_result_page(THEPIRATEBAY + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+        self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
         if not torrent_infos and common.RE_TVSHOW_TITLE_YEAR.search(title):
             title = common.RE_TVSHOW_TITLE_YEAR.search(title).group(1)
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
-            self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+            self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
     ############################################################################
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(THEPIRATEBAY):
+        if url.startswith(Prefs['THEPIRATEBAY_PROVIDER_URL']):
             page_data     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
             page_data_raw = HTML.StringFromElement(page_data)
 
@@ -121,7 +119,7 @@ class ThePirateBayProvider(common.TorrentProvider):
 
                     self.add_torrent_info(torrent_infos, ref_torrent_key, html_item.xpath('./td[2]/a[1]/@href')[0],
                                                                           torrent_title,
-                                                                          THEPIRATEBAY + html_item.xpath('./td[2]/div/a/@href')[0],
+                                                                          Prefs['THEPIRATEBAY_PROVIDER_URL'] + html_item.xpath('./td[2]/div/a/@href')[0],
                                                                           torrent_key,
                                                                           category,
                                                                           int(html_item.xpath('./td[3]/text()')[0]),

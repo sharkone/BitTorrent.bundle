@@ -2,28 +2,24 @@
 import common
 
 ################################################################################
-YTS      = 'http://yts.re'
-YTS_LIST = YTS + '/api/list.json?limit=50&keywords={0}&genre={1}&quality={2}&sort={3}&set={4}'
-
-################################################################################
 class YTSProvider(common.TorrentProvider):
     ############################################################################
     # MOVIES
     ############################################################################
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         query = imdb_id
-        self.parse_result_page(YTS + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
+        self.parse_result_page(Prefs['YTS_PROVIDER_URL'] + '/api/list.json?limit=50&sort=seeds&keywords={0}'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
 
     ############################################################################
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(YTS):
+        if url.startswith(Prefs['YTS_PROVIDER_URL']):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 
             movie_id = page_data.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
 
-            json_url  = YTS + '/api/movie.json?id={0}'.format(movie_id)
+            json_url  = Prefs['YTS_PROVIDER_URL'] + '/api/movie.json?id={0}'.format(movie_id)
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1DAY)
 
             torrent_magnet   = json_data['TorrentMagnetUrl']

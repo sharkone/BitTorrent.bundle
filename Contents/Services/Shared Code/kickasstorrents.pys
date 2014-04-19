@@ -4,8 +4,6 @@ import re
 import trakt
 
 ################################################################################
-KICKASSTORRENTS = 'http://kickass.to'
-
 RE_IMDB_ID    = re.compile('http://www.imdb.com/title/(tt\d+)/')
 RE_URL_SIZE   = re.compile('(\d+.\d+) (MB|GB)')
 
@@ -15,10 +13,10 @@ class KickassTorrentsProvider(common.TorrentProvider):
     # ANIME
     ############################################################################
     def anime_get_popular_torrents(self, torrent_infos):
-        self.parse_result_page(KICKASSTORRENTS + '/anime/?field=seeders&sorder=desc&rss=1', 'anime', torrent_infos)
+        self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/anime/?field=seeders&sorder=desc&rss=1', 'anime', torrent_infos)
 
     def anime_search(self, query, torrent_infos):
-        self.parse_result_page(KICKASSTORRENTS + '/usearch/category%3Aanime%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'anime', torrent_infos)
+        self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/category%3Aanime%20{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'anime', torrent_infos)
 
     def anime_get_specific_torrents(self, movie_info, torrent_infos):
         pass
@@ -28,7 +26,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
     def movies_get_specific_torrents(self, imdb_id, torrent_infos):
         query = 'imdb:{0}'.format(imdb_id[2:])
-        self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
+        self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'movies', torrent_infos, imdb_id)
 
     ############################################################################
     # TVSHOWS
@@ -38,18 +36,18 @@ class KickassTorrentsProvider(common.TorrentProvider):
 
         title = trakt.tvshows_get_title(tvdb_id)
         query = '%s S%02dE%02d' % (title, season_index, episode_index)
-        self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+        self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
         if not torrent_infos and common.RE_TVSHOW_TITLE_YEAR.search(title):
             title = common.RE_TVSHOW_TITLE_YEAR.search(title).group(1)
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
-            self.parse_result_page(KICKASSTORRENTS + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+            self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
     ############################################################################
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(KICKASSTORRENTS):
+        if url.startswith(Prefs['KICKASSTORRENTS_PROVIDER_URL']):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 
             torrent_magnet   = page_data.xpath('//*[@title="Magnet link"]/@href')[0]
