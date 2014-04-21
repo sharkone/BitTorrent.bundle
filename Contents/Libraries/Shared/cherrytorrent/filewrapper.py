@@ -28,12 +28,12 @@ class FileWrapper(io.RawIOBase):
         self.virtual_read = False
 
     ############################################################################
-    def seek(self, offset, whence=io.SEEK_SET):
-        if whence == io.SEEK_SET:
+    def seek(self, offset, whence=os.SEEK_SET):
+        if whence == os.SEEK_SET:
             new_position = offset
-        elif whence == io.SEEK_CUR:
+        elif whence == os.SEEK_CUR:
             new_position = self.file.tell() + offset
-        elif whence == io.SEEK_END:
+        elif whence == os.SEEK_END:
             new_position = self.size + offset
 
         piece_index = utils.piece_from_offset(self.torrent_handle, self.torrent_file.offset + new_position)
