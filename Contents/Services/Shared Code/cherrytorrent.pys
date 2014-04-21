@@ -22,8 +22,6 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
             status_json  = JSON.ObjectFromURL(get_url(HTTP_PORT, ''), cacheTime=0)
         except urllib2.URLError as exception:
             Log.Error('Server unreachable: {0}'.format(exception.reason))
-        except Exception as exception:
-            Log.Error('Unhandled exception: {0}'.format(exception))
 
         if not status_json:
             raise Ex.MediaNotAvailable
@@ -63,4 +61,8 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
 
 ###############################################################################
 def get_url(port, page):
-    return 'http://' + (Network.Hostname if Prefs['VPN_FIX'] else Network.Address) + ':' + str(port) + '/' + page
+    host = Network.Address
+    if Prefs['VPN_FIX'] and Network.Hostname:
+        host = Network.Hostname
+
+    return 'http://{0}:{1}/{2}'.format(host, port, page)
