@@ -7,17 +7,17 @@ SUBPREFIX = 'anime'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('Entered Anime')
+    tracking.track('/Anime')
 
     object_container = ObjectContainer(title2='Anime')
-    object_container.add(DirectoryObject(key=Callback(popular, title='Popular', per_page=31), title='Popular'))
-    object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
+    object_container.add(DirectoryObject(key=Callback(popular_menu, title='Popular', per_page=31), title='Popular', summary='Browse popular anime'))
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search anime', thumb=R('search.png')))
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/popular', per_page=int, movie_count=int)
-def popular(title, per_page, movie_count=0):
-    tracking.track('Entered Anime/' + title)
+def popular_menu(title, per_page, movie_count=0):
+    tracking.track('/Anime/Popular')
 
     torrent_infos = []
 
@@ -42,8 +42,8 @@ def popular(title, per_page, movie_count=0):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(title, query, per_page, movie_count=0):
-    tracking.track('Entered Anime/' + title)
+def search_menu(title, query, per_page, movie_count=0):
+    tracking.track('/Anime/Search', { 'Query': query })
 
     torrent_infos = []
 

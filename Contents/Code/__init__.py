@@ -56,20 +56,20 @@ def Main():
     Log.Info(' - Platform: {0}'.format(Client.Platform))
     Log.Info('============================================')
 
-    tracking.track('Started channel')
+    tracking.track('/')
 
     object_container = ObjectContainer(title2=TITLE)
-    object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies'))
-    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows'))
-    object_container.add(PrefsObject(title='Preferences'))
-    object_container.add(DirectoryObject(key=Callback(about_menu), title='About', thumb=R('about.png')))
+    object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime', summary='Browse anime'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies'))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows"))
+    object_container.add(PrefsObject(title='Preferences', summary='Preferences for BitTorrent channel'))
+    object_container.add(DirectoryObject(key=Callback(about_menu), title='About', summary='About BitTorrent channel', thumb=R('about.png')))
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/about')
 def about_menu():
-    tracking.track('Entered About')
+    tracking.track('/About')
 
     object_container = ObjectContainer(title2='About')
     object_container.header  = 'Channel Info'

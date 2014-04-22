@@ -10,45 +10,59 @@ SUBPREFIX = 'movies'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('Entered Movies')
+    tracking.track('/Movies')
 
     object_container = ObjectContainer(title2='Movies')
-    object_container.add(DirectoryObject(key=Callback(list_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular'))
-    object_container.add(DirectoryObject(key=Callback(list_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating'))
-    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres'))
-    object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular', summary='Browse popular movies'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating', summary='Browse highly-rated movies'))
+    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres', summary='Browse movies by genre'))
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search movies', thumb=R('search.png')))
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/list_menu', per_page=int, count=int)
-def list_menu(title, page, per_page, count=0):
-    tracking.track('Entered Movies/' + title)
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', per_page=int, count=int)
+def movies_menu(title, page, per_page, count=0):
+    tracking.track('/Movies/' + title)
 
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
     object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
-    object_container.add(NextPageObject(key=Callback(list_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
+    object_container.add(NextPageObject(key=Callback(movies_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
     
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres_menu')
 def genres_menu(title):
-    tracking.track('Entered Movies/' + title)
+    tracking.track('/Movies/' + title)
 
     genres = SharedCodeService.trakt.movies_genres()
 
     object_container = ObjectContainer(title2=title)
     for genre in genres:
-        object_container.add(DirectoryObject(key=Callback(list_menu, title=genre[0], page='/movies/popular/' + genre[1], per_page=31), title=genre[0]))
+        object_container.add(DirectoryObject(key=Callback(genre_menu, title=genre[0], genre=genre[1], per_page=31), title=genre[0]))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', per_page=int, count=int)
+def genre_menu(title, genre, per_page, count=0):
+    tracking.track('/Movies/Genre', { 'Genre': title })
+
+    ids   = []
+    count = SharedCodeService.trakt.get_ids_from_page('/movies/popular/' + genre, ids, count, per_page)
+
+    object_container = ObjectContainer(title2=title)
+    fill_object_container(object_container, ids)
+    object_container.add(NextPageObject(key=Callback(genre_menu, title=title, genre=genre, per_page=per_page, count=count), title="More..."))
+    
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(title, query, per_page, count=0):
-    tracking.track('Entered Movies/' + title)
+def search_menu(title, query, per_page, count=0):
+    tracking.track('/Movies/Search', { 'Query': query })
 
     ids   = []
     count = SharedCodeService.trakt.movies_search(query, ids)
@@ -59,8 +73,8 @@ def search(title, query, per_page, count=0):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie')
-def movie(title, imdb_id):
-    tracking.track('Entered Movies/Movie', { 'Title': title})
+def movie_menu(title, imdb_id):
+    tracking.track('/Movies/Movie', { 'Title': title })
 
     torrent_infos = []
     
@@ -93,7 +107,7 @@ def fill_object_container(object_container, ids):
         directory_object = DirectoryObject()
         imdb_id = SharedCodeService.trakt.movies_fill_movie_object(directory_object, id)
         if imdb_id:
-            directory_object.key = Callback(movie, title=directory_object.title, imdb_id=imdb_id)
+            directory_object.key = Callback(movie_menu, title=directory_object.title, imdb_id=imdb_id)
             return directory_object
         return -1
 

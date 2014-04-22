@@ -10,45 +10,59 @@ SUBPREFIX = 'tvshows'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('Entered TV Shows')
+    tracking.track('/TV Shows')
 
     object_container = ObjectContainer(title2='TV Shows')
-    object_container.add(DirectoryObject(key=Callback(list_menu, title='Popular', page='/shows/trending', per_page=31), title='Popular'))
-    object_container.add(DirectoryObject(key=Callback(list_menu, title='Rating', page='/shows/popular', per_page=31), title='Rating'))
-    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres'))
-    object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/shows/trending', per_page=31), title='Popular', summary='Browse popular TV shows'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Rating', page='/shows/popular', per_page=31), title='Rating', summary='Browse highly-rated TV shows'))
+    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres', summary='Browse TV shows by genre'))
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search TV shows', thumb=R('search.png')))
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/list_menu', per_page=int, count=int)
-def list_menu(title, page, per_page, count=0):
-    tracking.track('Entered TV Shows/' + title)
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', per_page=int, count=int)
+def shows_menu(title, page, per_page, count=0):
+    tracking.track('/TV Shows/' + title)
 
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
     object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
-    object_container.add(NextPageObject(key=Callback(list_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
+    object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
     
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres_menu')
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres')
 def genres_menu(title):
-    tracking.track('Entered TV Shows/' + title)
+    tracking.track('/TV Shows/' + title)
 
     genres = SharedCodeService.trakt.tvshows_genres()
 
     object_container = ObjectContainer(title2=title)
     for genre in genres:
-        object_container.add(DirectoryObject(key=Callback(list_menu, title=genre[0], page='/shows/popular/' + genre[1], per_page=31), title=genre[0]))
+        object_container.add(DirectoryObject(key=Callback(genre_menu, title=genre[0], genre=genre[1], per_page=31), title=genre[0]))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', per_page=int, count=int)
+def genre_menu(title, genre, per_page, count=0):
+    tracking.track('/TV Shows/Genre', { 'Genre': title })
+
+    ids   = []
+    count = SharedCodeService.trakt.get_ids_from_page('/shows/popular/' + genre, ids, count, per_page)
+
+    object_container = ObjectContainer(title2=title)
+    fill_object_container(object_container, ids)
+    object_container.add(NextPageObject(key=Callback(genre_menu, title=title, genre=genre, per_page=per_page, count=count), title="More..."))
+    
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search(title, query, per_page, count=0):
-    tracking.track('Entered TV Shows/' + title)
+def search_menu(title, query, per_page, count=0):
+    tracking.track('/TV Shows/' + title, { 'Query': query })
 
     ids   = []
     count = SharedCodeService.trakt.tvshows_search(query, ids)
@@ -63,7 +77,7 @@ def fill_object_container(object_container, tvshow_ids):
         tvshow_object = TVShowObject()
         tvdb_id = SharedCodeService.trakt.tvshows_fill_tvshow_object(tvshow_object, tvshow_id)
         if tvdb_id:
-            tvshow_object.key        = Callback(tvshow, title=tvshow_object.title, tvdb_id=tvdb_id)
+            tvshow_object.key        = Callback(tvshow_menu, title=tvshow_object.title, tvdb_id=tvdb_id)
             tvshow_object.rating_key = '{0}-{1}'.format(tvshow_object.title, tvdb_id)
             return tvshow_object
         return -1
@@ -85,14 +99,14 @@ def fill_object_container(object_container, tvshow_ids):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')
-def tvshow(title, tvdb_id):
-    tracking.track('Entered TV Shows/Show', { 'Title': title })
+def tvshow_menu(title, tvdb_id):
+    tracking.track('/TV Shows/TV Show', { 'Title': title })
 
     object_container = ObjectContainer(title2=title)
     for season_index in SharedCodeService.trakt.tvshows_get_season_index_list(tvdb_id):
         season_object = SeasonObject()
         SharedCodeService.trakt.tvshows_fill_season_object(season_object, tvdb_id, season_index)
-        season_object.key = Callback(season, title=season_object.title, show_title=title, tvdb_id=tvdb_id, season_index=season_object.index)
+        season_object.key = Callback(season_menu, title=season_object.title, show_title=title, tvdb_id=tvdb_id, season_index=season_object.index)
         season_object.rating_key = '{0}-{1}-{2}'.format(title, tvdb_id, season_index)
         object_container.add(season_object)
 
@@ -100,23 +114,23 @@ def tvshow(title, tvdb_id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
-def season(title, show_title, tvdb_id, season_index):
-    tracking.track('Entered TV Shows/Season', { 'Title': show_title, 'Season': season_index })
+def season_menu(title, show_title, tvdb_id, season_index):
+    tracking.track('/TV Shows/Season', { 'Title': show_title, 'Season': season_index })
 
     object_container = ObjectContainer(title2=title)
     for episode_index in SharedCodeService.trakt.tvshows_get_season_episode_index_list(tvdb_id, season_index):
         directory_object = DirectoryObject()
         SharedCodeService.trakt.tvshows_fill_episode_object(directory_object, tvdb_id, season_index, episode_index)
         directory_object.title = str(episode_index) + '. ' + directory_object.title
-        directory_object.key  = Callback(episode, show_title=show_title, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index)
+        directory_object.key  = Callback(episode_menu, show_title=show_title, tvdb_id=tvdb_id, season_index=season_index, episode_index=episode_index)
         object_container.add(directory_object)
 
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
-def episode(show_title, tvdb_id, season_index, episode_index):
-    tracking.track('Entered TV Shows/Episode', { 'Title': show_title, 'Season': season_index, 'Episode': episode_index })
+def episode_menu(show_title, tvdb_id, season_index, episode_index):
+    tracking.track('/TV Shows/Episode', { 'Title': show_title, 'Season': season_index, 'Episode': episode_index })
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
     torrent_infos    = []
