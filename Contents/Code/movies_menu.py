@@ -16,7 +16,7 @@ def menu():
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular', summary='Browse popular movies'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating', summary='Browse highly-rated movies'))
     object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres', summary='Browse movies by genre'))
-    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary="Search movies", thumb=R('search.png'), prompt="Search for"))
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for'))
     return object_container
 
 ################################################################################
