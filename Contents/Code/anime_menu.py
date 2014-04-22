@@ -11,7 +11,7 @@ def menu():
 
     object_container = ObjectContainer(title2='Anime')
     object_container.add(DirectoryObject(key=Callback(popular, title='Popular', per_page=31), title='Popular'))
-    object_container.add(InputDirectoryObject(key=Callback(search, title='Search', per_page=31), title='Search', thumb=R('search.png')))
+    object_container.add(InputDirectoryObject(key=Callback(search), title='Search', prompt="Search for", thumb=R('search.png')))
     return object_container
 
 ################################################################################
