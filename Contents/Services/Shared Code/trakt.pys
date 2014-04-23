@@ -62,11 +62,16 @@ def movies_search(query, movie_ids):
 
 ###############################################################################
 @decorators.memoized
-def movies_get_imdb_id_from_title(movie_title):
+def movies_get_imdb_id_from_title(movie_title, movie_year):
     try:
         if movie_title:
             json_url  = TRAKT_API + '/search/movies.json/' + API_KEY + '?query=' + String.Quote(movie_title)
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
+            
+            for json_item in json_data:
+                if str(json_item['year']) == movie_year:
+                    return json_item['imdb_id']
+
             return json_data[0]['imdb_id']
     except:
         pass
@@ -80,7 +85,7 @@ def movies_get_imdb_id_from_torrent_title(torrent_title):
         
         movie_title = common.RE_MOVIE_TITLE.search(torrent_title).group(1)
         movie_year  = common.RE_MOVIE_TITLE.search(torrent_title).group(2)
-        return movies_get_imdb_id_from_title(movie_title)
+        return movies_get_imdb_id_from_title(movie_title, movie_year)
     except:
         return None
 
