@@ -1,4 +1,5 @@
 ###############################################################################
+import common
 import os
 import re
 import time
@@ -6,10 +7,6 @@ import urllib2
 
 ###############################################################################
 HTTP_PORT = 8042
-
-TORRENT_START_TIMEOUT = 30
-
-RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 
 ###############################################################################
 def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
@@ -29,7 +26,7 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
         if not torrent_start_time:
             torrent_start_time = time.time()
 
-        magnet_info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
+        magnet_info_hash = common.RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
         
         session_json  = status_json['session']
         torrents_json = [x for x in session_json['torrents'] if 'info_hash' in x and x['info_hash'] == magnet_info_hash]
@@ -50,7 +47,7 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
                     Log.Info('Video not ready')
         else:
             Log.Info('Torrent not ready')
-            if (time.time() - torrent_start_time) > TORRENT_START_TIMEOUT:
+            if (time.time() - torrent_start_time) > int(Prefs['METADATA_TIMEOUT']):
                 Log.Error('Torrent could not get ready in time. Aborting.')
                 raise Ex.MediaNotAvailable
 

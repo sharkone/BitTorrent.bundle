@@ -32,6 +32,7 @@ def Start():
     Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))
     Log.Info(' - Maximum upload rate:     {0}'.format(Prefs['MAX_UPLOAD_RATE']))
     Log.Info(' - VPN Fix enabled:         {0}'.format(Prefs['VPN_FIX']))
+    Log.Info(' - Metadata timeout:        {0}'.format(Prefs['METADATA_TIMEOUT']))
     Log.Info(' - Keep files:              {0}'.format(Prefs['KEEP_FILES']))
     Log.Info(' - Anime download dir:      {0}'.format(Prefs['ANIME_DOWNLOAD_DIR']))
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))

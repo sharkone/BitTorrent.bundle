@@ -7,13 +7,13 @@
     },
     {
         "id":       "MAX_DOWNLOAD_RATE",
-        "label":    "Maximum download rate (in kb/s, 0 = Unlimited)",
+        "label":    "Maximum download rate (in kB/s, 0 = Unlimited)",
         "type":     "text",
         "default":  "0"
     },
     {
         "id":       "MAX_UPLOAD_RATE",
-        "label":    "Maximum upload rate (in kb/s, 0 = Unlimited)",
+        "label":    "Maximum upload rate (in kB/s, 0 = Unlimited)",
         "type":     "text",
         "default":  "0"
     },
@@ -22,6 +22,12 @@
         "label":    "VPN Fix (only enable if not working already)",
         "type":     "bool",
         "default":  "false"
+    },
+    {
+        "id":       "METADATA_TIMEOUT",
+        "label":    "Metadata timeout (in s)",
+        "type":     "text",
+        "default":  "60"
     },
     {
         "id":       "KEEP_FILES",

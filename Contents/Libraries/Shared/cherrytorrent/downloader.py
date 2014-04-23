@@ -268,7 +268,12 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
             self.session.wait_for_alert(1000)
             alert = self.session.pop_alert()
             if alert:
-                if alert.what() in ('cache_flushed_alert', 'external_ip_alert', 'hash_failed_alert', 'metadata_failed_alert', 'tracker_error_alert'):
+                if alert.what() in ('cache_flushed_alert',
+                                    'external_ip_alert',
+                                    'hash_failed_alert',
+                                    'metadata_failed_alert',
+                                    'tracker_error_alert',
+                                    'udp_error_alert'):
                     continue
 
                 self.bus.log('[Downloader][{0}] {1}'.format(alert.what(), alert.message()))
