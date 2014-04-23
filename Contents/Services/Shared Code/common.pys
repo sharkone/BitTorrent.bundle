@@ -7,8 +7,8 @@ PREFIX  = '/video/bittorrent'
 VERSION = '0.5.6.1'
 
 RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
-RE_MOVIE_TITLE       = re.compile('(.+)\s+(\(|\[)?(\d{4})(\)|\])?\s+(.+)')
-RE_TVSHOW_TITLE      = re.compile('(.+)\s+S(\d+)E(\d+)\s+(.+)')
+RE_MOVIE_TITLE       = re.compile('(.+?)\s*?[\[\(]?(\d{4})[\]|\)]?\s*(.+)', re.IGNORECASE)
+RE_TVSHOW_TITLE      = re.compile('(.+)\s+(s|)(\d+)(e|x)(\d+)\s+(.+)', re.IGNORECASE)
 RE_TVSHOW_TITLE_YEAR = re.compile('(.+)\s+\((\d+)\)$')
 
 ################################################################################
@@ -44,10 +44,10 @@ def get_torrent_release(torrent_title, category):
             return torrent_title
         elif category == 'movies':
             movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
-            return movie_title_result.group(5)
+            return movie_title_result.group(3)
         elif category == 'tvshows':
             movie_title_result = RE_TVSHOW_TITLE.search(torrent_title.replace('.', ' '))
-            return movie_title_result.group(4)
+            return movie_title_result.group(6)
     except:
         return torrent_title
 
@@ -184,9 +184,11 @@ class TorrentProvider:
         torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders, torrent_leechers, torrent_size)
 
         if ref_torrent_key and ref_torrent_key != torrent_key:
+            Log.Info('Rejected: {0}'.format(torrent_info.title))
             return
 
         if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
+            Log.Info('Accepted: {0}'.format(torrent_info.title))
             torrent_infos.append(torrent_info)
 
     def release_contains_pattern(self, release, pattern_list):

@@ -79,7 +79,7 @@ def movies_get_imdb_id_from_torrent_title(torrent_title):
         torrent_title = torrent_title.replace('.', ' ')
         
         movie_title = common.RE_MOVIE_TITLE.search(torrent_title).group(1)
-        movie_year  = common.RE_MOVIE_TITLE.search(torrent_title).group(3)
+        movie_year  = common.RE_MOVIE_TITLE.search(torrent_title).group(2)
         return movies_get_imdb_id_from_title(movie_title)
     except:
         return None
@@ -288,8 +288,8 @@ def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
         torrent_title = torrent_title.replace('.', ' ')
 
         tvshow_title  = common.RE_TVSHOW_TITLE.search(torrent_title).group(1)
-        season_index  = common.RE_TVSHOW_TITLE.search(torrent_title).group(2)
-        episode_index = common.RE_TVSHOW_TITLE.search(torrent_title).group(3)
+        season_index  = common.RE_TVSHOW_TITLE.search(torrent_title).group(3)
+        episode_index = common.RE_TVSHOW_TITLE.search(torrent_title).group(5)
 
         tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
         

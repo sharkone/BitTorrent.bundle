@@ -29,9 +29,15 @@ class ThePirateBayProvider(common.TorrentProvider):
         query = '%s S%02dE%02d' % (title, season_index, episode_index)
         self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
+        query = '%s %dx%02d' % (title, season_index, episode_index)
+        self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+
         if not torrent_infos and common.RE_TVSHOW_TITLE_YEAR.search(title):
             title = common.RE_TVSHOW_TITLE_YEAR.search(title).group(1)
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
+            self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+
+            query = '%s %dx%02d' % (title, season_index, episode_index)
             self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
     ############################################################################
@@ -104,26 +110,25 @@ class ThePirateBayProvider(common.TorrentProvider):
                 elif category == 'tvshows':
                     torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(torrent_key)
 
-                if torrent_key:
-                    try:
-                        torrent_size_str  = html_item.xpath('./td[2]/font[@class="detDesc"]/text()')[0]
-                        torrent_size_num  = float(RE_RESULT_SIZE.search(torrent_size_str).group(1))
-                        torrent_size_type = RE_RESULT_SIZE.search(torrent_size_str).group(2)
+                try:
+                    torrent_size_str  = html_item.xpath('./td[2]/font[@class="detDesc"]/text()')[0]
+                    torrent_size_num  = float(RE_RESULT_SIZE.search(torrent_size_str).group(1))
+                    torrent_size_type = RE_RESULT_SIZE.search(torrent_size_str).group(2)
 
-                        if torrent_size_type == 'MiB':
-                            torrent_size = int(torrent_size_num * 1024.0 * 1024.0)
-                        elif torrent_size_type == 'GiB':
-                            torrent_size = int(torrent_size_num * 1024.0 * 1024.0 * 1024.0)
-                    except:
-                        torrent_size = 0
+                    if torrent_size_type == 'MiB':
+                        torrent_size = int(torrent_size_num * 1024.0 * 1024.0)
+                    elif torrent_size_type == 'GiB':
+                        torrent_size = int(torrent_size_num * 1024.0 * 1024.0 * 1024.0)
+                except:
+                    torrent_size = 0
 
-                    self.add_torrent_info(torrent_infos, ref_torrent_key, html_item.xpath('./td[2]/a[1]/@href')[0],
-                                                                          torrent_title,
-                                                                          Prefs['THEPIRATEBAY_PROVIDER_URL'] + html_item.xpath('./td[2]/div/a/@href')[0],
-                                                                          torrent_key,
-                                                                          category,
-                                                                          int(html_item.xpath('./td[3]/text()')[0]),
-                                                                          int(html_item.xpath('./td[4]/text()')[0]),
-                                                                          torrent_size)
+                self.add_torrent_info(torrent_infos, ref_torrent_key, html_item.xpath('./td[2]/a[1]/@href')[0],
+                                                                      torrent_title,
+                                                                      Prefs['THEPIRATEBAY_PROVIDER_URL'] + html_item.xpath('./td[2]/div/a/@href')[0],
+                                                                      torrent_key,
+                                                                      category,
+                                                                      int(html_item.xpath('./td[3]/text()')[0]),
+                                                                      int(html_item.xpath('./td[4]/text()')[0]),
+                                                                      torrent_size)
         except Exception as exception:
             Log.Error('Unhandled exception: {0}'.format(exception))

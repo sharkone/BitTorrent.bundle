@@ -38,9 +38,15 @@ class KickassTorrentsProvider(common.TorrentProvider):
         query = '%s S%02dE%02d' % (title, season_index, episode_index)
         self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
+        query = '%s %dx%02d' % (title, season_index, episode_index)
+        self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+
         if not torrent_infos and common.RE_TVSHOW_TITLE_YEAR.search(title):
             title = common.RE_TVSHOW_TITLE_YEAR.search(title).group(1)
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
+            self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
+
+            query = '%s %dx%02d' % (title, season_index, episode_index)
             self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
     ############################################################################
@@ -118,14 +124,13 @@ class KickassTorrentsProvider(common.TorrentProvider):
                 elif category == 'tvshows':
                     torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(rss_entry.title)
 
-                if torrent_key:
-                    self.add_torrent_info(torrent_infos, ref_torrent_key, rss_entry.torrent_magneturi,
-                                                                          rss_entry.title,
-                                                                          rss_entry.link,
-                                                                          torrent_key,
-                                                                          category,
-                                                                          int(rss_entry.torrent_seeds),
-                                                                          int(rss_entry.torrent_peers),
-                                                                          int(rss_entry.torrent_contentlength))
+                self.add_torrent_info(torrent_infos, ref_torrent_key, rss_entry.torrent_magneturi,
+                                                                      rss_entry.title,
+                                                                      rss_entry.link,
+                                                                      torrent_key,
+                                                                      category,
+                                                                      int(rss_entry.torrent_seeds),
+                                                                      int(rss_entry.torrent_peers),
+                                                                      int(rss_entry.torrent_contentlength))
         except Exception as exception:
             Log.Error('Unhandled exception: {0}'.format(exception))
