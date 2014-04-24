@@ -58,7 +58,7 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
 
 ###############################################################################
 def get_url(port, page):
-    host = Network.Address if Network.Address else '127.0.0.1'
+    host = Network.Address
     if Prefs['VPN_FIX'] and Network.Hostname:
         host = Network.Hostname
 
