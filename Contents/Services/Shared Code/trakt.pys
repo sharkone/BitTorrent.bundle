@@ -1,7 +1,9 @@
 ###############################################################################
 import common
 import decorators
+import fuzzywuzzy
 import re
+import urllib2
 
 ###############################################################################
 TRAKT     = 'http://trakt.tv'
@@ -81,9 +83,7 @@ def movies_get_imdb_id_from_title(movie_title, movie_year):
 ###############################################################################
 def movies_get_imdb_id_from_torrent_title(torrent_title):
     try:
-        torrent_title = torrent_title.replace('.', ' ')
-        
-        movie_title = common.RE_MOVIE_TITLE.search(torrent_title).group(1)
+        movie_title = common.RE_MOVIE_TITLE.search(torrent_title).group(1).replace('.', ' ')
         movie_year  = common.RE_MOVIE_TITLE.search(torrent_title).group(2)
         return movies_get_imdb_id_from_title(movie_title, movie_year)
     except:
@@ -216,6 +216,13 @@ def tvshows_get_title(tvshow_id):
     return tvshow_data['title']
 
 ###############################################################################
+def tvshows_get_search_title(tvshow_id):
+    title = tvshows_get_title(tvshow_id)
+    title = title.replace('\'', '').replace(':', '').replace(u'\u00A0', ' ')
+    title = title.replace('Cosmos A Spacetime Odyssey', 'Cosmos A Space-Time Odyssey')
+    return title
+
+###############################################################################
 def tvshows_get_season_index_list(tvshow_id):
     season_index_list = []
 
@@ -272,12 +279,23 @@ def tvshows_get_season_episode_count(tvshow_id, season_index):
 def tvshows_get_tvdb_id_from_title(tvshow_title):
     try:
         if tvshow_title:
+            if tvshow_title.lower() == 'battlestar galactica':
+                return 73545
+
             json_url  = TRAKT_API + '/search/shows.json/' + API_KEY + '?query=' + String.Quote(tvshow_title)
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
-            return json_data[0]['tvdb_id']
-    except:
-        pass
+            
+            choices = [json_item['title'] for json_item in json_data if json_item['tvdb_id'] and json_item['first_aired']]
+            results = fuzzywuzzy.extract(tvshow_title, choices)
 
+            if results:
+                for json_item in json_data:
+                    if json_item['title'] == results[0][0]:
+                        return json_item['tvdb_id']
+    
+    except urllib2.URLError as exception:
+        Log.Error('URLError: {0}'.format(exception))
+    
     return None
 
 ###############################################################################
@@ -290,17 +308,15 @@ def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index):
 ###############################################################################
 def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
     try:
-        torrent_title = torrent_title.replace('.', ' ')
-
-        tvshow_title  = common.RE_TVSHOW_TITLE.search(torrent_title).group(1)
+        tvshow_title  = common.RE_TVSHOW_TITLE.search(torrent_title).group(1).replace('.', ' ')
         season_index  = common.RE_TVSHOW_TITLE.search(torrent_title).group(3)
         episode_index = common.RE_TVSHOW_TITLE.search(torrent_title).group(5)
-
-        tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
-        
-        return tvshows_get_episode_tvdb_id(tvshow_tvdb_id, season_index, episode_index)
     except:
         return None
+
+    tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
+    
+    return tvshows_get_episode_tvdb_id(tvshow_tvdb_id, season_index, episode_index)
 
 ###############################################################################
 def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):

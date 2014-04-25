@@ -1,0 +1,432 @@
+###############################################################################
+# fuzz.py
+###############################################################################
+"""
+score.py
+
+Copyright (c) 2011 Adam Cohen
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+
+import re
+from difflib import SequenceMatcher
+
+###########################
+# Basic Scoring Functions #
+###########################
+
+def ratio(s1,  s2):
+
+    if s1 is None: raise TypeError("s1 is None")
+    if s2 is None: raise TypeError("s2 is None")
+    s1, s2 = make_type_consistent(s1, s2)
+    if len(s1) == 0 or len(s2) == 0:
+        return 0
+
+    m = SequenceMatcher(None, s1, s2)
+    return intr(100 * m.ratio())
+
+# todo: skip duplicate indexes for a little more speed
+def partial_ratio(s1,  s2):
+
+    if s1 is None: raise TypeError("s1 is None")
+    if s2 is None: raise TypeError("s2 is None")
+    s1, s2 = make_type_consistent(s1, s2)
+    if len(s1) == 0 or len(s2) == 0:
+        return 0
+
+    if len(s1) <= len(s2):
+        shorter = s1; longer = s2;
+    else:
+        shorter = s2; longer = s1
+
+    m = SequenceMatcher(None, shorter, longer)
+    blocks = m.get_matching_blocks()
+
+    # each block represents a sequence of matching characters in a string
+    # of the form (idx_1, idx_2, len)
+    # the best partial match will block align with at least one of those blocks
+    #   e.g. shorter = "abcd", longer = XXXbcdeEEE
+    #   block = (1,3,3)
+    #   best score === ratio("abcd", "Xbcd")
+    scores = []
+    for block in blocks:
+        long_start   = block[1] - block[0] if (block[1] - block[0]) > 0 else 0
+        long_end     = long_start + len(shorter)
+        long_substr  = longer[long_start:long_end]
+
+        m2 = SequenceMatcher(None, shorter, long_substr)
+        r = m2.ratio()
+        if r > .995: return 100
+        else: scores.append(r)
+
+    return int(100 * max(scores))
+
+##############################
+# Advanced Scoring Functions #
+##############################
+
+# Sorted Token
+#   find all alphanumeric tokens in the string
+#   sort those tokens and take ratio of resulting joined strings
+#   controls for unordered string elements
+def token_sort(s1,  s2, partial=True, force_ascii=True):
+
+    if s1 is None: raise TypeError("s1 is None")
+    if s2 is None: raise TypeError("s2 is None")
+
+    # pull tokens
+    tokens1 = full_process(s1, force_ascii=force_ascii).split()
+    tokens2 = full_process(s2, force_ascii=force_ascii).split()
+
+    # sort tokens and join
+    sorted1 = u" ".join(sorted(tokens1))
+    sorted2 = u" ".join(sorted(tokens2))
+
+    sorted1 = sorted1.strip()
+    sorted2 = sorted2.strip()
+
+    if partial:
+        return partial_ratio(sorted1, sorted2)
+    else:
+        return ratio(sorted1, sorted2)
+
+def token_sort_ratio(s1,  s2, force_ascii=True):
+    return token_sort(s1, s2, partial=False, force_ascii=force_ascii)
+
+def partial_token_sort_ratio(s1,  s2, force_ascii=True):
+    return token_sort(s1, s2, partial=True, force_ascii=force_ascii)
+
+# Token Set
+#   find all alphanumeric tokens in each string...treat them as a set
+#   construct two strings of the form
+#       <sorted_intersection><sorted_remainder>
+#   take ratios of those two strings
+#   controls for unordered partial matches
+def token_set(s1,  s2, partial=True, force_ascii=True):
+
+    if s1 is None: raise TypeError("s1 is None")
+    if s2 is None: raise TypeError("s2 is None")
+
+    p1 = full_process(s1, force_ascii=force_ascii)
+    p2 = full_process(s2, force_ascii=force_ascii)
+
+    if not validate_string(p1): return 0
+    if not validate_string(p2): return 0
+
+    # pull tokens
+    tokens1 = set(full_process(p1).split())
+    tokens2 = set(full_process(p2).split())
+
+    intersection = tokens1.intersection(tokens2)
+    diff1to2 = tokens1.difference(tokens2)
+    diff2to1 = tokens2.difference(tokens1)
+
+    sorted_sect = u" ".join(sorted(intersection))
+    sorted_1to2 = u" ".join(sorted(diff1to2))
+    sorted_2to1 = u" ".join(sorted(diff2to1))
+
+    combined_1to2 = sorted_sect + " " + sorted_1to2
+    combined_2to1 = sorted_sect + " " + sorted_2to1
+
+    # strip
+    sorted_sect = sorted_sect.strip()
+    combined_1to2 = combined_1to2.strip()
+    combined_2to1 = combined_2to1.strip()
+
+    pairwise = [
+        ratio(sorted_sect, combined_1to2),
+        ratio(sorted_sect, combined_2to1),
+        ratio(combined_1to2, combined_2to1)
+    ]
+    return max(pairwise)
+
+def token_set_ratio(s1,  s2, force_ascii=True):
+    return token_set(s1, s2, partial=False, force_ascii=force_ascii)
+
+def partial_token_set_ratio(s1,  s2, force_ascii=True):
+    return token_set(s1, s2, partial=True, force_ascii=force_ascii)
+
+# TODO: numerics
+
+###################
+# Combination API #
+###################
+
+# q is for quick
+def QRatio(s1,  s2, force_ascii=True):
+
+    p1 = full_process(s1, force_ascii=force_ascii)
+    p2 = full_process(s2, force_ascii=force_ascii)
+
+    if not validate_string(p1): return 0
+    if not validate_string(p2): return 0
+
+    return ratio(p1, p2)
+
+def UQRatio(s1, s2):
+    return QRatio(s1, s2, force_ascii=False)
+
+# w is for weighted
+def WRatio(s1,  s2, force_ascii=True):
+
+    p1 = full_process(s1, force_ascii=force_ascii)
+    p2 = full_process(s2, force_ascii=force_ascii)
+
+    if not validate_string(p1): return 0
+    if not validate_string(p2): return 0
+
+    # should we look at partials?
+    try_partial     = True
+    unbase_scale    = .95
+    partial_scale   = .90
+
+    base = ratio(p1, p2)
+    len_ratio = float(max(len(p1),len(p2)))/min(len(p1),len(p2))
+
+    # if strings are similar length, don't use partials
+    if len_ratio < 1.5: try_partial = False
+
+    # if one string is much much shorter than the other
+    if len_ratio > 8: partial_scale = .6
+
+    if try_partial:
+        partial      = partial_ratio(p1, p2) * partial_scale
+        ptsor        = partial_token_sort_ratio(p1, p2, force_ascii=force_ascii) * unbase_scale * partial_scale
+        ptser        = partial_token_set_ratio(p1, p2, force_ascii=force_ascii)  * unbase_scale * partial_scale
+
+        return int(max(base, partial, ptsor, ptser))
+    else:
+        tsor         = token_sort_ratio(p1, p2, force_ascii=force_ascii) * unbase_scale
+        tser         = token_set_ratio(p1, p2, force_ascii=force_ascii)  * unbase_scale
+
+        return int(max(base, tsor, tser))
+
+def UWRatio(s1, s2):
+    return WRatio(s1, s2, force_ascii=False)
+
+###############################################################################
+# process.py
+###############################################################################
+"""
+process.py
+
+Copyright (c) 2011 Adam Cohen
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
+import itertools
+
+########################################
+# Find Best Matches In List Of Choices #
+########################################
+
+def extract(query, choices, processor=None, scorer=None, limit=5):
+
+    # choices       = a list of objects we are attempting to extract values from
+    # query         = an object representing the thing we want to find
+    # scorer        f(OBJ, QUERY) --> INT. We will return the objects with the highest score
+        # by default, we use score.WRatio() and both OBJ and QUERY should be strings
+    # processor     f(OBJ_A) --> OBJ_B, where the output is an input to scorer
+        # for example, "processor = lambda x: x[0]" would return the first element in a collection x (of, say, strings)
+        # this would then be used in the scoring collection
+
+    if choices is None or len(choices) == 0:
+        return []
+
+    # default, turn whatever the choice is into a workable string
+    if processor is None:
+        processor = lambda x: full_process(x)
+
+    # default: wratio
+    if scorer is None:
+        scorer = WRatio
+
+    sl = list()
+
+    for choice in choices:
+        processed = processor(choice)
+        score = scorer(query, processed)
+        tuple = (choice, score)
+        sl.append(tuple)
+
+    sl.sort(key=lambda i: i[1], reverse=True)
+    return sl[:limit]
+
+######################################################
+# Find Best Matches Above A Score In List Of Choices #
+######################################################
+
+def extractBests(query, choices, processor=None, scorer=None, score_cutoff=0, limit=5):
+
+    # convenience method which returns the choices with best scores
+    # optional parameter: score_cutoff.
+        # If the choice has a score of less than or equal to score_cutoff
+        # it will not be included on result list
+
+    best_list = extract(query, choices, processor, scorer, limit)
+    if len(best_list) > 0:
+        return list(itertools.takewhile(lambda x: x[1] > score_cutoff, best_list))
+    else:
+        return []
+
+##########################
+# Find Single Best Match #
+##########################
+
+def extractOne(query, choices, processor=None, scorer=None, score_cutoff=0):
+
+    # convenience method which returns the single best choice
+    # optional parameter: score_cutoff.
+        # If the best choice has a score of less than or equal to score_cutoff
+        # we will return none (intuition: not a good enough match)
+
+    best_list = extract(query, choices, processor, scorer, limit=1)
+    if len(best_list) > 0:
+        best = best_list[0]
+        if best[1] > score_cutoff:
+            return best
+        else:
+            return None
+    else:
+        return None
+
+###############################################################################
+# string_processing.py
+###############################################################################
+import re
+import string
+import unicodedata
+
+class StringProcessor(object):
+    """
+    This class defines method to process strings in the most
+    efficient way. Ideally all the methods below use unicode strings
+    for both input and output.
+    """
+
+    @classmethod
+    def replace_non_lettters_non_numbers_with_whitespace(cls, a_string):
+        """
+        This function replaces any sequence of non letters and non numbers with a single white space.
+        """
+        regex = re.compile(r"(?ui)\W")
+        return regex.sub(u" ", a_string)
+
+    @classmethod
+    def strip(cls, a_string):
+        """
+        This function strips leading and trailing white space.
+        """
+
+        return a_string.strip()
+
+    @classmethod
+    def to_lower_case(cls, a_string):
+        """
+        This function returns the lower-cased version of the string given.
+        """
+        return a_string.lower()
+
+    @classmethod
+    def to_upper_case(cls, a_string):
+        """
+        This function returns the upper-cased version of the string given.
+        """
+        return a_string.upper()
+
+###############################################################################
+# utils.py
+###############################################################################
+def validate_string(s):
+    try:
+        if len(s) > 0:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+bad_chars=''
+for i in range(128,256):
+    bad_chars+=chr(i)
+
+def asciionly(s):
+    return s.translate(None, bad_chars)
+
+def asciidammit(s):
+    if isinstance(s, str):
+        return asciionly(s)
+    elif isinstance(s, unicode):
+        return asciionly(s.encode('ascii', 'ignore'))
+    else:
+        return asciidammit(unicode(s))
+
+def make_type_consistent(s1, s2):
+    if isinstance(s1, str) and isinstance(s2, str):
+        return s1, s2
+
+    elif isinstance(s1, unicode) and isinstance(s2, unicode):
+        return s1, s2
+
+    else:
+        return unicode(s1), unicode(s2)
+
+def full_process(s, force_ascii=False):
+    """Process string by
+        -- removing all but letters and numbers
+        -- trim whitespace
+        -- force to lower case
+        if force_ascii == True, force convert to ascii"""
+
+    if s is None:
+        return u""
+
+    if force_ascii:
+        s = asciidammit(s)
+    # Keep only Letters and Numbres (see Unicode docs).
+    string_out = StringProcessor.replace_non_lettters_non_numbers_with_whitespace(s)
+    # Force into lowercase.
+    string_out = StringProcessor.to_lower_case(string_out)
+    # Remove leading and trailing whitespaces.
+    string_out = StringProcessor.strip(string_out)
+    return string_out
+
+def intr(n):
+    '''Returns a correctly rounded integer'''
+    return int(round(n))

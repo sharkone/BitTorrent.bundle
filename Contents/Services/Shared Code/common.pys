@@ -7,8 +7,8 @@ PREFIX  = '/video/bittorrent'
 VERSION = '0.5.6.3'
 
 RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
-RE_MOVIE_TITLE       = re.compile('(.+?)\s*?[\[\(\*\{]?(\d{4})[\]|\)\*\}]?\s*(.+)', re.IGNORECASE)
-RE_TVSHOW_TITLE      = re.compile('(.+)\s+(s|)(\d+)(e|x)(\d+)\s+(.+)', re.IGNORECASE)
+RE_MOVIE_TITLE       = re.compile('(.+?)[\s\.-]*?[\[\(\*\{]?(\d{4})[\]|\)\*\}]?[\s\.-]*(.*)', re.IGNORECASE)
+RE_TVSHOW_TITLE      = re.compile('(.+?)[\s\.-]*(s|)(\d+)(e|x)(\d+)[\s\.-]*(.*)', re.IGNORECASE)
 RE_TVSHOW_TITLE_YEAR = re.compile('(.+)\s+\((\d+)\)$')
 
 ################################################################################
@@ -43,10 +43,10 @@ def get_torrent_release(torrent_title, category):
             # TODO
             return torrent_title
         elif category == 'movies':
-            movie_title_result = RE_MOVIE_TITLE.search(torrent_title.replace('.', ' '))
+            movie_title_result = RE_MOVIE_TITLE.search(torrent_title)
             return movie_title_result.group(3)
         elif category == 'tvshows':
-            movie_title_result = RE_TVSHOW_TITLE.search(torrent_title.replace('.', ' '))
+            movie_title_result = RE_TVSHOW_TITLE.search(torrent_title)
             return movie_title_result.group(6)
     except:
         return torrent_title

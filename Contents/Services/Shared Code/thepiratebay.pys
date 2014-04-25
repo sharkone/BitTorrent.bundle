@@ -2,6 +2,7 @@
 import common
 import re
 import trakt
+import urllib2
 
 ################################################################################
 RE_IMDB_ID     = re.compile('http://www.imdb.com/title/(.+)/')
@@ -25,7 +26,7 @@ class ThePirateBayProvider(common.TorrentProvider):
     def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, torrent_infos):
         ref_torrent_key = trakt.tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index)
 
-        title = trakt.tvshows_get_title(tvdb_id)
+        title = trakt.tvshows_get_search_title(tvdb_id)
         query = '%s S%02dE%02d' % (title, season_index, episode_index)
         self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
@@ -130,5 +131,7 @@ class ThePirateBayProvider(common.TorrentProvider):
                                                                       int(html_item.xpath('./td[3]/text()')[0]),
                                                                       int(html_item.xpath('./td[4]/text()')[0]),
                                                                       torrent_size)
+        except urllib2.URLError as exception:
+            Log.Error('URLError: {0}'.format(exception))
         except Exception as exception:
             Log.Error('Unhandled exception: {0}'.format(exception))

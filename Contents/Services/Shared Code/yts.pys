@@ -1,5 +1,6 @@
 ################################################################################
 import common
+import urllib2
 
 ################################################################################
 class YTSProvider(common.TorrentProvider):
@@ -51,5 +52,7 @@ class YTSProvider(common.TorrentProvider):
                                                                           int(json_item['TorrentSeeds']),
                                                                           int(json_item['TorrentPeers']),
                                                                           int(json_item['SizeByte']))
+        except urllib2.URLError as exception:
+            Log.Error('URLError: {0}'.format(exception))
         except Exception as exception:
             Log.Error('Unhandled exception: {0}'.format(exception))
