@@ -155,7 +155,7 @@ class TorrentProvider:
             elif self.release_contains_pattern(torrent_info.release, ['mp4']):
                 media_object.container = 'mp4'
 
-            if self.release_contains_pattern(torrent_info.release, ['5 1']):
+            if self.release_contains_pattern(torrent_info.release, ['5.1', '5 1']):
                 media_object.audio_channels = 6
 
             if self.release_contains_pattern(torrent_info.release, ['aac']):
