@@ -38,7 +38,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
     # TVSHOWS
     ############################################################################
     def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, first_aired_iso, torrent_infos):
-        ref_torrent_key = trakt.tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index, first_aired_iso)
+        ref_torrent_key = trakt.tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index)
 
         title = trakt.tvshows_get_search_title(tvdb_id)
 

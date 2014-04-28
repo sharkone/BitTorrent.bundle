@@ -321,15 +321,22 @@ def tvshows_get_tvdb_id_from_title(tvshow_title):
     return None
 
 ###############################################################################
-def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index, first_aired_iso):
+def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index):
     if not tvdb_id:
         return None
 
-    if not tvshows_is_date_based(tvdb_id):
-        return (int(tvdb_id), int(season_index), int(episode_index))
-    else:
-        air_date = isodate.parse_datetime(first_aired_iso)
-        return (int(tvdb_id), int(air_date.year), int(air_date.month), int(air_date.day))
+    return (int(tvdb_id), int(season_index), int(episode_index))
+
+###############################################################################
+def tvshows_get_episode_tvdb_id_from_date(tvdb_id, year, month, day):
+    tvshow_data = tvshow_get_data(tvdb_id)
+    if tvshow_data:
+        for season in tvshow_data['seasons']:
+            for episode in season['episodes']:
+                if episode['first_aired_iso'].startswith('%d-%02d-%02d' % (int(year), int(month), int(day))):
+                    return (int(episode['season']), int(episode['episode']))
+
+    return (0, 0)
 
 ###############################################################################
 def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
@@ -340,17 +347,18 @@ def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
         tvshow_month = tvshow_title_result.group(3)
         tvshow_day   = tvshow_title_result.group(4)
 
-        tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
-        return (int(tvshow_tvdb_id), int(tvshow_year), int(tvshow_month), int(tvshow_day))
+        tvshow_tvdb_id                            = tvshows_get_tvdb_id_from_title(tvshow_title)
+        tvshow_season_index, tvshow_episode_index = tvshows_get_episode_tvdb_id_from_date(tvshow_tvdb_id, tvshow_year, tvshow_month, tvshow_day)
+        return (int(tvshow_tvdb_id), int(tvshow_season_index), int(tvshow_episode_index))
 
     tvshow_title_result = common.RE_TVSHOW_TITLE.search(torrent_title)
     if tvshow_title_result:
-        tvshow_title  = tvshow_title_result.group(1).replace('.', ' ')
-        season_index  = tvshow_title_result.group(3)
-        episode_index = tvshow_title_result.group(5)
+        tvshow_title         = tvshow_title_result.group(1).replace('.', ' ')
+        tvshow_season_index  = tvshow_title_result.group(3)
+        tvshow_episode_index = tvshow_title_result.group(5)
 
         tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
-        return (int(tvshow_tvdb_id), int(season_index), int(episode_index))
+        return (int(tvshow_tvdb_id), int(tvshow_season_index), int(tvshow_episode_index))
 
 ###############################################################################
 def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
