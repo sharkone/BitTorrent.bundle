@@ -2,9 +2,13 @@
 import common
 import decorators
 import fuzzywuzzy
-import isodate
 import re
 import urllib2
+
+try:
+    import isodate
+except:
+    pass
 
 ###############################################################################
 TRAKT     = 'http://trakt.tv'

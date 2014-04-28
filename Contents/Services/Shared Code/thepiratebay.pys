@@ -1,9 +1,13 @@
 ################################################################################
 import common
-import isodate
 import re
 import trakt
 import urllib2
+
+try:
+    import isodate
+except:
+    pass
 
 ################################################################################
 RE_IMDB_ID     = re.compile('http://www.imdb.com/title/(.+)/')
