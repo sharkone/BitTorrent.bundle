@@ -2,6 +2,7 @@
 import common
 import decorators
 import fuzzywuzzy
+import isodate
 import re
 import urllib2
 
@@ -216,10 +217,25 @@ def tvshows_get_title(tvshow_id):
     return tvshow_data['title']
 
 ###############################################################################
+def tvshows_is_date_based(tvdb_id):
+    return int(tvdb_id) in [
+                                71256,  # The Daily Show with Jon Stewart
+                                71998,  # Jimmy Kimmel Live
+                                72231,  # Real Time With Bill Maher
+                                79274,  # The Colbert Report
+                                270261, # The Tonight Show Starring Jimmy Fallon
+                                270262, # Late Night with Seth Meyers
+                           ]
+
+###############################################################################
 def tvshows_get_search_title(tvshow_id):
     title = tvshows_get_title(tvshow_id)
     title = title.replace('\'', '').replace(':', '').replace(u'\u00A0', ' ')
     title = title.replace('Cosmos A Spacetime Odyssey', 'Cosmos A Space-Time Odyssey')
+    title = title.replace('The Daily Show with Jon Stewart', 'The Daily Show')
+    title = title.replace('The Tonight Show Starring Jimmy Fallon', 'Jimmy Fallon')
+    title = title.replace('Jimmy Kimmel Live', 'Jimmy Kimmel')
+    title = title.replace('Late Night with Seth Meyers', 'Seth Meyers')
     return title
 
 ###############################################################################
@@ -253,7 +269,7 @@ def tvshows_get_season_episode_index_list(tvshow_id, season_index):
         return episode_index_list
 
     for episode_data in season_data['episodes']:
-        if int(episode_data['first_aired']) and Datetime.FromTimestamp(int(episode_data['first_aired'])) <= Datetime.Now():
+        if int(episode_data['first_aired']) and Datetime.FromTimestamp(episode_data['first_aired']) <= Datetime.Now():
             episode_index_list.append(episode_data['episode'])
 
     return sorted(episode_index_list)
@@ -281,6 +297,8 @@ def tvshows_get_tvdb_id_from_title(tvshow_title):
         if tvshow_title:
             if tvshow_title.lower() == 'battlestar galactica':
                 return 73545
+            elif tvshow_title.lower() == 'jimmy fallon':
+                return 270261
 
             json_url  = TRAKT_API + '/search/shows.json/' + API_KEY + '?query=' + String.Quote(tvshow_title)
             json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1WEEK)
@@ -299,24 +317,36 @@ def tvshows_get_tvdb_id_from_title(tvshow_title):
     return None
 
 ###############################################################################
-def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index):
+def tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index, first_aired_iso):
     if not tvdb_id:
         return None
 
-    return (int(tvdb_id), int(season_index), int(episode_index))
+    if not tvshows_is_date_based(tvdb_id):
+        return (int(tvdb_id), int(season_index), int(episode_index))
+    else:
+        air_date = isodate.parse_datetime(first_aired_iso)
+        return (int(tvdb_id), int(air_date.year), int(air_date.month), int(air_date.day))
 
 ###############################################################################
 def tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title):
-    try:
-        tvshow_title  = common.RE_TVSHOW_TITLE.search(torrent_title).group(1).replace('.', ' ')
-        season_index  = common.RE_TVSHOW_TITLE.search(torrent_title).group(3)
-        episode_index = common.RE_TVSHOW_TITLE.search(torrent_title).group(5)
-    except:
-        return None
+    tvshow_title_result = common.RE_TVSHOW_TITLE_DATE.search(torrent_title)
+    if tvshow_title_result:
+        tvshow_title = tvshow_title_result.group(1).replace('.', ' ')
+        tvshow_year  = tvshow_title_result.group(2)
+        tvshow_month = tvshow_title_result.group(3)
+        tvshow_day   = tvshow_title_result.group(4)
 
-    tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
-    
-    return tvshows_get_episode_tvdb_id(tvshow_tvdb_id, season_index, episode_index)
+        tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
+        return (int(tvshow_tvdb_id), int(tvshow_year), int(tvshow_month), int(tvshow_day))
+
+    tvshow_title_result = common.RE_TVSHOW_TITLE.search(torrent_title)
+    if tvshow_title_result:
+        tvshow_title  = tvshow_title_result.group(1).replace('.', ' ')
+        season_index  = tvshow_title_result.group(3)
+        episode_index = tvshow_title_result.group(5)
+
+        tvshow_tvdb_id = tvshows_get_tvdb_id_from_title(tvshow_title)
+        return (int(tvshow_tvdb_id), int(season_index), int(episode_index))
 
 ###############################################################################
 def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
@@ -351,7 +381,7 @@ def tvshows_fill_tvshow_object(tvshow_object, tvshow_id):
         pass
 
     try:
-        tvshow_object.originally_available_at = Datetime.FromTimestamp(int(tvshow_data['first_aired']))
+        tvshow_object.originally_available_at = isodate.parse_datetime(tvshow_data['first_aired_iso'])
     except:
         pass
 
@@ -479,7 +509,7 @@ def tvshows_fill_episode_object(episode_object, tvshow_id, season_index, episode
         pass
 
     try:
-        episode_object.originally_available_at = Datetime.FromTimestamp(int(episode_data['first_aired']))
+        episode_object.originally_available_at = isodate.parse_datetime(episode_data['first_aired_iso'])
     except:
         pass
 
@@ -529,6 +559,8 @@ def tvshows_fill_episode_object(episode_object, tvshow_id, season_index, episode
             episode_object.writers.add(member['name'])
     except:
         pass
+
+    return episode_data
 
 ###############################################################################
 @decorators.memoized

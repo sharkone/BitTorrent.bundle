@@ -9,6 +9,7 @@ VERSION = '0.5.7'
 RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 RE_MOVIE_TITLE       = re.compile('(.+?)[\s\.-]*?[\[\(\*\{]?(\d{4})[\]|\)\*\}]?[\s\.-]*(.*)', re.IGNORECASE)
 RE_TVSHOW_TITLE      = re.compile('(.+?)[\s\.-]*(s|)(\d+)(e|x)(\d+)[\s\.-]*(.*)', re.IGNORECASE)
+RE_TVSHOW_TITLE_DATE = re.compile('(.+?)[\s\.-](\d{4})[\s\.-](\d{2})[\s\.-](\d{2})[\s\.-]*(.*)', re.IGNORECASE)
 RE_TVSHOW_TITLE_YEAR = re.compile('(.+)\s+\((\d+)\)$')
 
 ################################################################################
@@ -46,8 +47,14 @@ def get_torrent_release(torrent_title, category):
             movie_title_result = RE_MOVIE_TITLE.search(torrent_title)
             return movie_title_result.group(3)
         elif category == 'tvshows':
-            movie_title_result = RE_TVSHOW_TITLE.search(torrent_title)
-            return movie_title_result.group(6)
+            tv_show_title_result = RE_TVSHOW_TITLE_DATE.search(torrent_title)
+            if tv_show_title_result:
+                return tv_show_title_result.group(5)
+            tv_show_title_result = RE_TVSHOW_TITLE.search(torrent_title)
+            if tv_show_title_result:
+                return tv_show_title_result.group(6)
+
+            return torrent_title
     except:
         return torrent_title
 
@@ -90,7 +97,7 @@ class TorrentProvider:
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, torrent_infos):
+    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, first_aired_iso, torrent_infos):
         pass
 
     def tvshows_get_metadata_object_for_url(self, url):
@@ -187,7 +194,7 @@ class TorrentProvider:
         torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders, torrent_leechers, torrent_size)
 
         if ref_torrent_key and ref_torrent_key != torrent_key:
-            Log.Info('Rejected: {0}'.format(torrent_info.title))
+            Log.Info('Rejected: {0} (got: {1} expected: {2}'.format(torrent_info.title, str(torrent_key), str(ref_torrent_key)))
             return
 
         if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
