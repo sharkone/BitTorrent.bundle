@@ -16,6 +16,7 @@ def menu():
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/shows/trending', per_page=31), title='Popular', summary='Browse popular TV shows'))
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Rating', page='/shows/popular', per_page=31), title='Rating', summary='Browse highly-rated TV shows'))
     object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres', summary='Browse TV shows by genre'))
+    object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorites TV shows', thumb=R('favorites.png')))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))    
     return object_container
 
@@ -43,6 +44,17 @@ def genres_menu(title):
     object_container = ObjectContainer(title2=title)
     for genre in genres:
         object_container.add(DirectoryObject(key=Callback(genre_menu, title=genre[0], genre=genre[1], per_page=31), title=genre[0]))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
+def favorites_menu(title):
+    tracking.track('/TV Shows/' + title)
+
+    ids = Dict['tvshows_favorites'] if 'tvshows_favorites' in Dict else []
+
+    object_container = ObjectContainer(title2=title)
+    fill_object_container(object_container, ids)
     return object_container
 
 ################################################################################
@@ -103,6 +115,11 @@ def tvshow_menu(title, tvdb_id):
     tracking.track('/TV Shows/TV Show', { 'Title': title })
 
     object_container = ObjectContainer(title2=title)
+    if 'tvshows_favorites' in Dict and tvdb_id in Dict['tvshows_favorites']:
+        object_container.add(DirectoryObject(key=Callback(remove_from_favorites, title='Remove from Favorites', show_title=title, tvdb_id=tvdb_id), title='Remove from Favorites', summary='Remove TV show from Favorites', thumb=R('favorites.png')))
+    else:
+        object_container.add(DirectoryObject(key=Callback(add_to_favorites, title='Add to Favorites', show_title=title, tvdb_id=tvdb_id), title='Add to Favorites', summary='Add TV show to Favorites', thumb=R('favorites.png')))
+
     for season_index in SharedCodeService.trakt.tvshows_get_season_index_list(tvdb_id):
         season_object = SeasonObject()
         SharedCodeService.trakt.tvshows_fill_season_object(season_object, tvdb_id, season_index)
@@ -110,6 +127,37 @@ def tvshow_menu(title, tvdb_id):
         season_object.rating_key = '{0}-{1}-{2}'.format(title, tvdb_id, season_index)
         object_container.add(season_object)
 
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
+def add_to_favorites(title, show_title, tvdb_id):
+    tracking.track('/TV Shows/FavAdd', { 'Title': show_title })
+
+    if 'tvshows_favorites' not in Dict:
+        Dict['tvshows_favorites'] = []
+
+    if tvdb_id not in Dict['tvshows_favorites']:
+        Dict['tvshows_favorites'].append(tvdb_id)
+        Dict.Save()
+
+    object_container = ObjectContainer(title2=title)
+    object_container.header  = 'Add to Favorites'
+    object_container.message = '{0} added to Favorites'.format(show_title)
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
+def remove_from_favorites(title, show_title, tvdb_id):
+    tracking.track('/TV Shows/FavRemove', { 'Title': show_title })
+
+    if 'tvshows_favorites' in Dict and tvdb_id in Dict['tvshows_favorites']:
+        Dict['tvshows_favorites'].remove(tvdb_id)
+        Dict.Save()
+
+    object_container = ObjectContainer(title2=title)
+    object_container.header  = 'Remove from Favorites'
+    object_container.message = '{0} removed from Favorites'.format(show_title)
     return object_container
 
 ################################################################################
