@@ -68,7 +68,7 @@ class FileWrapper(io.RawIOBase):
     def _wait_for_piece(self, piece_index):
         if not self.torrent_handle.have_piece(piece_index):
             end_piece_index = utils.piece_from_offset(self.torrent_handle, self.torrent_file.offset + self.torrent_file.size)
-            if (end_piece_index - piece_index) <= utils.get_preload_buffer_piece_count(self.torrent_handle, self.torrent_file) * 2:
+            if (end_piece_index - piece_index) <= utils.get_preload_buffer_piece_count(self.torrent_handle, self.torrent_file) * 10:
                self.bus.log('[FileWrapper] Virtual read for piece {0}'.format(piece_index))
                self.virtual_read = True
                return
