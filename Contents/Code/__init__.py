@@ -21,8 +21,10 @@ def Start():
 
     Log.Info('============================================')
     Log.Info('Server:')
-    Log.Info(' - OS:  {0}'.format(Platform.OS))
-    Log.Info(' - CPU: {0}'.format(Platform.CPU))
+    Log.Info(' - OS:        {0}'.format(Platform.OS))
+    Log.Info(' - CPU:       {0}'.format(Platform.CPU))
+    Log.Info(' - Local IP:  {0}'.format(Network.Address))
+    Log.Info(' - Public IP: {0}'.format(Network.PublicAddress))
     Log.Info('--------------------------------------------')
     Log.Info('Channel:')
     Log.Info(' - Version: {0}'.format(SharedCodeService.common.VERSION))
@@ -73,6 +75,13 @@ def about_menu():
     tracking.track('/About')
 
     object_container = ObjectContainer(title2='About')
-    object_container.header  = 'Channel Info'
-    object_container.message = 'Channel version: {0}'.format(SharedCodeService.common.VERSION)
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel'))
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Local IP: {0}'.format(Network.Address), summary='Plex Media Server Local IP'))
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Public IP: {0}'.format(Network.PublicAddress), summary='Plex Media Server Public IP'))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/empty')
+def empty_menu():
+    object_container = ObjectContainer(title2='Empty')
     return object_container
