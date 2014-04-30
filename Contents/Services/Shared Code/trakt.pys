@@ -234,7 +234,7 @@ def tvshows_is_date_based(tvdb_id):
 ###############################################################################
 def tvshows_get_search_title(tvshow_id):
     title = tvshows_get_title(tvshow_id)
-    title = title.replace('\'', '').replace(':', '').replace(u'\u00A0', ' ')
+    title = title.replace('\'', '').replace(':', '').replace('!', '').replace('?', '').replace(u'\u00A0', ' ')
     title = title.replace('Cosmos A Spacetime Odyssey', 'Cosmos A Space-Time Odyssey')
     title = title.replace('The Daily Show with Jon Stewart', 'The Daily Show')
     title = title.replace('The Tonight Show Starring Jimmy Fallon', 'Jimmy Fallon')
