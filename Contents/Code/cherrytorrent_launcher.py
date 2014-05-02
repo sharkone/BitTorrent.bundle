@@ -30,7 +30,12 @@ def thread_proc():
                             'port':                 int(Prefs['INCOMING_PORT']),
                             'max_download_rate':    int(Prefs['MAX_DOWNLOAD_RATE']),
                             'max_upload_rate':      int(Prefs['MAX_UPLOAD_RATE']),
-                            'keep_files':           Prefs['KEEP_FILES']
+                            'keep_files':           Prefs['KEEP_FILES'],
+                            'proxy_type':           Prefs['TORRENT_PROXY_TYPE'],
+                            'proxy_host':           Prefs['TORRENT_PROXY_HOST'],
+                            'proxy_port':           int(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else 0,
+                            'proxy_user':           Prefs['TORRENT_PROXY_USER'],
+                            'proxy_password':       Prefs['TORRENT_PROXY_PASSWORD'],
                          }
         
         server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))

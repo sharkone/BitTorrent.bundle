@@ -18,18 +18,6 @@
         "default":  "0"
     },
     {
-        "id":       "VPN_FIX",
-        "label":    "VPN Fix (only enable if not working already)",
-        "type":     "bool",
-        "default":  "false"
-    },
-    {
-        "id":       "METADATA_TIMEOUT",
-        "label":    "Metadata timeout (in s)",
-        "type":     "text",
-        "default":  "60"
-    },
-    {
         "id":       "KEEP_FILES",
         "label":    "Keep files after exiting",
         "type":     "bool",
@@ -88,5 +76,49 @@
         "label":    "YTS URL (no trailing /)",
         "type":     "text",
         "default":  "http://yts.re"
+    },
+    {
+        "id":       "VPN_FIX",
+        "label":    "VPN Fix (only enable if not working already)",
+        "type":     "bool",
+        "default":  "false"
+    },
+    {
+        "id":       "METADATA_TIMEOUT",
+        "label":    "Metadata timeout (in s)",
+        "type":     "text",
+        "default":  "60"
+    },
+    {
+        "id":       "TORRENT_PROXY_TYPE",
+        "label":    "Torrent Proxy type",
+        "type":     "enum",
+        "values":   ["None", "SOCKS5"],
+        "default":  "None"
+    },
+    {
+        "id":       "TORRENT_PROXY_HOST",
+        "label":    "Torrent Proxy host/IP",
+        "type":     "text",
+        "default":  ""
+    },
+    {
+        "id":       "TORRENT_PROXY_PORT",
+        "label":    "Torrent Proxy port",
+        "type":     "text",
+        "default":  ""
+    },
+    {
+        "id":       "TORRENT_PROXY_USER",
+        "label":    "Torrent Proxy user",
+        "type":     "text",
+        "default":  ""
+    },
+    {
+        "id":       "TORRENT_PROXY_PASSWORD",
+        "label":    "Torrent Proxy password",
+        "type":     "text",
+        "option":   "hidden",
+        "default":  ""
     },
 ]

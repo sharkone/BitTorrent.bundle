@@ -51,6 +51,19 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
             session_settings.upload_rate_limit = self.torrent_config['max_upload_rate'] * 1024
         self.session.set_settings(session_settings)
 
+        # Proxy settings
+        proxy_settings = libtorrent.proxy_settings()
+        if self.torrent_config['proxy_type'] == 'SOCKS5':
+            proxy_settings.hostname = self.torrent_config['proxy_host']
+            proxy_settings.port     = self.torrent_config['proxy_port']
+            if self.torrent_config['proxy_user']:
+                proxy_settings.type = libtorrent.proxy_type.socks5_pw
+                proxy_settings.username = self.torrent_config['proxy_user']
+                proxy_settings.password = self.torrent_config['proxy_password']
+            else:
+                proxy_settings.type = libtorrent.proxy_type.socks5
+        self.session.set_proxy(proxy_settings)
+
         # Encryption settings
         encryption_settings = libtorrent.pe_settings()
         encryption_settings.out_enc_policy = libtorrent.enc_policy(libtorrent.enc_policy.forced)
