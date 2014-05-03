@@ -144,7 +144,7 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
         result = {}
 
         if self.session:
-            result['session'] = self.torrent_config
+            result['session'] = {}
             
             result['session']['connection_sets'] = []
             for info_hash, connection_set in self.bus.connection_monitor.torrent_connections.iteritems():
