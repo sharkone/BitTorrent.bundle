@@ -60,4 +60,4 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
 ###############################################################################
 def get_url(port, page):
     local_host = utils.get_local_host()
-    return 'http://{0}:{1}/{2}'.format(host, port, page)
+    return 'http://{0}:{1}/{2}'.format(local_host, port, page)
