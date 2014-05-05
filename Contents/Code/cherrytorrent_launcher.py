@@ -26,10 +26,20 @@ def thread_proc():
                             'port':                 HTTP_PORT
                          }
 
+        try:
+            max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
+        except:
+            max_download_rate = 0
+
+        try:
+            max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
+        except:
+            max_upload_rate = 0
+
         torrent_config = {
                             'port':                 int(Prefs['INCOMING_PORT']),
-                            'max_download_rate':    int(Prefs['MAX_DOWNLOAD_RATE']),
-                            'max_upload_rate':      int(Prefs['MAX_UPLOAD_RATE']),
+                            'max_download_rate':    max_download_rate,
+                            'max_upload_rate':      max_upload_rate,
                             'keep_files':           Prefs['KEEP_FILES'],
                             'proxy_type':           Prefs['TORRENT_PROXY_TYPE'],
                             'proxy_host':           Prefs['TORRENT_PROXY_HOST'],
