@@ -1,0 +1,6 @@
+###############################################################################
+def get_local_host():
+	host = Network.Address
+	if Prefs['VPN_FIX'] and Network.Hostname:
+		host = Network.Hostname
+	return host

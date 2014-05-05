@@ -4,6 +4,7 @@ import os
 import re
 import time
 import urllib2
+import utils
 
 ###############################################################################
 HTTP_PORT = 8042
@@ -58,8 +59,5 @@ def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
 
 ###############################################################################
 def get_url(port, page):
-    host = Network.Address
-    if Prefs['VPN_FIX'] and Network.Hostname:
-        host = Network.Hostname
-
+    local_host = get_local_host()
     return 'http://{0}:{1}/{2}'.format(host, port, page)
