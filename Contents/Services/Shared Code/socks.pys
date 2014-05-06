@@ -39,7 +39,7 @@ mainly to merge bug fixes found in Sourceforge
 
 Modifications made by Anorov (https://github.com/Anorov)
 -Forked and renamed to PySocks
--Fixed issue with HTTP proxy failure checking (same bug that was in the old ___recvall() method)
+-Fixed issue with HTTP proxy failure checking (same bug that was in the old __recvall_internal() method)
 -Included SocksiPyHandler (sockshandler.py), to be used as a urllib2 handler, 
  courtesy of e000 (https://github.com/e000): https://gist.github.com/869791#file_socksipyhandler.py
 -Re-styled code to make it readable
@@ -52,7 +52,7 @@ Modifications made by Anorov (https://github.com/Anorov)
 -Various small bug fixes
 """
 
-__version__ = "1.5.0"
+#__version__ = "1.5.0"
 
 import socket
 import struct
@@ -63,7 +63,7 @@ PROXY_TYPE_HTTP = HTTP = 3
 
 PRINTABLE_PROXY_TYPES = {SOCKS4: "SOCKS4", SOCKS5: "SOCKS5", HTTP: "HTTP"}
 
-_orgsocket = _orig_socket = socket.socket
+orgsocket = orig_socket = socket.socket
 
 class ProxyError(IOError):
     """
@@ -171,8 +171,8 @@ class socksocket(socket.socket):
 
     default_proxy = None
 
-    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, _sock=None):
-        _orig_socket.__init__(self, family, type, proto, _sock)
+    def __init__(self, family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0, sock=None):
+        orig_socket.__init__(self, family, type, proto, sock)
         
         if self.default_proxy:
             self.proxy = self.default_proxy
@@ -181,7 +181,7 @@ class socksocket(socket.socket):
         self.proxy_sockname = None
         self.proxy_peername = None
 
-    def _recvall(self, count):
+    def recvall_internal(self, count):
         """
         Receive EXACTLY the number of bytes requested from the socket.
         Blocks until the required number of bytes have been received.
@@ -230,7 +230,7 @@ class socksocket(socket.socket):
         """
         Returns the IP and port number of the proxy.
         """
-        return _orig_socket.getpeername(self)
+        return orig_socket.getpeername(self)
 
     getproxypeername = get_proxy_peername
 
@@ -243,7 +243,7 @@ class socksocket(socket.socket):
 
     getpeername = get_peername
 
-    def _negotiate_SOCKS5(self, dest_addr, dest_port):
+    def negotiate_SOCKS5(self, dest_addr, dest_port):
         """
         Negotiates a connection through a SOCKS5 server.
         """
@@ -262,7 +262,7 @@ class socksocket(socket.socket):
         
         # We'll receive the server's response to determine which
         # method was selected
-        chosen_auth = self._recvall(2)
+        chosen_auth = self.recvall_internal(2)
 
         if chosen_auth[0:1] != b"\x05":
             # Note: string[i:i+1] is used because indexing of a bytestring 
@@ -278,7 +278,7 @@ class socksocket(socket.socket):
                          + username
                          + chr(len(password)).encode()
                          + password)
-            auth_status = self._recvall(2)
+            auth_status = self.recvall_internal(2)
             if auth_status[0:1] != b"\x01":
                 # Bad response
                 raise GeneralProxyError("SOCKS5 proxy server sent invalid data")
@@ -318,7 +318,7 @@ class socksocket(socket.socket):
         self.sendall(req)
         
         # Get the response
-        resp = self._recvall(4)
+        resp = self.recvall_internal(4)
         if resp[0:1] != b"\x05":
             raise GeneralProxyError("SOCKS5 proxy server sent invalid data")
 
@@ -330,21 +330,21 @@ class socksocket(socket.socket):
         
         # Get the bound address/port
         if resp[3:4] == b"\x01":
-            bound_addr = socket.inet_ntoa(self._recvall(4))
+            bound_addr = socket.inet_ntoa(self.recvall_internal(4))
         elif resp[3:4] == b"\x03":
             resp += self.recv(1)
-            bound_addr = self._recvall(ord(resp[4:5]))
+            bound_addr = self.recvall_internal(ord(resp[4:5]))
         else:
             raise GeneralProxyError("SOCKS5 proxy server sent invalid data")
         
-        bound_port = struct.unpack(">H", self._recvall(2))[0]
+        bound_port = struct.unpack(">H", self.recvall_internal(2))[0]
         self.proxy_sockname = bound_addr, bound_port
         if addr_bytes:
             self.proxy_peername = socket.inet_ntoa(addr_bytes), dest_port
         else:
             self.proxy_peername = dest_addr, dest_port
 
-    def _negotiate_SOCKS4(self, dest_addr, dest_port):
+    def negotiate_SOCKS4(self, dest_addr, dest_port):
         """
         Negotiates a connection through a SOCKS4 server.
         """
@@ -378,7 +378,7 @@ class socksocket(socket.socket):
         self.sendall(req)
 
         # Get the response from the server
-        resp = self._recvall(8)
+        resp = self.recvall_internal(8)
         if resp[0:1] != b"\x00":
             # Bad data
             raise GeneralProxyError("SOCKS4 proxy server sent invalid data")
@@ -396,7 +396,7 @@ class socksocket(socket.socket):
         else:
             self.proxy_peername = dest_addr, dest_port
 
-    def _negotiate_HTTP(self, dest_addr, dest_port):
+    def negotiate_HTTP(self, dest_addr, dest_port):
         """
         Negotiates a connection through an HTTP server.
         NOTE: This currently only supports HTTP CONNECT-style proxies.
@@ -441,10 +441,10 @@ class socksocket(socket.socket):
         self.proxy_sockname = (b"0.0.0.0", 0)
         self.proxy_peername = addr, dest_port
 
-    _proxy_negotiators = { SOCKS4: _negotiate_SOCKS4,
-                               SOCKS5: _negotiate_SOCKS5,
-                               HTTP: _negotiate_HTTP
-                             }
+    proxy_negotiators = { SOCKS4: negotiate_SOCKS4,
+                          SOCKS5: negotiate_SOCKS5,
+                          HTTP: negotiate_HTTP
+                        }
 
 
     def connect(self, dest_pair):
@@ -461,14 +461,14 @@ class socksocket(socket.socket):
         # Do a minimal input check first
         if (not isinstance(dest_pair, (list, tuple))
                 or len(dest_pair) != 2
-                or not isinstance(dest_addr, type(""))
+                or not isinstance(dest_addr, str)
                 or not isinstance(dest_port, int)):
             raise GeneralProxyError("Invalid destination-connection (host, port) pair")
 
 
         if proxy_type is None:
             # Treat like regular socket object
-            _orig_socket.connect(self, (dest_addr, dest_port))
+            orig_socket.connect(self, (dest_addr, dest_port))
             return
 
         proxy_port = proxy_port or DEFAULT_PORTS.get(proxy_type)
@@ -477,7 +477,7 @@ class socksocket(socket.socket):
         
         try:
             # Initial connection to proxy server
-            _orig_socket.connect(self, (proxy_addr, proxy_port))
+            orig_socket.connect(self, (proxy_addr, proxy_port))
 
         except socket.error as error:
             # Error while connecting to proxy
@@ -493,7 +493,7 @@ class socksocket(socket.socket):
             # Connected to proxy server, now negotiate
             try:
                 # Calls negotiate_{SOCKS4, SOCKS5, HTTP}
-                negotiate = self._proxy_negotiators[proxy_type]
+                negotiate = self.proxy_negotiators[proxy_type]
                 negotiate(self, dest_addr, dest_port)
             except socket.error as error:
                 # Wrap socket errors

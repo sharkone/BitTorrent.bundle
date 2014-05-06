@@ -4,7 +4,6 @@ import cherrytorrent_launcher
 import movies_menu
 import tvshows_menu
 
-import socks
 import tracking
 
 ################################################################################
@@ -112,9 +111,7 @@ def about_menu(title):
         torrent_proxy_summary = 'Torrent proxy is working properly.'
 
         try:
-            s = socks.socksocket()
-            s.set_proxy(socks.SOCKS5, Prefs['TORRENT_PROXY_HOST'], int(Prefs['TORRENT_PROXY_PORT']), username=Prefs['TORRENT_PROXY_USER'], password=Prefs['TORRENT_PROXY_PASSWORD'])
-            s.connect(("www.google.com", 80))
+            SharedCodeService.utils.try_connection()
         except Exception as exception:
             torrent_proxy_result  = 'ERROR'
             torrent_proxy_summary = 'Torrent proxy is not working properly: {0}'.format(exception)

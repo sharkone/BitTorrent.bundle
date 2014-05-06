@@ -1,6 +1,24 @@
 ###############################################################################
+import socks
+
+###############################################################################
 def get_local_host():
-	host = Network.Address
-	if Prefs['VPN_FIX'] and Network.Hostname:
-		host = Network.Hostname
-	return host
+    host = Network.Address
+    if Prefs['VPN_FIX'] and Network.Hostname:
+        host = Network.Hostname
+    return host
+
+###############################################################################
+def try_connection():
+    if not Prefs['TORRENT_PROXY_TYPE'] == 'None':
+        s = socks.socksocket()
+        s.set_proxy(socks.SOCKS5, Prefs['TORRENT_PROXY_HOST'], int(Prefs['TORRENT_PROXY_PORT']), username=Prefs['TORRENT_PROXY_USER'], password=Prefs['TORRENT_PROXY_PASSWORD'])
+        s.connect(("www.google.com", 80))
+
+###############################################################################
+def is_connection_allowed():
+    try:
+        try_connection()
+        return True
+    except Exception as exception:
+        return False

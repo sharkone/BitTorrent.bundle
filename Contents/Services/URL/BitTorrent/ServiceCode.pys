@@ -2,6 +2,7 @@
 import cherrytorrent
 import metaprovider
 import time
+import utils
 
 ################################################################################
 def MetadataObjectForURL(url):
@@ -27,4 +28,8 @@ def get_image_async(url):
 ###############################################################################
 @indirect
 def play_torrent(url, magnet, download_dir, torrent_start_time=0):
-    return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, torrent_start_time)
+    if utils.is_connection_allowed():
+        return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, torrent_start_time)
+    else:
+        Log.Error('Torrent proxy is not configured properly. Aborting.')
+        raise Ex.MediaNotAvailable
