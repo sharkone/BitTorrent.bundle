@@ -82,7 +82,15 @@ def about_menu(title):
     # Channel Version
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel.'))
     
-    # cherrytorrent
+    # URLService
+    url_service_result  = 'Running'
+    url_service_summary = 'URLService is running correctly.'
+    if not URLService.ServiceIdentifierForURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/big-buck-bunny-bdrip-xvid-medic-t3434558.html'):
+        url_service_result  = 'ERROR'
+        url_service_summary = 'URLService is not running correctly, try restarting your server.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='URLService: {0}'.format(url_service_result), summary=url_service_summary))
+
+    # CherryTorrent
     cherrytorrent_result  = 'Running'
     cherrytorrent_summary = 'CherryTorrent is running correctly.'
     if not SharedCodeService.cherrytorrent.is_running():

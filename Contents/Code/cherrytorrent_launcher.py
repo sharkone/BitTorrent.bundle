@@ -21,43 +21,43 @@ def thread_proc():
         def flush(self):
             pass
 
-    while True:
-        http_config    = { 
-                            'port': HTTP_PORT
-                         }
+    http_config    = { 
+                        'port': HTTP_PORT
+                     }
 
-        try:
-            max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
-        except:
-            Log.Error('Invalid Max Download Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_DOWNLOAD_RATE']))
-            max_download_rate = 0
+    try:
+        max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
+    except:
+        Log.Error('Invalid Max Download Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_DOWNLOAD_RATE']))
+        max_download_rate = 0
 
-        try:
-            max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
-        except:
-            Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_UPLOAD_RATE']))
-            max_upload_rate = 0
+    try:
+        max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
+    except:
+        Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_UPLOAD_RATE']))
+        max_upload_rate = 0
 
-        torrent_config = {
-                            'port':                 int(Prefs['INCOMING_PORT']),
-                            'max_download_rate':    max_download_rate,
-                            'max_upload_rate':      max_upload_rate,
-                            'keep_files':           Prefs['KEEP_FILES'],
-                            'proxy_type':           Prefs['TORRENT_PROXY_TYPE'],
-                            'proxy_host':           Prefs['TORRENT_PROXY_HOST'],
-                            'proxy_port':           int(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else 1080,
-                            'proxy_user':           Prefs['TORRENT_PROXY_USER'],
-                            'proxy_password':       Prefs['TORRENT_PROXY_PASSWORD'],
-                         }
+    torrent_config = {
+                        'port':                 int(Prefs['INCOMING_PORT']),
+                        'max_download_rate':    max_download_rate,
+                        'max_upload_rate':      max_upload_rate,
+                        'keep_files':           Prefs['KEEP_FILES'],
+                        'proxy_type':           Prefs['TORRENT_PROXY_TYPE'],
+                        'proxy_host':           Prefs['TORRENT_PROXY_HOST'],
+                        'proxy_port':           int(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else 1080,
+                        'proxy_user':           Prefs['TORRENT_PROXY_USER'],
+                        'proxy_password':       Prefs['TORRENT_PROXY_PASSWORD'],
+                     }
+    
+    try:
+        import cherrytorrent
+
+        server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
+        server.run()
+    except Exception as exception:
+        Log.Error('Failed to run cherrytorrent: {0}'.format(exception))
         
-        try:
-            import cherrytorrent
-
-            server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
-            server.run()
-        except Exception as exception:
-            Log.Error('Failed to import cherrytorrent: {0}'.format(exception))
-        time.sleep(2)
+        
 
 ###############################################################################
 def get_server_status(port):
