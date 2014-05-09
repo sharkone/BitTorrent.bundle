@@ -82,6 +82,14 @@ def about_menu(title):
     # Channel Version
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel.'))
     
+    # cherrytorrent
+    cherrytorrent_result  = 'Running'
+    cherrytorrent_summary = 'CherryTorrent is running correctly.'
+    if not SharedCodeService.cherrytorrent.is_running():
+        cherrytorrent_result  = 'ERROR'
+        cherrytorrent_summary = 'CherryTorrent is not running.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='CherryTorrent: {0}'.format(cherrytorrent_result), summary=cherrytorrent_summary))
+
     # Local IP
     local_ip = SharedCodeService.utils.get_local_host()
     if local_ip:

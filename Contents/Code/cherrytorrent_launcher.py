@@ -1,5 +1,5 @@
 ###############################################################################
-import cherrytorrent
+import time
 import urllib2
 
 ###############################################################################
@@ -50,8 +50,14 @@ def thread_proc():
                             'proxy_password':       Prefs['TORRENT_PROXY_PASSWORD'],
                          }
         
-        server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
-        server.run()
+        try:
+            import cherrytorrent
+
+            server = cherrytorrent.Server(http_config, torrent_config, CustomLoggerStream(HTTP_PORT))
+            server.run()
+        except Exception as exception:
+            Log.Error('Failed to import cherrytorrent: {0}'.format(exception))
+        time.sleep(2)
 
 ###############################################################################
 def get_server_status(port):
