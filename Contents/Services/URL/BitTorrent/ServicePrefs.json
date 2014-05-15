@@ -6,6 +6,12 @@
         "default":  "6900"
     },
     {
+        "id":       "UPNP_NATPMP_ENABLED",
+        "label":    "Enable UPnP / NAT-PMP",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
         "id":       "MAX_DOWNLOAD_RATE",
         "label":    "Maximum download rate (in kB/s, 0 = Unlimited)",
         "type":     "text",
@@ -24,16 +30,40 @@
         "default":  "false"
     },
     {
+        "id":       "ANIME_ENABLED",
+        "label":    "Enable Anime category",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
         "id":       "ANIME_DOWNLOAD_DIR",
         "label":    "Anime download directory",
         "type":     "text",
         "default":  "."
     },
     {
+        "id":       "ANIME_ENABLED",
+        "label":    "Enable Anime category",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
+        "id":       "MOVIES_ENABLED",
+        "label":    "Enable Movies category",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
         "id":       "MOVIES_DOWNLOAD_DIR",
         "label":    "Movies download directory",
         "type":     "text",
         "default":  "."
+    },
+    {
+        "id":       "TVSHOWS_ENABLED",
+        "label":    "Enable TV Shows category",
+        "type":     "bool",
+        "default":  "true"
     },
     {
         "id":       "TVSHOWS_DOWNLOAD_DIR",

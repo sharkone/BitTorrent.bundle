@@ -39,6 +39,7 @@ def thread_proc():
 
     torrent_config = {
                         'port':                 int(Prefs['INCOMING_PORT']),
+                        'upnp_natpmp_enabled':  Prefs['UPNP_NATPMP_ENABLED']
                         'max_download_rate':    max_download_rate,
                         'max_upload_rate':      max_upload_rate,
                         'keep_files':           Prefs['KEEP_FILES'],

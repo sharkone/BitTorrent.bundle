@@ -31,8 +31,11 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
         self.session.set_alert_mask(libtorrent.alert.category_t.error_notification | libtorrent.alert.category_t.status_notification | libtorrent.alert.category_t.storage_notification)
         self.session.start_dht()
         self.session.start_lsd()
-        self.session.start_upnp()
-        self.session.start_natpmp()
+        
+        if self.torrent_config['upnp_natpmp_enabled']:
+            self.session.start_upnp()
+            self.session.start_natpmp()
+        
         self.session.listen_on(self.torrent_config['port'], self.torrent_config['port'])
 
         # Session settings
