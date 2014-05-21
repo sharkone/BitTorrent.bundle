@@ -29,15 +29,7 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
         self.bus.log('[Downloader] Starting session')
         self.session = libtorrent.session()
         self.session.set_alert_mask(libtorrent.alert.category_t.error_notification | libtorrent.alert.category_t.status_notification | libtorrent.alert.category_t.storage_notification)
-        self.session.start_dht()
-        self.session.start_lsd()
         
-        if self.torrent_config['upnp_natpmp_enabled']:
-            self.session.start_upnp()
-            self.session.start_natpmp()
-        
-        self.session.listen_on(self.torrent_config['port'], self.torrent_config['port'])
-
         # Session settings
         session_settings = self.session.settings()
         session_settings.announce_to_all_tiers = True
@@ -74,6 +66,15 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
         encryption_settings.allowed_enc_level = libtorrent.enc_level.both
         encryption_settings.prefer_rc4 = True
         self.session.set_pe_settings(encryption_settings)
+
+        self.session.start_dht()
+        self.session.start_lsd()
+        
+        if self.torrent_config['upnp_natpmp_enabled']:
+            self.session.start_upnp()
+            self.session.start_natpmp()
+        
+        self.session.listen_on(self.torrent_config['port'], self.torrent_config['port'])
 
     ############################################################################
     def stop(self):
