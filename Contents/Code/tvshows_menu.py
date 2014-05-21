@@ -55,6 +55,7 @@ def favorites_menu(title):
 
     object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
+    object_container.objects.sort(key=lambda tvshow_object: tvshow_object.title)
     return object_container
 
 ################################################################################
