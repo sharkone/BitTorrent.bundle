@@ -7,8 +7,6 @@ SUBPREFIX = 'anime'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('/Anime')
-
     object_container = ObjectContainer(title2='Anime')
     object_container.add(DirectoryObject(key=Callback(popular_menu, title='Popular', per_page=31), title='Popular', summary='Browse popular anime'))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search anime', thumb=R('search.png'), prompt='Search for anime'))
@@ -17,8 +15,6 @@ def menu():
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/popular', per_page=int, movie_count=int)
 def popular_menu(title, per_page, movie_count=0):
-    tracking.track('/Anime/Popular')
-
     torrent_infos = []
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()
@@ -43,8 +39,6 @@ def popular_menu(title, per_page, movie_count=0):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
 def search_menu(title, query, per_page, movie_count=0):
-    tracking.track('/Anime/Search', { 'Query': query })
-
     torrent_infos = []
 
     torrent_provider = SharedCodeService.metaprovider.MetaProvider()

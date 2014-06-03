@@ -66,8 +66,6 @@ def Main():
     Log.Info(' - Platform: {0}'.format(Client.Platform))
     Log.Info('============================================')
 
-    tracking.track('/')
-
     object_container = ObjectContainer(title2=TITLE)
     
     if Prefs['ANIME_ENABLED']:
@@ -86,8 +84,6 @@ def Main():
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/about')
 def about_menu(title):
-    tracking.track('/' + title)
-
     object_container = ObjectContainer(title2=title)
 
     # Channel Version

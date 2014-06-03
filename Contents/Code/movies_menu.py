@@ -10,8 +10,6 @@ SUBPREFIX = 'movies'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('/Movies')
-
     object_container = ObjectContainer(title2='Movies')
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular', summary='Browse popular movies'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating', summary='Browse highly-rated movies'))
@@ -22,8 +20,6 @@ def menu():
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', per_page=int, count=int)
 def movies_menu(title, page, per_page, count=0):
-    tracking.track('/Movies/' + title)
-
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
@@ -36,8 +32,6 @@ def movies_menu(title, page, per_page, count=0):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres_menu')
 def genres_menu(title):
-    tracking.track('/Movies/' + title)
-
     genres = SharedCodeService.trakt.movies_genres()
 
     object_container = ObjectContainer(title2=title)
@@ -48,8 +42,6 @@ def genres_menu(title):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', per_page=int, count=int)
 def genre_menu(title, genre, per_page, count=0):
-    tracking.track('/Movies/Genre', { 'Genre': title })
-
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page('/movies/popular/' + genre, ids, count, per_page)
 
@@ -62,8 +54,6 @@ def genre_menu(title, genre, per_page, count=0):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
 def search_menu(title, query, per_page, count=0):
-    tracking.track('/Movies/Search', { 'Query': query })
-
     ids   = []
     count = SharedCodeService.trakt.movies_search(query, ids)
 

@@ -10,8 +10,6 @@ SUBPREFIX = 'tvshows'
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
-    tracking.track('/TV Shows')
-
     object_container = ObjectContainer(title2='TV Shows')
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/shows/trending', per_page=31), title='Popular', summary='Browse popular TV shows'))
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Rating', page='/shows/popular', per_page=31), title='Rating', summary='Browse highly-rated TV shows'))
@@ -23,8 +21,6 @@ def menu():
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', per_page=int, count=int)
 def shows_menu(title, page, per_page, count=0):
-    tracking.track('/TV Shows/' + title)
-
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
 
@@ -37,8 +33,6 @@ def shows_menu(title, page, per_page, count=0):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres')
 def genres_menu(title):
-    tracking.track('/TV Shows/' + title)
-
     genres = SharedCodeService.trakt.tvshows_genres()
 
     object_container = ObjectContainer(title2=title)
@@ -49,8 +43,6 @@ def genres_menu(title):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
 def favorites_menu(title):
-    tracking.track('/TV Shows/' + title)
-
     ids = Dict['tvshows_favorites'] if 'tvshows_favorites' in Dict else []
 
     object_container = ObjectContainer(title2=title)
@@ -61,8 +53,6 @@ def favorites_menu(title):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', per_page=int, count=int)
 def genre_menu(title, genre, per_page, count=0):
-    tracking.track('/TV Shows/Genre', { 'Genre': title })
-
     ids   = []
     count = SharedCodeService.trakt.get_ids_from_page('/shows/popular/' + genre, ids, count, per_page)
 
@@ -75,8 +65,6 @@ def genre_menu(title, genre, per_page, count=0):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
 def search_menu(title, query, per_page, count=0):
-    tracking.track('/TV Shows/' + title, { 'Query': query })
-
     ids   = []
     count = SharedCodeService.trakt.tvshows_search(query, ids)
 
@@ -113,8 +101,6 @@ def fill_object_container(object_container, tvshow_ids):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')
 def tvshow_menu(title, tvdb_id):
-    tracking.track('/TV Shows/TV Show', { 'Title': title })
-
     object_container = ObjectContainer(title2=title)
     if 'tvshows_favorites' in Dict and tvdb_id in Dict['tvshows_favorites']:
         object_container.add(DirectoryObject(key=Callback(remove_from_favorites, title='Remove from Favorites', show_title=title, tvdb_id=tvdb_id), title='Remove from Favorites', summary='Remove TV show from Favorites', thumb=R('favorites.png')))
@@ -133,8 +119,6 @@ def tvshow_menu(title, tvdb_id):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
 def add_to_favorites(title, show_title, tvdb_id):
-    tracking.track('/TV Shows/FavAdd', { 'Title': show_title })
-
     if 'tvshows_favorites' not in Dict:
         Dict['tvshows_favorites'] = []
 
@@ -150,8 +134,6 @@ def add_to_favorites(title, show_title, tvdb_id):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
 def remove_from_favorites(title, show_title, tvdb_id):
-    tracking.track('/TV Shows/FavRemove', { 'Title': show_title })
-
     if 'tvshows_favorites' in Dict and tvdb_id in Dict['tvshows_favorites']:
         Dict['tvshows_favorites'].remove(tvdb_id)
         Dict.Save()
@@ -164,8 +146,6 @@ def remove_from_favorites(title, show_title, tvdb_id):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
 def season_menu(title, show_title, tvdb_id, season_index):
-    tracking.track('/TV Shows/Season', { 'Title': show_title, 'Season': season_index })
-
     object_container = ObjectContainer(title2=title)
     for episode_index in SharedCodeService.trakt.tvshows_get_season_episode_index_list(tvdb_id, season_index):
         directory_object = DirectoryObject()
