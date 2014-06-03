@@ -28,26 +28,40 @@ def thread_proc():
     try:
         max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
     except:
-        Log.Error('Invalid Max Download Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_DOWNLOAD_RATE']))
         max_download_rate = 0
+        Log.Error('Invalid Max Download Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_DOWNLOAD_RATE'], max_download_rate))
 
     try:
         max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
     except:
-        Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to 0'.format(Prefs['MAX_UPLOAD_RATE']))
         max_upload_rate = 0
+        Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_UPLOAD_RATE'], max_upload_rate))
+
+    try:
+        inactivity_pause_timeout = int(float(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT']))
+    except:
+        inactivity_pause_timeout = 30
+        Log.Error('Invalid Torrent inactivity pause timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT'], inactivity_pause_timeout))
+
+    try:
+        inactivity_remove_timeout = int(float(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT']))
+    except:
+        inactivity_remove_timeout = 0
+        Log.Error('Invalid Torrent inactivity remove timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT'], inactivity_remove_timeout))
 
     torrent_config = {
-                        'port':                 int(Prefs['INCOMING_PORT']),
-                        'upnp_natpmp_enabled':  Prefs['UPNP_NATPMP_ENABLED'],
-                        'max_download_rate':    max_download_rate,
-                        'max_upload_rate':      max_upload_rate,
-                        'keep_files':           Prefs['KEEP_FILES'],
-                        'proxy_type':           Prefs['TORRENT_PROXY_TYPE'],
-                        'proxy_host':           Prefs['TORRENT_PROXY_HOST'],
-                        'proxy_port':           int(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else 1080,
-                        'proxy_user':           Prefs['TORRENT_PROXY_USER'],
-                        'proxy_password':       Prefs['TORRENT_PROXY_PASSWORD'],
+                        'port':                         int(Prefs['INCOMING_PORT']),
+                        'upnp_natpmp_enabled':          Prefs['UPNP_NATPMP_ENABLED'],
+                        'max_download_rate':            max_download_rate,
+                        'max_upload_rate':              max_upload_rate,
+                        'keep_files':                   Prefs['KEEP_FILES'],
+                        'inactivity_pause_timeout':     inactivity_pause_timeout,
+                        'inactivity_remove_timeout':    inactivity_remove_timeout,
+                        'proxy_type':                   Prefs['TORRENT_PROXY_TYPE'],
+                        'proxy_host':                   Prefs['TORRENT_PROXY_HOST'],
+                        'proxy_port':                   int(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else 1080,
+                        'proxy_user':                   Prefs['TORRENT_PROXY_USER'],
+                        'proxy_password':               Prefs['TORRENT_PROXY_PASSWORD'],
                      }
     
     try:

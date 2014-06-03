@@ -268,9 +268,9 @@ class DownloaderMonitor(cherrypy.process.plugins.Monitor):
             for torrent_handle in self.torrent_handles:
                 if not self.bus.connection_monitor.has_video_connections(str(torrent_handle.info_hash())):
                     timestamp = self.bus.connection_monitor.get_last_video_connection_timestamp(str(torrent_handle.info_hash()))
-                    if (time.time() - timestamp) > 600.0:
+                    if (time.time() - timestamp) > self.torrent_config['inactivity_remove_timeout']:
                         torrent_handles_to_remove.append(torrent_handle)
-                    elif (time.time() - timestamp) > 30.0:
+                    elif (time.time() - timestamp) > self.torrent_config['inactivity_pause_timeout']:
                         if not torrent_handle.status().paused:
                             torrent_handle.pause()
 
