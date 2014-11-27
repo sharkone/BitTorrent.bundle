@@ -10,6 +10,8 @@ except:
     pass
 
 ################################################################################
+RE_THEPIRATEBAY_URL = re.compile('^https?://.*(pirate|bay).+/torrent/.+')
+
 RE_IMDB_ID     = re.compile('http://www.imdb.com/title/(.+)/')
 RE_SEEDERS     = re.compile('<dt>Seeders:</dt>\s*<dd>(\d+)</dd>')
 RE_LEECHERS    = re.compile('<dt>Leechers:</dt>\s*<dd>(\d+)</dd>')
@@ -64,7 +66,7 @@ class ThePirateBayProvider(common.TorrentProvider):
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(Prefs['THEPIRATEBAY_PROVIDER_URL']):
+        if RE_THEPIRATEBAY_URL.search(url):
             page_data     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
             page_data_raw = HTML.StringFromElement(page_data)
 

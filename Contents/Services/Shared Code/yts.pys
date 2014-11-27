@@ -1,6 +1,10 @@
 ################################################################################
 import common
 import urllib2
+import re
+
+################################################################################
+RE_YTS_URL = re.compile('^https?://.*(yts).+/movie/.+')
 
 ################################################################################
 class YTSProvider(common.TorrentProvider):
@@ -15,7 +19,7 @@ class YTSProvider(common.TorrentProvider):
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(Prefs['YTS_PROVIDER_URL']):
+        if RE_YTS_URL.search(url):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 
             movie_id = page_data.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]

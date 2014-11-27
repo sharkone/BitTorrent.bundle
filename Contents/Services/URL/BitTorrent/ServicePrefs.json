@@ -93,7 +93,7 @@
         "id":       "KICKASSTORRENTS_PROVIDER_URL",
         "label":    "KickAssTorrents URL (no trailing /)",
         "type":     "text",
-        "default":  "http://kickass.to"
+        "default":  "http://kickass.so"
     },
     {
         "id":       "USE_THEPIRATEBAY_PROVIDER",

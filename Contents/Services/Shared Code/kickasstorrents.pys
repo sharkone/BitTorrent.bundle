@@ -10,6 +10,8 @@ except:
     pass
 
 ################################################################################
+RE_KICKASSTORRENTS_URL = re.compile('^https?://.*(kat|kickass).+/.+')
+
 RE_IMDB_ID    = re.compile('http://www.imdb.com/title/(tt\d+)/')
 RE_URL_SIZE   = re.compile('(\d+.\d+) (MB|GB)')
 
@@ -72,7 +74,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
     # COMMON
     ############################################################################
     def get_torrent_info_for_url(self, url):
-        if url.startswith(Prefs['KICKASSTORRENTS_PROVIDER_URL']):
+        if RE_KICKASSTORRENTS_URL.search(url):
             page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
 
             torrent_magnet   = page_data.xpath('//*[@title="Magnet link"]/@href')[0]
@@ -107,7 +109,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
 
             try:
                 if not torrent_key:
-                    torrent_key      = 'tt' + page_data.xpath('//*[@id="movieinfo"]/div/ul[1]/li[2]/a/text()')[0]
+                    torrent_key      = 'tt' + page_data.xpath('//*[@id="tab-main"]/div[2]/div/ul[1]/li[3]/a/text()')[0]
                     torrent_category = 'movies'
             except:
                 pass
