@@ -40,10 +40,7 @@ class TorrentInfo:
 ################################################################################
 def get_torrent_release(torrent_title, category):
     try:
-        if category == 'anime':
-            # TODO
-            return torrent_title
-        elif category == 'movies':
+        if category == 'movies':
             movie_title_result = RE_MOVIE_TITLE.search(torrent_title)
             return movie_title_result.group(3)
         elif category == 'tvshows':
@@ -54,6 +51,8 @@ def get_torrent_release(torrent_title, category):
             if tv_show_title_result:
                 return tv_show_title_result.group(6)
 
+            return torrent_title
+        else:
             return torrent_title
     except:
         return torrent_title
