@@ -105,7 +105,7 @@ def about_menu(title):
         kickasstorrents_summary = 'KickAssTorrents is disabled in the Preferences.'
     else:
         try:
-            HTML.ElementFromURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+            HTML.ElementFromURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
         except:
             kickasstorrents_result  = 'Unavailable'
             kickasstorrents_summary = Prefs['KICKASSTORRENTS_PROVIDER_URL'] + ' is unavailable, check URL the in Preferences.'
@@ -119,7 +119,7 @@ def about_menu(title):
         thepiratebay_summary = 'The Pirate Bay is disabled in the Preferences.'
     else: 
         try:
-            HTML.ElementFromURL(Prefs['THEPIRATEBAY_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+            HTML.ElementFromURL(Prefs['THEPIRATEBAY_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
         except:
             thepiratebay_result  = 'Unavailable'
             thepiratebay_summary = Prefs['THEPIRATEBAY_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
@@ -133,7 +133,7 @@ def about_menu(title):
         yts_summary = 'YTS is disabled in the Preferences.'
     else: 
         try:
-            HTML.ElementFromURL(Prefs['YTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+            HTML.ElementFromURL(Prefs['YTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
         except:
             yts_result  = 'Unavailable'
             yts_summary = Prefs['YTS_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
