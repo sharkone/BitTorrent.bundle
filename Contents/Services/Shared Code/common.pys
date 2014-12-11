@@ -6,6 +6,8 @@ import trakt
 PREFIX  = '/video/bittorrent'
 VERSION = '0.5.9.1'
 
+TIMEOUT = 2.0
+
 RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 RE_MOVIE_TITLE       = re.compile('(.+?)[\s\.-]*?[\[\(\*\{]?(\d{4})[\]|\)\*\}]?[\s\.-]*(.*)', re.IGNORECASE)
 RE_TVSHOW_TITLE      = re.compile('(.+?)[\s\.-]*(s|)(\d+)(e|x)(\d+)[\s\.-]*(.*)', re.IGNORECASE)

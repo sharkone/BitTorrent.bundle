@@ -75,7 +75,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
     def get_torrent_info_for_url(self, url):
         if RE_KICKASSTORRENTS_URL.search(url):
-            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY, timeout=common.TIMEOUT)
 
             torrent_magnet   = page_data.xpath('//*[@title="Magnet link"]/@href')[0]
             torrent_title    = page_data.xpath('//h1/a/span[@itemprop="name"]/text()')[0]
@@ -124,7 +124,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
     def parse_result_page(self, url, category, torrent_infos, ref_torrent_key=None):
         try:
             rss_url  = url
-            rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR)
+            rss_data = RSS.FeedFromURL(rss_url, cacheTime=CACHE_1HOUR, timeout=common.TIMEOUT)
 
             for rss_entry in rss_data.entries:
                 torrent_key = rss_entry.title

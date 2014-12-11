@@ -67,7 +67,7 @@ class ThePirateBayProvider(common.TorrentProvider):
     ############################################################################
     def get_torrent_info_for_url(self, url):
         if RE_THEPIRATEBAY_URL.search(url):
-            page_data     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+            page_data     = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY, timeout=common.TIMEOUT)
             page_data_raw = HTML.StringFromElement(page_data)
 
             torrent_url      = url
@@ -121,7 +121,7 @@ class ThePirateBayProvider(common.TorrentProvider):
     def parse_result_page(self, url, category, torrent_infos, ref_torrent_key=None):
         try:
             html_url  = url
-            html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR)
+            html_data = HTML.ElementFromURL(html_url, cacheTime=CACHE_1HOUR, timeout=common.TIMEOUT)
 
             for html_item in html_data.xpath('//*[@id="searchResult"]/tr'):
                 torrent_title = html_item.xpath('./td[2]/div/a/text()')[0]

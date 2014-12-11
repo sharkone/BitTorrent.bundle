@@ -20,12 +20,12 @@ class YTSProvider(common.TorrentProvider):
     ############################################################################
     def get_torrent_info_for_url(self, url):
         if RE_YTS_URL.search(url):
-            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY)
+            page_data = HTML.ElementFromURL(url, cacheTime=CACHE_1DAY, timeout=common.TIMEOUT)
 
             movie_id = page_data.xpath('//*[@class="magnet torrentDwl"]/@data-movieid')[0]
 
             json_url  = Prefs['YTS_PROVIDER_URL'] + '/api/movie.json?id={0}'.format(movie_id)
-            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1DAY)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1DAY, timeout=common.TIMEOUT)
 
             torrent_magnet   = json_data['TorrentMagnetUrl']
             torrent_title    = '{0} ({1}) {2}'.format(json_data['MovieTitleClean'], json_data['MovieYear'], json_data['Quality'])
@@ -44,7 +44,7 @@ class YTSProvider(common.TorrentProvider):
     def parse_result_page(self, url, category, torrent_infos, ref_torrent_key=None):
         try:
             json_url  = url
-            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+            json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, timeout=common.TIMEOUT)
 
             if 'MovieList' in json_data:
                 for json_item in json_data['MovieList']:
