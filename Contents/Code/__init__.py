@@ -97,6 +97,48 @@ def about_menu(title):
         url_service_summary = 'URLService is not running correctly, try restarting your server.'
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='URLService: {0}'.format(url_service_result), summary=url_service_summary))
 
+    # KickAssTorrents
+    kickasstorrents_result  = 'Available'
+    kickasstorrents_summary = Prefs['KICKASSTORRENTS_PROVIDER_URL'] + ' is available.'
+    if not Prefs['USE_KICKASSTORRENTS_PROVIDER']:
+        kickasstorrents_result  = 'Disabled'
+        kickasstorrents_summary = 'KickAssTorrents is disabled in the Preferences.'
+    else:
+        try:
+            HTML.ElementFromURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+        except:
+            kickasstorrents_result  = 'Unavailable'
+            kickasstorrents_summary = Prefs['KICKASSTORRENTS_PROVIDER_URL'] + ' is unavailable, check URL the in Preferences.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='KickAssTorrents Provider: {0}'.format(kickasstorrents_result), summary=kickasstorrents_summary))
+
+    # The Pirate Bay
+    thepiratebay_result  = 'Available'
+    thepiratebay_summary = Prefs['THEPIRATEBAY_PROVIDER_URL'] + ' is available.'
+    if not Prefs['USE_THEPIRATEBAY_PROVIDER']:
+        thepiratebay_result  = 'Disabled'
+        thepiratebay_summary = 'The Pirate Bay is disabled in the Preferences.'
+    else: 
+        try:
+            HTML.ElementFromURL(Prefs['THEPIRATEBAY_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+        except:
+            thepiratebay_result  = 'Unavailable'
+            thepiratebay_summary = Prefs['THEPIRATEBAY_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='The Pirate Bay Provider: {0}'.format(thepiratebay_result), summary=thepiratebay_summary))
+
+    # YTS
+    yts_result  = 'Available'
+    yts_summary = Prefs['YTS_PROVIDER_URL'] + ' is available.'
+    if not Prefs['USE_YTS_PROVIDER']:
+        yts_result  = 'Disabled'
+        yts_summary = 'YTS is disabled in the Preferences.'
+    else: 
+        try:
+            HTML.ElementFromURL(Prefs['YTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=SharedCodeService.common.TIMEOUT)
+        except:
+            yts_result  = 'Unavailable'
+            yts_summary = Prefs['YTS_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='YTS Provider: {0}'.format(yts_result), summary=yts_summary))
+
     # CherryTorrent
     cherrytorrent_result  = 'Running'
     cherrytorrent_summary = 'CherryTorrent is running correctly.'
