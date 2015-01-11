@@ -4,7 +4,7 @@ import trakt
 
 ################################################################################
 PREFIX  = '/video/bittorrent'
-VERSION = '0.5.9.2'
+VERSION = '0.6'
 
 TIMEOUT = 5.0
 
@@ -98,7 +98,7 @@ class TorrentProvider:
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, first_aired_iso, torrent_infos):
+    def tvshows_get_specific_torrents(self, tvshow_id, season_index, episode_index, first_aired_iso, torrent_infos):
         pass
 
     def tvshows_get_metadata_object_for_url(self, url):
