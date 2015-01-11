@@ -11,54 +11,30 @@ SUBPREFIX = 'movies'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='Movies')
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/trending', per_page=31), title='Popular', summary='Browse popular movies'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Rating', page='/movies/popular', per_page=31), title='Rating', summary='Browse highly-rated movies'))
-    object_container.add(DirectoryObject(key=Callback(genres_menu, title='Genres'), title='Genres', summary='Browse movies by genre'))
-    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search', per_page=31), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies/trending', page_index=0, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/popular', page_index=0, per_page=31), title='Popular', summary='Browse most popular movies.'))
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', per_page=int, count=int)
-def movies_menu(title, page, per_page, count=0):
-    ids   = []
-    count = SharedCodeService.trakt.get_ids_from_page(page, ids, count, per_page)
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', page_index=int, per_page=int)
+def movies_menu(title, page, page_index, per_page):
+    ids = SharedCodeService.trakt.movies_list(page, page_index, per_page)
 
     object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
-    object_container.add(NextPageObject(key=Callback(movies_menu, title=title, page=page, per_page=per_page, count=count), title="More..."))
-    
-    return object_container
-
-################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genres_menu')
-def genres_menu(title):
-    genres = SharedCodeService.trakt.movies_genres()
-
-    object_container = ObjectContainer(title2=title)
-    for genre in genres:
-        object_container.add(DirectoryObject(key=Callback(genre_menu, title=genre[0], genre=genre[1], per_page=31), title=genre[0]))
-    return object_container
-
-################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/genre', per_page=int, count=int)
-def genre_menu(title, genre, per_page, count=0):
-    ids   = []
-    count = SharedCodeService.trakt.get_ids_from_page('/movies/popular/' + genre, ids, count, per_page)
-
-    object_container = ObjectContainer(title2=title)
-    fill_object_container(object_container, ids)
-    object_container.add(NextPageObject(key=Callback(genre_menu, title=title, genre=genre, per_page=per_page, count=count), title="More..."))
+    object_container.add(NextPageObject(key=Callback(movies_menu, title=title, page=page, page_index=page_index + 1, per_page=per_page), title="More..."))
     
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search_menu(title, query, per_page, count=0):
-    ids   = []
-    count = SharedCodeService.trakt.movies_search(query, ids)
+def search_menu(title, query):
+    ids = SharedCodeService.trakt.movies_search(query)
 
     object_container = ObjectContainer(title2=title)
     fill_object_container(object_container, ids)
+
     return object_container
 
 ################################################################################

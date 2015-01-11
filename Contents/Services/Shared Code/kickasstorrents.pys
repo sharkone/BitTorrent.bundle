@@ -39,12 +39,12 @@ class KickassTorrentsProvider(common.TorrentProvider):
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, first_aired_iso, torrent_infos):
-        ref_torrent_key = trakt.tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index)
+    def tvshows_get_specific_torrents(self, tvshow_id, season_index, episode_index, first_aired_iso, torrent_infos):
+        ref_torrent_key = trakt.tvshows_get_episode_id(tvshow_id, season_index, episode_index)
 
-        title = trakt.tvshows_get_search_title(tvdb_id)
+        title = trakt.tvshows_get_search_title(tvshow_id)
 
-        if not trakt.tvshows_is_date_based(tvdb_id):
+        if not trakt.tvshows_is_date_based(tvshow_id):
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
             self.parse_result_page(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/usearch/{0}/?field=seeders&sorder=desc&rss=1'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
@@ -108,13 +108,15 @@ class KickassTorrentsProvider(common.TorrentProvider):
                 
             try:
                 if not torrent_key:
-                    torrent_key      = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title)
+                    torrent_key      = trakt.tvshows_get_episode_id_from_torrent_title(torrent_title)
                     torrent_category = 'tvshows'
             except:
                pass
 
             if not torrent_key:
                 torrent_key = torrent_title
+
+            Log.Error(torrent_key)
 
             return common.TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders, torrent_leechers, torrent_size)
 
@@ -135,7 +137,7 @@ class KickassTorrentsProvider(common.TorrentProvider):
                     except:
                         torrent_key = trakt.movies_get_imdb_id_from_torrent_title(rss_entry.title)
                 elif category == 'tvshows':
-                    torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(rss_entry.title)
+                    torrent_key = trakt.tvshows_get_episode_id_from_torrent_title(rss_entry.title)
 
                 self.add_torrent_info(torrent_infos, ref_torrent_key, rss_entry.torrent_magneturi,
                                                                       rss_entry.title,

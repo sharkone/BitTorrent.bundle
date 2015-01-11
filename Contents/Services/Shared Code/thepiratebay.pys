@@ -30,13 +30,13 @@ class ThePirateBayProvider(common.TorrentProvider):
     ############################################################################
     # TVSHOWS
     ############################################################################
-    def tvshows_get_specific_torrents(self, tvdb_id, season_index, episode_index, first_aired_iso, torrent_infos):
-        ref_torrent_key = trakt.tvshows_get_episode_tvdb_id(tvdb_id, season_index, episode_index)
+    def tvshows_get_specific_torrents(self, tvshow_id, season_index, episode_index, first_aired_iso, torrent_infos):
+        ref_torrent_key = trakt.tvshows_get_episode_id(tvshow_id, season_index, episode_index)
 
-        title = trakt.tvshows_get_search_title(tvdb_id)
+        title = trakt.tvshows_get_search_title(tvshow_id)
 
-        if not trakt.tvshows_is_date_based(tvdb_id):
-            title = trakt.tvshows_get_search_title(tvdb_id)
+        if not trakt.tvshows_is_date_based(tvshow_id):
+            title = trakt.tvshows_get_search_title(tvshow_id)
             query = '%s S%02dE%02d' % (title, season_index, episode_index)
             self.parse_result_page(Prefs['THEPIRATEBAY_PROVIDER_URL'] + '/search/{0}/0/7/200'.format(String.Quote(query)), 'tvshows', torrent_infos, ref_torrent_key)
 
@@ -105,7 +105,7 @@ class ThePirateBayProvider(common.TorrentProvider):
             try:
                 if not torrent_key:
                     if page_data.xpath('//*[@id="details"]/dl[1]/dd[1]/a/@href')[0] in ('/browse/205', '/browse/208'):
-                        torrent_key      = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(torrent_title)
+                        torrent_key      = trakt.tvshows_get_episode_id_from_torrent_title(torrent_title)
                         torrent_category = 'tvshows'
             except:
                 pass    
@@ -130,7 +130,7 @@ class ThePirateBayProvider(common.TorrentProvider):
                 if category == 'movies':
                     torrent_key = trakt.movies_get_imdb_id_from_torrent_title(torrent_key)
                 elif category == 'tvshows':
-                    torrent_key = trakt.tvshows_get_episode_tvdb_id_from_torrent_title(torrent_key)
+                    torrent_key = trakt.tvshows_get_episode_id_from_torrent_title(torrent_key)
 
                 try:
                     torrent_size_str  = html_item.xpath('./td[2]/font[@class="detDesc"]/text()')[0]
