@@ -11,8 +11,8 @@ SUBPREFIX = 'movies'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='Movies')
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies/trending', page_index=0, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/popular', page_index=0, per_page=31), title='Popular', summary='Browse most popular movies.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies/trending', page_index=1, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular movies.'))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
     return object_container
 
