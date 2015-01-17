@@ -4,7 +4,7 @@ import trakt
 
 ################################################################################
 PREFIX  = '/video/bittorrent'
-VERSION = '0.6'
+VERSION = '0.6.1'
 
 TIMEOUT = 5.0
 
