@@ -26,9 +26,9 @@ def movies_list(page, page_index, per_page):
     for json_item in json_data:
         try:
             if 'movie' in json_item:
-                result.append(json_item['movie']['ids']['slug'])
+                result.append(json_item['movie']['ids']['imdb'])
             else:
-                result.append(json_item['ids']['slug'])
+                result.append(json_item['ids']['imdb'])
         except Exception as exception:
             Log.Error('Unhandled exception: {0}'.format(exception))
                 
@@ -42,7 +42,7 @@ def movies_search(query):
 
     result = []
     for json_item in json_data:
-        result.append(json_item['movie']['ids']['slug'])
+        result.append(json_item['movie']['ids']['imdb'])
     return result
 
 ###############################################################################
