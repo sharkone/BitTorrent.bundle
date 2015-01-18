@@ -12,7 +12,7 @@ except:
 ################################################################################
 RE_KICKASSTORRENTS_URL = re.compile('^https?://.*(kat|kickass).+/.+')
 
-RE_IMDB_ID    = re.compile('http://www.imdb.com/title/(tt\d+)/')
+RE_IMDB_ID    = re.compile('imdb:(\d+)')
 RE_URL_SIZE   = re.compile('(\d+.\d+) (MB|GB)')
 
 ################################################################################
@@ -133,9 +133,9 @@ class KickassTorrentsProvider(common.TorrentProvider):
 
                 if category == 'movies':
                     try:
-                        torrent_key = RE_IMDB_ID.search(rss_entry.description).group(1)
+                        torrent_key = 'tt' + RE_IMDB_ID.search(rss_data.feed.title).group(1)
                     except:
-                        torrent_key = trakt.movies_get_imdb_id_from_torrent_title(rss_entry.title)
+                        pass
                 elif category == 'tvshows':
                     torrent_key = trakt.tvshows_get_episode_id_from_torrent_title(rss_entry.title)
 
