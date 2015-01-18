@@ -136,33 +136,33 @@ def movies_fill_movie_object(movie_object, movie_id):
     except:
         pass
 
-    people_data = movies_get_people(movie_id)
-    if people_data:
-        try:
-            for member in people_data['cast']:
-                new_role       = movie_object.roles.new()
-                new_role.actor = member['character']
-                new_role.role  = member['person']['name']
-        except:
-            pass
+    # people_data = movies_get_people(movie_id)
+    # if people_data:
+    #     try:
+    #         for member in people_data['cast']:
+    #             new_role       = movie_object.roles.new()
+    #             new_role.actor = member['character']
+    #             new_role.role  = member['person']['name']
+    #     except:
+    #         pass
 
-        try:
-            for member in people_data['crew']['directing']:
-                movie_object.directors.add(member['person']['name'])
-        except:
-            pass
+    #     try:
+    #         for member in people_data['crew']['directing']:
+    #             movie_object.directors.add(member['person']['name'])
+    #     except:
+    #         pass
 
-        try:
-            for member in people_data['crew']['production']:
-                movie_object.directors.add(member['person']['name'])
-        except:
-            pass
+    #     try:
+    #         for member in people_data['crew']['production']:
+    #             movie_object.directors.add(member['person']['name'])
+    #     except:
+    #         pass
 
-        try:
-            for member in people_data['people']['writing']:
-                movie_object.writers.add(member['person']['name'])
-        except:
-            pass
+    #     try:
+    #         for member in people_data['people']['writing']:
+    #             movie_object.writers.add(member['person']['name'])
+    #     except:
+    #         pass
 
     return movie_data['ids']['imdb']
 
