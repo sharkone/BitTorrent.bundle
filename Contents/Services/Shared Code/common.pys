@@ -48,6 +48,7 @@ def fill_episode_object(episode_object, json_data):
     episode_object.show                    = json_data['show_title']
     episode_object.season                  = json_data['season_index']
     episode_object.index                   = json_data['episode_index']
+    episode_object.title                   = json_data['title']
     episode_object.summary                 = json_data['overview']
     episode_object.rating                  = json_data['rating']
     episode_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
