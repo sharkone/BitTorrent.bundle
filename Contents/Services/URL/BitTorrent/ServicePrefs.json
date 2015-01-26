@@ -1,5 +1,11 @@
 [
     {
+        "id":       "CASCADE_URL",
+        "label":    "Cascade server URL",
+        "type":     "text",
+        "default":  "https://cascade-sharkone-2.c9.io"
+    },
+    {
         "id":       "INCOMING_PORT",
         "label":    "Torrent incoming port",
         "type":     "text",
@@ -82,42 +88,6 @@
         "label":    "TV Shows download directory",
         "type":     "text",
         "default":  "."
-    },
-    {
-        "id":       "USE_KICKASSTORRENTS_PROVIDER",
-        "label":    "Use KickAssTorrents provider",
-        "type":     "bool",
-        "default":  "True"
-    },
-    {
-        "id":       "KICKASSTORRENTS_PROVIDER_URL",
-        "label":    "KickAssTorrents URL (no trailing /)",
-        "type":     "text",
-        "default":  "http://kickass.so"
-    },
-    {
-        "id":       "USE_THEPIRATEBAY_PROVIDER",
-        "label":    "Use The Pirate Bay provider",
-        "type":     "bool",
-        "default":  "True"
-    },
-    {
-        "id":       "THEPIRATEBAY_PROVIDER_URL",
-        "label":    "The Pirate Bay URL (no trailing /)",
-        "type":     "text",
-        "default":  "http://thepiratebay.se"
-    },
-    {
-        "id":       "USE_YTS_PROVIDER",
-        "label":    "Use YTS provider",
-        "type":     "bool",
-        "default":  "True"
-    },
-    {
-        "id":       "YTS_PROVIDER_URL",
-        "label":    "YTS URL (no trailing /)",
-        "type":     "text",
-        "default":  "http://yts.re"
     },
     {
         "id":       "VPN_FIX",

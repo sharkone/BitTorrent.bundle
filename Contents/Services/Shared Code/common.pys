@@ -1,209 +1,55 @@
 ################################################################################
-import re
-import trakt
-
-################################################################################
 PREFIX  = '/video/bittorrent'
-VERSION = '0.6.3'
-
-TIMEOUT = 5.0
-
-RE_MAGNET_INFO_HASH  = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
-RE_MOVIE_TITLE       = re.compile('(.+?)[\s\.-]*?[\[\(\*\{]?(\d{4})[\]|\)\*\}]?[\s\.-]*(.*)', re.IGNORECASE)
-RE_TVSHOW_TITLE      = re.compile('(.+?)[\s\.-]*(s|)(\d+)(e|x)(\d+)[\s\.-]*(.*)', re.IGNORECASE)
-RE_TVSHOW_TITLE_DATE = re.compile('(.+?)[\s\.-](\d{4})[\s\.-](\d{2})[\s\.-](\d{2})[\s\.-]*(.*)', re.IGNORECASE)
-RE_TVSHOW_TITLE_YEAR = re.compile('(.+)\s+\((\d+)\)$')
+VERSION = '0.7.0'
 
 ################################################################################
-class TorrentInfo:
-    def __init__(self, magnet, title, url, key, category, seeders=0, leechers=0, size=0):
-        self.magnet    = magnet
-        self.info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
-        self.title     = title
-        self.release   = get_torrent_release(title, category)
-        self.url       = url
-        self.key       = key
-        self.category  = category
-        self.seeders   = seeders
-        self.leechers  = leechers
-        
-        size_gb = float(size) / 1024.0 / 1024.0 / 1024.0
-        size_mb = float(size) / 1024.0 / 1024.0
-        size_kb = float(size) / 1024.0
-        if size_gb > 1.0:
-            self.size = '%.2f GB' % size_gb
-        elif size_mb > 1.0:
-            self.size = '%.2f MB' % size_mb
-        elif size_kb > 1.0:
-            self.size = '%.2f KB' % size_kb
-        else:
-            self.size = '%.2f B' % size
+def fill_movie_object(movie_object, json_data):
+    movie_object.title                   = json_data['title']
+    movie_object.year                    = json_data['year']
+    movie_object.summary                 = json_data['overview']
+    movie_object.tagline                 = json_data['tagline']
+    movie_object.duration                = json_data['runtime']
+    movie_object.rating                  = json_data['rating']
+    movie_object.originally_available_at = Datetime.ParseDate(json_data['released'])
+    movie_object.content_rating          = json_data['certification']
+    movie_object.thumb                   = json_data['thumb']
+    movie_object.art                     = json_data['art']
+
+    for genre in json_data['genres']:
+        movie_object.genres.add(genre)
 
 ################################################################################
-def get_torrent_release(torrent_title, category):
-    try:
-        if category == 'movies':
-            movie_title_result = RE_MOVIE_TITLE.search(torrent_title)
-            return movie_title_result.group(3)
-        elif category == 'tvshows':
-            tv_show_title_result = RE_TVSHOW_TITLE_DATE.search(torrent_title)
-            if tv_show_title_result:
-                return tv_show_title_result.group(5)
-            tv_show_title_result = RE_TVSHOW_TITLE.search(torrent_title)
-            if tv_show_title_result:
-                return tv_show_title_result.group(6)
-
-            return torrent_title
-        else:
-            return torrent_title
-    except:
-        return torrent_title
+def fill_show_object(show_object, json_data):
+    show_object.title                   = json_data['title']
+    show_object.summary                 = json_data['overview']
+    show_object.studio                  = json_data['studio']
+    show_object.duration                = json_data['runtime']
+    show_object.rating                  = json_data['rating']
+    show_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
+    show_object.content_rating          = json_data['certification']
+    show_object.thumb                   = json_data['thumb']
+    show_object.art                     = json_data['art']
+    
+    for genre in json_data['genres']:
+        show_object.genres.add(genre)
 
 ################################################################################
-class TorrentProvider:
-    ############################################################################
-    # ANIME
-    ############################################################################
-    def anime_get_popular_torrents(self, torrent_infos):
-        pass
+def fill_season_object(season_object, json_data):
+    season_object.show          = json_data['show_title']
+    season_object.index         = json_data['season_index']
+    season_object.episode_count = json_data['episode_count']
+    season_object.title         = json_data['title']
+    season_object.summary       = json_data['overview']
+    season_object.thumb         = json_data['thumb']
+    season_object.art           = json_data['art']
 
-    def anime_search(self, query, torrent_infos):
-        pass
-
-    def anime_get_specific_torrents(self, movie_info, torrent_infos):
-        pass
-
-    def anime_get_metadata_object_for_url(self, url):
-        torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.category == 'anime':
-            metadata_object         = VideoClipObject()
-            metadata_object.title   = torrent_info.title
-            metadata_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, metadata_object.summary)
-            return metadata_object
-
-    ############################################################################
-    # MOVIES
-    ############################################################################
-    def movies_get_specific_torrents(self, imdb_id, torrent_infos):
-        pass
-
-    def movies_get_metadata_object_for_url(self, url):
-        torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.category == 'movies':
-            movie_object = MovieObject()
-            trakt.movies_fill_movie_object(movie_object, torrent_info.key)
-            movie_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, movie_object.summary)
-            return movie_object
-
-    ############################################################################
-    # TVSHOWS
-    ############################################################################
-    def tvshows_get_specific_torrents(self, tvshow_id, season_index, episode_index, first_aired_iso, torrent_infos):
-        pass
-
-    def tvshows_get_metadata_object_for_url(self, url):
-        torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info and torrent_info.category == 'tvshows':
-            episode_object = EpisodeObject()
-            trakt.tvshows_fill_episode_object(episode_object, torrent_info.key[0], torrent_info.key[1], torrent_info.key[2])
-            episode_object.summary = '{0}\n{1}\nSeeders: {2}, Leechers: {3}\n\n{4}'.format(torrent_info.release, torrent_info.size, torrent_info.seeders, torrent_info.leechers, episode_object.summary)
-            return episode_object
-
-    ############################################################################
-    # COMMON
-    ############################################################################
-    def get_torrent_info_for_url(self, url):
-        pass
-
-    def get_metadata_object_for_url(self, url):
-        metadata_object = self.anime_get_metadata_object_for_url(url)
-        if metadata_object:
-            return metadata_object
-
-        metadata_object = self.movies_get_metadata_object_for_url(url)
-        if metadata_object:
-            return metadata_object
-
-        metadata_object = self.tvshows_get_metadata_object_for_url(url)
-        if metadata_object:
-            return metadata_object
-
-        torrent_info = self.get_torrent_info_for_url(url)
-        if torrent_info:
-            videoclip_object         = VideoClipObject()
-            videoclip_object.title   = torrent_info.title
-            videoclip_object.summary = '{0}\nSeeders: {1}, Leechers: {2}'.format(torrent_info.size, torrent_info.seeders, torrent_info.leechers)
-            videoclip_object.url     = torrent_info.url
-            return videoclip_object
-
-    def get_media_objects_for_url(self, url, play_func):
-        torrent_info = self.get_torrent_info_for_url(url)
-
-        if torrent_info:
-            if torrent_info.category == 'anime':
-                download_dir = Prefs['ANIME_DOWNLOAD_DIR']
-            elif torrent_info.category == 'movies':
-                download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
-            elif torrent_info.category == 'tvshows':
-                download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
-            else:
-                download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
-
-            media_object = MediaObject()
-            media_object.add(PartObject(key=Callback(play_func, url=url, magnet=torrent_info.magnet, download_dir=download_dir)))
-
-            if self.release_contains_pattern(torrent_info.release, ['avi']):
-                media_object.container = 'avi'
-            elif self.release_contains_pattern(torrent_info.release, ['flv']):
-                media_object.container = 'flv'
-            elif self.release_contains_pattern(torrent_info.release, ['mkv']):
-                media_object.container = 'mkv'
-            elif self.release_contains_pattern(torrent_info.release, ['mov']):
-                media_object.container = 'mov'
-            elif self.release_contains_pattern(torrent_info.release, ['mp4']):
-                media_object.container = 'mp4'
-
-            if self.release_contains_pattern(torrent_info.release, ['5.1', '5 1']):
-                media_object.audio_channels = 6
-
-            if self.release_contains_pattern(torrent_info.release, ['aac']):
-                media_object.audio_codec = 'aac'
-            elif self.release_contains_pattern(torrent_info.release, ['ac3']):
-                media_object.audio_codec = 'ac3'
-            elif self.release_contains_pattern(torrent_info.release, ['dts']):
-                media_object.audio_codec = 'dts'
-            elif self.release_contains_pattern(torrent_info.release, ['mp3']):
-                media_object.audio_codec = 'mp3'
-
-            if self.release_contains_pattern(torrent_info.release, ['x264', 'h264']):
-                media_object.video_codec = 'h264'
-            elif self.release_contains_pattern(torrent_info.release, ['divx']):
-                media_object.video_codec = 'divx'
-            elif self.release_contains_pattern(torrent_info.release, ['xvid']):
-                media_object.video_codec = 'xvid'
-
-            if self.release_contains_pattern(torrent_info.release, ['1080p', '1920x1080']):
-                media_object.video_resolution = 1080
-            elif self.release_contains_pattern(torrent_info.release, ['720p', '1280x720']):
-                media_object.video_resolution = 720
-            elif self.release_contains_pattern(torrent_info.release, ['480p']):
-                media_object.video_resolution = 480
-
-            return [media_object]
-
-    def add_torrent_info(self, torrent_infos, ref_torrent_key, torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders=0, torrent_leechers=0, torrent_size=0):
-        torrent_info = TorrentInfo(torrent_magnet, torrent_title, torrent_url, torrent_key, torrent_category, torrent_seeders, torrent_leechers, torrent_size)
-
-        if ref_torrent_key and ref_torrent_key != torrent_key:
-            Log.Info('Rejected: {0} (got: {1} expected: {2}'.format(torrent_info.title, str(torrent_key), str(ref_torrent_key)))
-            return
-
-        if torrent_info.seeders > 0 and not [t for t in torrent_infos if torrent_info.info_hash == t.info_hash]:
-            Log.Info('Accepted: {0}'.format(torrent_info.title))
-            torrent_infos.append(torrent_info)
-
-    def release_contains_pattern(self, release, pattern_list):
-        for pattern in pattern_list:
-            if pattern.lower() in release.lower():
-                return True
-        return False
+################################################################################
+def fill_episode_object(episode_object, json_data):
+    episode_object.show                    = json_data['show_title']
+    episode_object.season                  = json_data['season_index']
+    episode_object.index                   = json_data['episode_index']
+    episode_object.summary                 = json_data['overview']
+    episode_object.rating                  = json_data['rating']
+    episode_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
+    episode_object.thumb                   = json_data['thumb']
+    episode_object.art                     = json_data['art']

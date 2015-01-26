@@ -1,5 +1,5 @@
 ################################################################################
-import anime_menu
+#import anime_menu
 import cherrytorrent_launcher
 import movies_menu
 import tvshows_menu
@@ -30,6 +30,7 @@ def Start():
     Log.Info(' - Version: {0}'.format(SharedCodeService.common.VERSION))
     Log.Info('--------------------------------------------')
     Log.Info('Preferences:')
+    Log.Info(' - Cascade server URL:      {0}'.format(Prefs['CASCADE_URL']))
     Log.Info(' - Torrent incoming port:   {0}'.format(Prefs['INCOMING_PORT']))
     Log.Info(' - UPnP / NAT-PMP enabled:  {0}'.format(Prefs['UPNP_NATPMP_ENABLED']))
     Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))
@@ -41,12 +42,6 @@ def Start():
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))
     Log.Info(' - TV shows enabled:        {0}'.format(Prefs['TVSHOWS_ENABLED']))
     Log.Info(' - TV shows download dir:   {0}'.format(Prefs['TVSHOWS_DOWNLOAD_DIR']))
-    Log.Info(' - KickAssTorrents enabled: {0}'.format(Prefs['USE_KICKASSTORRENTS_PROVIDER']))
-    Log.Info(' - KickAssTorrents URL:     {0}'.format(Prefs['KICKASSTORRENTS_PROVIDER_URL']))
-    Log.Info(' - The Pirate Bay enabled:  {0}'.format(Prefs['USE_THEPIRATEBAY_PROVIDER']))
-    Log.Info(' - The Pirate Bay URL:      {0}'.format(Prefs['THEPIRATEBAY_PROVIDER_URL']))
-    Log.Info(' - YTS enabled:             {0}'.format(Prefs['USE_YTS_PROVIDER']))
-    Log.Info(' - YTS URL:                 {0}'.format(Prefs['YTS_PROVIDER_URL']))
     Log.Info(' - VPN Fix enabled:         {0}'.format(Prefs['VPN_FIX']))
     Log.Info(' - Metadata timeout:        {0}'.format(Prefs['METADATA_TIMEOUT']))
     Log.Info(' - Torrent Proxy type:      {0}'.format(Prefs['TORRENT_PROXY_TYPE']))
@@ -68,8 +63,8 @@ def Main():
 
     object_container = ObjectContainer(title2=TITLE)
     
-    if Prefs['ANIME_ENABLED']:
-        object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime', summary='Browse anime'))
+    #if Prefs['ANIME_ENABLED']:
+    #    object_container.add(DirectoryObject(key=Callback(anime_menu.menu), title='Anime', summary='Browse anime'))
     
     if Prefs['MOVIES_ENABLED']:
         object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies'))
@@ -89,55 +84,15 @@ def about_menu(title):
     # Channel Version
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel.'))
     
-    # URLService
-    url_service_result  = 'Running'
-    url_service_summary = 'URLService is running correctly.'
-    if not URLService.ServiceIdentifierForURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'] + '/big-buck-bunny-bdrip-xvid-medic-t3434558.html'):
-        url_service_result  = 'ERROR'
-        url_service_summary = 'URLService is not running correctly, try restarting your server.'
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='URLService: {0}'.format(url_service_result), summary=url_service_summary))
-
-    # KickAssTorrents
-    kickasstorrents_result  = 'Available'
-    kickasstorrents_summary = Prefs['KICKASSTORRENTS_PROVIDER_URL'] + ' is available.'
-    if not Prefs['USE_KICKASSTORRENTS_PROVIDER']:
-        kickasstorrents_result  = 'Disabled'
-        kickasstorrents_summary = 'KickAssTorrents is disabled in the Preferences.'
-    else:
-        try:
-            HTML.ElementFromURL(Prefs['KICKASSTORRENTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
-        except:
-            kickasstorrents_result  = 'Unavailable'
-            kickasstorrents_summary = Prefs['KICKASSTORRENTS_PROVIDER_URL'] + ' is unavailable, check URL the in Preferences.'
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='KickAssTorrents Provider: {0}'.format(kickasstorrents_result), summary=kickasstorrents_summary))
-
-    # The Pirate Bay
-    thepiratebay_result  = 'Available'
-    thepiratebay_summary = Prefs['THEPIRATEBAY_PROVIDER_URL'] + ' is available.'
-    if not Prefs['USE_THEPIRATEBAY_PROVIDER']:
-        thepiratebay_result  = 'Disabled'
-        thepiratebay_summary = 'The Pirate Bay is disabled in the Preferences.'
-    else: 
-        try:
-            HTML.ElementFromURL(Prefs['THEPIRATEBAY_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
-        except:
-            thepiratebay_result  = 'Unavailable'
-            thepiratebay_summary = Prefs['THEPIRATEBAY_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='The Pirate Bay Provider: {0}'.format(thepiratebay_result), summary=thepiratebay_summary))
-
-    # YTS
-    yts_result  = 'Available'
-    yts_summary = Prefs['YTS_PROVIDER_URL'] + ' is available.'
-    if not Prefs['USE_YTS_PROVIDER']:
-        yts_result  = 'Disabled'
-        yts_summary = 'YTS is disabled in the Preferences.'
-    else: 
-        try:
-            HTML.ElementFromURL(Prefs['YTS_PROVIDER_URL'], cacheTime=CACHE_1HOUR, timeout=1.0)
-        except:
-            yts_result  = 'Unavailable'
-            yts_summary = Prefs['YTS_PROVIDER_URL'] + ' is unavailable, check URL in the Preferences.'
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='YTS Provider: {0}'.format(yts_result), summary=yts_summary))
+    # Cascade server
+    cascade_server_result  = 'Available'
+    cascade_server_summary = Prefs['CASCADE_URL'] + ' is available.'
+    try:
+        HTML.ElementFromURL(Prefs['CASCADE_URL'], timeout=5.0)
+    except:
+        cascade_server_result  = 'Unavailable'
+        cascade_server_summary = Prefs['CASCADE_URL'] + ' is unavailable, check URL the in Preferences.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Cascade server: {0}'.format(cascade_server_result), summary=cascade_server_summary))
 
     # CherryTorrent
     cherrytorrent_result  = 'Running'
