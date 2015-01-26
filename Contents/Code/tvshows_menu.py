@@ -56,7 +56,7 @@ def search_menu(title, query):
         for json_item in json_data['shows']:
             show_object = TVShowObject()
             SharedCodeService.common.fill_show_object(show_object, json_item)
-            show_object.rating_key = json_data['trakt_slug']
+            show_object.rating_key = json_item['trakt_slug']
             show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
             object_container.add(show_object)
 
