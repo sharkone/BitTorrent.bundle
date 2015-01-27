@@ -30,7 +30,7 @@ def Start():
     Log.Info(' - Version: {0}'.format(SharedCodeService.common.VERSION))
     Log.Info('--------------------------------------------')
     Log.Info('Preferences:')
-    Log.Info(' - Cascade server URL:      {0}'.format(Prefs['CASCADE_URL']))
+    Log.Info(' - Scrapyard server URL:    {0}'.format(Prefs['SCRAPYARD_URL']))
     Log.Info(' - Torrent incoming port:   {0}'.format(Prefs['INCOMING_PORT']))
     Log.Info(' - UPnP / NAT-PMP enabled:  {0}'.format(Prefs['UPNP_NATPMP_ENABLED']))
     Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))
@@ -84,15 +84,15 @@ def about_menu(title):
     # Channel Version
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel.'))
     
-    # Cascade server
-    cascade_server_result  = 'Available'
-    cascade_server_summary = Prefs['CASCADE_URL'] + ' is available.'
+    # Scrapyard server
+    scrapyard_server_result  = 'Available'
+    scrapyard_server_summary = Prefs['SCRAPYARD_URL'] + ' is available.'
     try:
-        HTML.ElementFromURL(Prefs['CASCADE_URL'], timeout=5.0)
+        HTML.ElementFromURL(Prefs['SCRAPYARD_URL'], timeout=5.0)
     except:
-        cascade_server_result  = 'Unavailable'
-        cascade_server_summary = Prefs['CASCADE_URL'] + ' is unavailable, check URL the in Preferences.'
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Cascade server: {0}'.format(cascade_server_result), summary=cascade_server_summary))
+        scrapyard_server_result  = 'Unavailable'
+        scrapyard_server_summary = Prefs['SCRAPYARD_URL'] + ' is unavailable, check URL the in Preferences.'
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Scrapyard server: {0}'.format(scrapyard_server_result), summary=scrapyard_server_summary))
 
     # CherryTorrent
     cherrytorrent_result  = 'Running'

@@ -8,8 +8,8 @@ SUBPREFIX = 'movies'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='Movies')
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='api/movies/trending', page_index=1, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='api/movies/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular movies.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/api/movies/trending', page_index=1, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/api/movies/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular movies.'))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
     return object_container
 
@@ -18,7 +18,7 @@ def menu():
 def movies_menu(title, page, page_index, per_page):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}?page={2}&limit={3}'.format(Prefs['CASCADE_URL'], page, page_index, per_page)
+    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'movies' in json_data:
@@ -42,7 +42,7 @@ def movies_menu(title, page, page_index, per_page):
 def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}/{2}/{3}?query={4}'.format(Prefs['CASCADE_URL'], 'api', 'movies', 'search', String.Quote(query))
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/movies/search?query=' + String.Quote(query)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'movies' in json_data:
@@ -66,7 +66,7 @@ def movie_menu(title, trakt_slug):
 
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}/{2}/{3}'.format(Prefs['CASCADE_URL'], 'api', 'movie', trakt_slug)
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/movie/' + trakt_slug
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'magnets' in json_data:

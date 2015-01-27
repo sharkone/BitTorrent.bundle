@@ -1,9 +1,9 @@
 [
     {
-        "id":       "CASCADE_URL",
-        "label":    "Cascade server URL",
+        "id":       "SCRAPYARD_URL",
+        "label":    "Scrapyard server URL",
         "type":     "text",
-        "default":  "https://cascade-sharkone-2.c9.io"
+        "default":  "https://scrapyard-sharkone.c9.io"
     },
     {
         "id":       "INCOMING_PORT",

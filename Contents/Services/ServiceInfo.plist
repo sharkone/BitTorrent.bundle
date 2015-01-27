@@ -17,7 +17,7 @@
             <dict>
                 <key>URLPatterns</key>
                 <array>
-                    <string>^https://cascade-sharkone-2.c9.io/.+</string>
+                    <string>^https://scrapyard-sharkone.c9.io/.+</string>
                 </array>
             </dict>
         </dict>

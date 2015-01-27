@@ -8,8 +8,8 @@ SUBPREFIX = 'tvshows'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='TV Shows')
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='api/shows/trending', page_index=1, per_page=31), title='Trending', summary='Browse TV shows currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='api/shows/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1, per_page=31), title='Trending', summary='Browse TV shows currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular TV shows.'))
     #object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))    
     return object_container
@@ -19,7 +19,7 @@ def menu():
 def shows_menu(title, page, page_index, per_page):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}?page={2}&limit={3}'.format(Prefs['CASCADE_URL'], page, page_index, per_page)
+    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
@@ -49,7 +49,7 @@ def shows_menu(title, page, page_index, per_page):
 def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}/{2}/{3}?query={4}'.format(Prefs['CASCADE_URL'], 'api', 'shows', 'search', String.Quote(query))
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/shows/search?query=' + String.Quote(query)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
@@ -67,7 +67,7 @@ def search_menu(title, query):
 def show_menu(title, trakt_slug):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}/{2}/{3}/{4}'.format(Prefs['CASCADE_URL'], 'api', 'show', trakt_slug, 'seasons')
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'seasons' in json_data:
@@ -112,7 +112,7 @@ def show_menu(title, trakt_slug):
 def season_menu(title, show_title, trakt_slug, season_index):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = '{0}/{1}/{2}/{3}/{4}/{5}'.format(Prefs['CASCADE_URL'], 'api', 'show', trakt_slug, 'season', season_index)
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'episodes' in json_data:
@@ -134,7 +134,7 @@ def episode_menu(show_title, trakt_slug, season_index, episode_index):
 
     object_container = ObjectContainer()
 
-    json_url  = '{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}'.format(Prefs['CASCADE_URL'], 'api', 'show', trakt_slug, 'season', season_index, 'episode', episode_index)
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index) + '/episode/' + str(episode_index)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'magnets' in json_data:
