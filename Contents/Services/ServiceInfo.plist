@@ -17,7 +17,7 @@
             <dict>
                 <key>URLPatterns</key>
                 <array>
-                    <string>^^https://.+/api/.+\?magnet=.+</string>
+                    <string>^http://.+/api/.+\?magnet=.+</string>
                 </array>
             </dict>
         </dict>
