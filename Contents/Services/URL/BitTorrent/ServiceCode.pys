@@ -10,7 +10,7 @@ RE_MAGNET = re.compile('\?magnet=(.+)$')
 def MetadataObjectForURL(url):
     magnet = String.Unquote(RE_MAGNET.search(url).group(1))
 
-    json_data = JSON.ObjectFromURL(url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'magnets' in json_data:
         for magnet_data in json_data['magnets']:
@@ -41,7 +41,7 @@ def MediaObjectsForURL(url):
     elif '/api/show' in url:
         download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
     
-    json_data = JSON.ObjectFromURL(url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
     
     if json_data and 'magnets' in json_data:
         for magnet_data in json_data['magnets']:
