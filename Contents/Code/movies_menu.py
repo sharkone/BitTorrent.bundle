@@ -19,7 +19,7 @@ def movies_menu(title, page, page_index, per_page):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
 
     if json_data and 'movies' in json_data:
         for json_item in json_data['movies']:
@@ -43,7 +43,7 @@ def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/movies/search?query=' + String.Quote(query)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
 
     if json_data and 'movies' in json_data:
         for json_item in json_data['movies']:
@@ -67,7 +67,7 @@ def movie_menu(title, trakt_slug):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/movie/' + trakt_slug
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
 
     if json_data and 'magnets' in json_data:
         for json_item in json_data['magnets']:
