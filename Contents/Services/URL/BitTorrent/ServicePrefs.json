@@ -3,7 +3,7 @@
         "id":       "SCRAPYARD_URL",
         "label":    "Scrapyard server URL",
         "type":     "text",
-        "default":  "https://scrapyard.en-mousse.org"
+        "default":  "http://scrapyard.en-mousse.org"
     },
     {
         "id":       "INCOMING_PORT",
