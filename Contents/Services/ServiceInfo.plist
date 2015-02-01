@@ -17,7 +17,7 @@
             <dict>
                 <key>URLPatterns</key>
                 <array>
-                    <string>^https://scrapyard-sharkone.c9.io/.+</string>
+                    <string>^^https://.+/api/.+\?magnet=.+</string>
                 </array>
             </dict>
         </dict>
