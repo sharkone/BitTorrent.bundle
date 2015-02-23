@@ -20,7 +20,7 @@ def shows_menu(title, page, page_index, per_page):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
         for json_item in json_data['shows']:
@@ -65,7 +65,7 @@ def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/shows/search?query=' + String.Quote(query)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
         for json_item in json_data['shows']:
@@ -88,7 +88,7 @@ def show_menu(title, trakt_slug):
         object_container.add(DirectoryObject(key=Callback(add_to_favorites, title='Add to Favorites', show_title=title, trakt_slug=trakt_slug), title='Add to Favorites', summary='Add TV show to Favorites', thumb=R('favorites.png')))
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'seasons' in json_data:
         for json_item in json_data['seasons']:
@@ -133,7 +133,7 @@ def season_menu(title, show_title, trakt_slug, season_index):
     object_container = ObjectContainer(title2=title)
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'episodes' in json_data:
         for json_item in json_data['episodes']:
@@ -155,7 +155,7 @@ def episode_menu(show_title, trakt_slug, season_index, episode_index):
     object_container = ObjectContainer()
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index) + '/episode/' + str(episode_index)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'magnets' in json_data:
         for json_item in json_data['magnets']:
