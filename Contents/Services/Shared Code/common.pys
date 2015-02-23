@@ -18,6 +18,23 @@ def fill_movie_object(movie_object, json_data):
     for genre in json_data['genres']:
         movie_object.genres.add(genre)
 
+    if 'people' in json_data:
+        if 'crew' in json_data['people']:
+            if 'directing' in json_data['people']['crew']:
+                for director in json_data['people']['crew']['directing']:
+                    movie_object.directors.add(director['name'])
+            if 'writing' in json_data['people']['crew']:
+                for writer in json_data['people']['crew']['writing']:
+                    movie_object.directors.add(writer['name'])
+            if 'production' in json_data['people']['crew']:
+                for producer in json_data['people']['crew']['production']:
+                    movie_object.producers.add(producer['name'])
+        if 'cast' in json_data['people']:
+            for member in json_data['people']['cast']:
+                new_role       = movie_object.roles.new()
+                new_role.actor = member['character']
+                new_role.role  = member['name']
+
 ################################################################################
 def fill_show_object(show_object, json_data):
     show_object.title                   = json_data['title']
