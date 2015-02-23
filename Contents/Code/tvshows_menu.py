@@ -30,7 +30,8 @@ def shows_menu(title, page, page_index, per_page):
             show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
             object_container.add(show_object)
 
-    object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1, per_page=per_page), title="More..."))
+    if (page_index + 1) <= 10:
+        object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1, per_page=per_page), title="More..."))
 
     return object_container
 
