@@ -10,7 +10,7 @@ def menu():
     object_container = ObjectContainer(title2='TV Shows')
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1, per_page=31), title='Trending', summary='Browse TV shows currently being watched.'))
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular TV shows.'))
-    #object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
+    object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))    
     return object_container
 
@@ -36,14 +36,28 @@ def shows_menu(title, page, page_index, per_page):
     return object_container
 
 ################################################################################
-# @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
-# def favorites_menu(title):
-#     ids = Dict['tvshows_favorites'] if 'tvshows_favorites' in Dict else []
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
+def favorites_menu(title):
+    trakt_slugs = Dict['shows_favorites'] if 'shows_favorites' in Dict else []
 
-#     object_container = ObjectContainer(title2=title)
-#     fill_object_container(object_container, ids)
-#     object_container.objects.sort(key=lambda tvshow_object: tvshow_object.title)
-#     return object_container
+    object_container = ObjectContainer(title2=title)
+    
+    json_url = Prefs['SCRAPYARD_URL'] + '/api/shows/favorites?'
+    for trakt_slug in trakt_slugs:
+        json_url += 'id={0}&'.format(trakt_slug)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+    if json_data and 'shows' in json_data:
+        for json_item in json_data['shows']:
+            show_object = TVShowObject()
+            SharedCodeService.common.fill_show_object(show_object, json_item)
+            show_object.rating_key = json_item['trakt_slug']
+            show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
+            object_container.add(show_object)
+    
+    object_container.objects.sort(key=lambda tvshow_object: show_object.title)
+    
+    return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
@@ -68,6 +82,11 @@ def search_menu(title, query):
 def show_menu(title, trakt_slug):
     object_container = ObjectContainer(title2=title)
 
+    if 'shows_favorites' in Dict and trakt_slug in Dict['shows_favorites']:
+        object_container.add(DirectoryObject(key=Callback(remove_from_favorites, title='Remove from Favorites', show_title=title, trakt_slug=trakt_slug), title='Remove from Favorites', summary='Remove TV show from Favorites', thumb=R('favorites.png')))
+    else:
+        object_container.add(DirectoryObject(key=Callback(add_to_favorites, title='Add to Favorites', show_title=title, trakt_slug=trakt_slug), title='Add to Favorites', summary='Add TV show to Favorites', thumb=R('favorites.png')))
+
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug
     json_data = JSON.ObjectFromURL(json_url, cacheTime=0)
 
@@ -82,31 +101,31 @@ def show_menu(title, trakt_slug):
     return object_container
 
 ################################################################################
-# @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
-# def add_to_favorites(title, show_title, tvshow_id):
-#     if 'tvshows_favorites' not in Dict:
-#         Dict['tvshows_favorites'] = []
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
+def add_to_favorites(title, show_title, trakt_slug):
+    if 'shows_favorites' not in Dict:
+        Dict['shows_favorites'] = []
 
-#     if tvshow_id not in Dict['tvshows_favorites']:
-#         Dict['tvshows_favorites'].append(tvshow_id)
-#         Dict.Save()
+    if trakt_slug not in Dict['shows_favorites']:
+        Dict['shows_favorites'].append(trakt_slug)
+        Dict.Save()
 
-#     object_container = ObjectContainer(title2=title)
-#     object_container.header  = 'Add to Favorites'
-#     object_container.message = '{0} added to Favorites'.format(show_title)
-#     return object_container
+    object_container = ObjectContainer(title2=title)
+    object_container.header  = 'Add to Favorites'
+    object_container.message = '{0} added to Favorites'.format(show_title)
+    return object_container
 
-# ################################################################################
-# @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
-# def remove_from_favorites(title, show_title, tvshow_id):
-#     if 'tvshows_favorites' in Dict and tvshow_id in Dict['tvshows_favorites']:
-#         Dict['tvshows_favorites'].remove(tvshow_id)
-#         Dict.Save()
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
+def remove_from_favorites(title, show_title, trakt_slug):
+    if 'shows_favorites' in Dict and trakt_slug in Dict['shows_favorites']:
+        Dict['shows_favorites'].remove(trakt_slug)
+        Dict.Save()
 
-#     object_container = ObjectContainer(title2=title)
-#     object_container.header  = 'Remove from Favorites'
-#     object_container.message = '{0} removed from Favorites'.format(show_title)
-#     return object_container
+    object_container = ObjectContainer(title2=title)
+    object_container.header  = 'Remove from Favorites'
+    object_container.message = '{0} removed from Favorites'.format(show_title)
+    return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
@@ -147,4 +166,10 @@ def episode_menu(show_title, trakt_slug, season_index, episode_index):
             episode_object.url     = json_url + '?magnet=' + String.Quote(json_item['link'])
             object_container.add(episode_object)
 
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/empty')
+def empty_menu():
+    object_container = ObjectContainer(title2='Empty')
     return object_container
