@@ -2,6 +2,9 @@
 PREFIX  = '/video/bittorrent'
 VERSION = '0.7.1'
 
+HTTP_PORT = 8042
+LOG_PORT  = 8043
+
 ################################################################################
 def fill_movie_object(movie_object, json_data):
     movie_object.title                   = json_data['title']
