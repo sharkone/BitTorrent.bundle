@@ -1,0 +1,157 @@
+###############################################################################
+import common
+import os
+import re
+import stat
+import socket
+import subprocess
+import time
+import urllib2
+import utils
+
+###############################################################################
+RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+
+###############################################################################
+def log_thread_func():
+    Log.Info('Log thread starting')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(("0.0.0.0", common.LOG_PORT))
+
+    while True:
+        try:
+            data, _ = sock.recvfrom(65536)
+            Log.Info(data.rstrip())
+        except:
+            pass
+
+###############################################################################
+def start():
+    Log.Info('Starting scrapmagnet')
+
+    os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+    try:
+        max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
+    except:
+        max_download_rate = 0
+        Log.Error('Invalid Max Download Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_DOWNLOAD_RATE'], max_download_rate))
+
+    try:
+        max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
+    except:
+        max_upload_rate = 0
+        Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_UPLOAD_RATE'], max_upload_rate))
+
+    try:
+        inactivity_pause_timeout = int(float(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT']))
+    except:
+        inactivity_pause_timeout = 30
+        Log.Error('Invalid Torrent inactivity pause timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT'], inactivity_pause_timeout))
+
+    try:
+        inactivity_remove_timeout = int(float(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT']))
+    except:
+        inactivity_remove_timeout = 0
+        Log.Error('Invalid Torrent inactivity remove timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT'], inactivity_remove_timeout))
+
+    command =   [
+                    get_exec_path(),
+                    '-http-port', str(common.HTTP_PORT),
+                    '-log-port', str(common.LOG_PORT),
+                    '-bittorrent-port', str(Prefs['INCOMING_PORT']),
+                    '-keep-files={0}'.format(Prefs['KEEP_FILES']),
+                    '-upnp-natpmp-enabled={0}'.format(Prefs['UPNP_NATPMP_ENABLED']),
+                    '-max-download-rate', str(max_download_rate),
+                    '-max-upload-rate', str(max_upload_rate),
+                    '-inactivity-pause-timeout', str(inactivity_pause_timeout),
+                    '-inactivity-remove-timeout', str(inactivity_remove_timeout),
+                    '-proxy-type', str(Prefs['TORRENT_PROXY_TYPE']),
+                    '-proxy-host', str(Prefs['TORRENT_PROXY_HOST']),
+                    '-proxy-port', str(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else "1080",
+                    '-proxy-user', str(Prefs['TORRENT_PROXY_USER']),
+                    '-proxy-password', str(Prefs['TORRENT_PROXY_PASSWORD']),
+                ]
+
+    Log.Info(' '.join(command))
+
+    if Platform.OS == 'Windows':
+        DETACHED_PROCESS = 0x00000008
+        process = subprocess.Popen(command, close_fds=True, creationflags=DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+    else:
+        process = subprocess.Popen(command)
+
+###############################################################################
+def is_running():
+    return get_server_status() != None
+
+###############################################################################
+def stop():
+    try:
+        Log.Info('Stopping scrapmagnet')
+        HTML.ElementFromURL(get_url('shutdown'), cacheTime=0)
+    except:
+        pass
+
+###############################################################################
+def get_bin_dir():
+    bundle_directory = os.path.join(os.getcwd(), '..', '..', '..', 'Plug-ins', 'BitTorrent.bundle')
+    bundle_directory = bundle_directory.replace('\\\\?\\', '')
+    return os.path.normpath(os.path.join(bundle_directory, 'Contents', 'Bin'))
+
+###############################################################################
+def get_exec_path():
+    if Platform.OS == 'MacOSX':
+        return os.path.join(get_bin_dir(), 'darwin_amd64', 'scrapmagnet')
+    elif Platform.OS == 'Linux':
+        if platform.architecture()[0] == '64bit':
+            return os.path.join(get_bin_dir(), 'linux_amd64', 'scrapmagnet')
+        elif platform.architecture()[0] == '32bit':
+            return os.path.join(get_bin_dir(), 'linux_386', 'scrapmagnet')
+    elif Platform.OS == 'Windows':
+        return os.path.join(get_bin_dir(), 'windows_386', 'scrapmagnet.exe')
+
+    Log.Error('Unsupported OS: {0}'.format(Platform.OS))
+
+###############################################################################
+def play_torrent(url, magnet, download_dir, play_func):
+    try:
+        download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
+        add_json     = JSON.ObjectFromURL(get_url('add?magnet={0}&download_dir={1}'.format(String.Quote(magnet), String.Quote(download_dir))), cacheTime=0)
+    except urllib2.URLError as exception:
+        Log.Error('Server unreachable: {0}'.format(exception.reason))
+        raise Ex.MediaNotAvailable
+    
+    while True:
+        info_hash   = RE_MAGNET_INFO_HASH.search(magnet).group(1).upper()
+        status_json = JSON.ObjectFromURL(get_url('files/{0}'.format(info_hash)), cacheTime=0)
+
+        if status_json['files']:
+            best_file_info = None
+            for file_info in status_json['files']:
+                if not best_file_info or best_file_info['size'] < file_info['size']:
+                    best_file_info = file_info
+
+            if best_file_info['complete_pieces'] > 0:
+                return IndirectResponse(VideoClipObject, key=get_url('files/{0}/{1}'.format(info_hash, String.Quote(best_file_info['path']))))
+
+        time.sleep(2)
+        need_redirect = str(Client.Platform) == 'Plex Home Theater'
+        if need_redirect:
+            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir))
+
+###############################################################################
+def get_url(page):
+    local_host = utils.get_local_host()
+    return 'http://{0}:{1}/{2}'.format(local_host, common.HTTP_PORT, page)
+
+###############################################################################
+def get_server_status():
+    try:
+        status_json = JSON.ObjectFromURL(get_url('files'), cacheTime=0, timeout=5)
+        return status_json
+    except urllib2.URLError as exception:
+        Log.Error('Server unreachable: {0}'.format(repr(exception)))
+    except Exception as exception:
+        Log.Error('Unhandled exception: {0}'.format(repr(exception)))

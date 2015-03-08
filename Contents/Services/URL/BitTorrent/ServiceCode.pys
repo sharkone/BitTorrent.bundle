@@ -1,7 +1,7 @@
 ################################################################################
-import cherrytorrent
 import common
 import re
+import scrapmagnet
 import utils
 
 RE_MAGNET = re.compile('\?magnet=(.+)$')
@@ -100,9 +100,9 @@ def title_contains_pattern(title, pattern_list):
 
 ###############################################################################
 @indirect
-def play_torrent(url, magnet, download_dir, torrent_start_time=0):
+def play_torrent(url, magnet, download_dir):
     if utils.is_connection_allowed():
-        return cherrytorrent.play_torrent(url, magnet, download_dir, play_torrent, torrent_start_time)
+        return scrapmagnet.play_torrent(url, magnet, download_dir, play_torrent)
     else:
         Log.Error('Torrent proxy is not configured properly. Aborting.')
         raise Ex.MediaNotAvailable
