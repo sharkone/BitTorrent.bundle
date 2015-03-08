@@ -2,6 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+        <!--<key>Search</key>
+        <dict>
+            <key>BitTorrent</key>
+            <dict>
+                <key>Identifier</key>
+                <string>com.plexapp.plugins.bittorrent</string>
+            </dict>
+        </dict>-->
+
         <key>URL</key>
         <dict>
             <key>BitTorrent</key>

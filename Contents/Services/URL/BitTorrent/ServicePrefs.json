@@ -48,6 +48,24 @@
         "default":  "600"
     },
     {
+        "id":       "ANIME_ENABLED",
+        "label":    "Enable Anime category",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
+        "id":       "ANIME_DOWNLOAD_DIR",
+        "label":    "Anime download directory",
+        "type":     "text",
+        "default":  "."
+    },
+    {
+        "id":       "ANIME_ENABLED",
+        "label":    "Enable Anime category",
+        "type":     "bool",
+        "default":  "true"
+    },
+    {
         "id":       "MOVIES_ENABLED",
         "label":    "Enable Movies category",
         "type":     "bool",

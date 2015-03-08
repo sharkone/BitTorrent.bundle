@@ -1,0 +1,74 @@
+###############################################################################
+import os
+import re
+import time
+import urllib2
+import utils
+
+###############################################################################
+HTTP_PORT = 8042
+
+RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+
+###############################################################################
+def play_torrent(url, magnet, download_dir, play_func, torrent_start_time):
+    while True:
+        status_json = None
+
+        try:
+            download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
+            add_json     = JSON.ObjectFromURL(get_url(HTTP_PORT, 'add?uri={0}&download_dir={1}'.format(String.Quote(magnet), String.Quote(download_dir))), cacheTime=0)
+            status_json  = JSON.ObjectFromURL(get_url(HTTP_PORT, ''), cacheTime=0)
+        except urllib2.URLError as exception:
+            Log.Error('Server unreachable: {0}'.format(exception.reason))
+
+        if not status_json:
+            raise Ex.MediaNotAvailable
+
+        if not torrent_start_time:
+            torrent_start_time = time.time()
+
+        magnet_info_hash = RE_MAGNET_INFO_HASH.search(magnet).group(1).lower()
+        
+        session_json  = status_json['session']
+        torrents_json = [x for x in session_json['torrents'] if 'info_hash' in x and x['info_hash'] == magnet_info_hash]
+        torrent_json  = torrents_json[0] if torrents_json else None
+
+        if torrent_json:
+            Log.Info('Torrent state: {0} S:{1}/{2} P:{3}/{4} D:{5} kB/s U:{6} kB/s'.format(torrent_json['state'], torrent_json['num_seeds'], torrent_json['total_seeds'], torrent_json['num_peers'], torrent_json['total_peers'], torrent_json['download_rate'], torrent_json['upload_rate']))
+
+            if torrent_json['state_index'] >= 3 and 'video_file' in torrent_json:
+                video_file_json = torrent_json['video_file']
+                Log.Info('Video state: {0}/{1} (total: {2} pieces)'.format(video_file_json['complete_pieces'], video_file_json['preload_buffer_pieces'], video_file_json['total_pieces']))
+
+                need_slow_mode = str(Client.Platform) == 'Plex Home Theater'
+                if video_file_json['is_ready_slow'] or (not need_slow_mode and video_file_json['is_ready_fast']):
+                    Log.Info('Video is ready ({0})'.format('slow mode' if need_slow_mode else 'fast mode'))
+                    return IndirectResponse(VideoClipObject, key=get_url(HTTP_PORT, 'video?info_hash={0}'.format(magnet_info_hash)))
+                else:
+                    Log.Info('Video not ready')
+        else:
+            Log.Info('Torrent not ready')
+            if (time.time() - torrent_start_time) > int(Prefs['METADATA_TIMEOUT']):
+                Log.Error('Torrent could not get ready in time. Aborting.')
+                raise Ex.MediaNotAvailable
+
+        time.sleep(2)
+        need_redirect = str(Client.Platform) == 'Plex Home Theater'
+        if need_redirect:
+            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, torrent_start_time=torrent_start_time))
+
+###############################################################################
+def get_url(port, page):
+    local_host = utils.get_local_host()
+    return 'http://{0}:{1}/{2}'.format(local_host, port, page)
+
+###############################################################################
+def is_running():
+    try:
+        status_json = JSON.ObjectFromURL(get_url(HTTP_PORT, ''), cacheTime=0, timeout=5)
+        return True
+    except urllib2.URLError as exception:
+        Log.Error('Server unreachable: {0}'.format(exception.reason))
+
+    return False
