@@ -35,7 +35,6 @@ def Start():
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))
     Log.Info(' - TV shows download dir:   {0}'.format(Prefs['TVSHOWS_DOWNLOAD_DIR']))
     Log.Info(' - VPN Fix enabled:         {0}'.format(Prefs['VPN_FIX']))
-    Log.Info(' - Metadata timeout:        {0}'.format(Prefs['METADATA_TIMEOUT']))
     Log.Info(' - Torrent Proxy type:      {0}'.format(Prefs['TORRENT_PROXY_TYPE']))
     Log.Info(' - Torrent Proxy host:      {0}'.format(Prefs['TORRENT_PROXY_HOST']))
     Log.Info(' - Torrent Proxy port:      {0}'.format(Prefs['TORRENT_PROXY_PORT']))

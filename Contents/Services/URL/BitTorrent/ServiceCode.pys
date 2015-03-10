@@ -39,16 +39,16 @@ def MediaObjectsForURL(url):
     
     json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
 
-    if '/api/movie' in url:
-        download_dir  = Prefs['MOVIES_DOWNLOAD_DIR']
-        tracking_data = { 'event': 'Movie', 'properties': { 'State': 'Buffering', 'Title': json_data['title'] } }
-    elif '/api/show' in url:
-        download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
-        tracking_data = { 'event': 'Show', 'properties': { 'State': 'Buffering', 'Title': json_data['show_title'], 'Season': json_data['season_index'], 'Episode': json_data['episode_index'] } }
-
     if json_data and 'magnets' in json_data:
         for magnet_data in json_data['magnets']:
             if magnet_data['link'] == magnet:
+                if '/api/movie' in url:
+                    download_dir  = Prefs['MOVIES_DOWNLOAD_DIR']
+                    tracking_data = { 'event': 'Movie', 'properties': { 'State': 'Unset', 'Title': json_data['title'], 'Magnet': magnet_data['title'] } }
+                elif '/api/show' in url:
+                    download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
+                    tracking_data = { 'event': 'Show', 'properties': { 'State': 'Unset', 'Title': json_data['show_title'], 'Season': json_data['season_index'], 'Episode': json_data['episode_index'], 'Magnet': magnet_data['title'] } }
+
                 media_object = MediaObject()
                 media_object.add(PartObject(key=Callback(play_torrent, url=url, magnet=magnet, download_dir=download_dir, tracking_data=tracking_data)))
 
@@ -105,8 +105,10 @@ def title_contains_pattern(title, pattern_list):
 @indirect
 def play_torrent(url, magnet, download_dir, tracking_data={}):
     if utils.is_connection_allowed():
-        if tracking_data:
-            tracking.track(tracking_data['event'], tracking_data['properties'])
+        if tracking_data and tracking_data['properties']['State'] == 'Unset':
+            tracking_data['properties']['State'] = 'Buffering'
+            if Client.Product != 'Plex for Roku':
+                tracking.track(tracking_data['event'], tracking_data['properties'])
         return scrapmagnet.play_torrent(url, magnet, download_dir, tracking_data, play_torrent)
     else:
         Log.Error('Torrent proxy is not configured properly. Aborting.')

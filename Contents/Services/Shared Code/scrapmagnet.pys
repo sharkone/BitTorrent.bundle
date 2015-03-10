@@ -136,7 +136,7 @@ def play_torrent(url, magnet, download_dir, tracking_data, play_func):
                     best_file_info = file_info
 
             if best_file_info['complete_pieces'] > 0:
-                if tracking_data:
+                if tracking_data and tracking_data['properties']['State'] == 'Buffering':
                     tracking_data['properties']['State'] = 'Playing'
                     tracking.track(tracking_data['event'], tracking_data['properties'])
                     tracking_data = {}
