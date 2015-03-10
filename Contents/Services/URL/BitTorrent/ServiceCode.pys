@@ -2,6 +2,7 @@
 import common
 import re
 import scrapmagnet
+import tracking
 import utils
 
 RE_MAGNET = re.compile('\?magnet=(.+)$')
@@ -36,18 +37,20 @@ def MetadataObjectForURL(url):
 def MediaObjectsForURL(url):
     magnet = String.Unquote(RE_MAGNET.search(url).group(1))
     
-    if '/api/movie' in url:
-        download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
-    elif '/api/show' in url:
-        download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
-    
     json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
-    
+
+    if '/api/movie' in url:
+        download_dir  = Prefs['MOVIES_DOWNLOAD_DIR']
+        tracking_data = { 'event': 'Movie', 'properties': { 'State': 'Buffering', 'Title': json_data['title'] } }
+    elif '/api/show' in url:
+        download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
+        tracking_data = { 'event': 'Show', 'properties': { 'State': 'Buffering', 'Title': json_data['show_title'], 'Season': json_data['season_index'], 'Episode': json_data['episode_index'] } }
+
     if json_data and 'magnets' in json_data:
         for magnet_data in json_data['magnets']:
             if magnet_data['link'] == magnet:
                 media_object = MediaObject()
-                media_object.add(PartObject(key=Callback(play_torrent, url=url, magnet=magnet, download_dir=download_dir)))
+                media_object.add(PartObject(key=Callback(play_torrent, url=url, magnet=magnet, download_dir=download_dir, tracking_data=tracking_data)))
 
                 if title_contains_pattern(magnet_data['title'], ['avi']):
                     media_object.container = 'avi'
@@ -100,9 +103,11 @@ def title_contains_pattern(title, pattern_list):
 
 ###############################################################################
 @indirect
-def play_torrent(url, magnet, download_dir):
+def play_torrent(url, magnet, download_dir, tracking_data={}):
     if utils.is_connection_allowed():
-        return scrapmagnet.play_torrent(url, magnet, download_dir, play_torrent)
+        if tracking_data:
+            tracking.track(tracking_data['event'], tracking_data['properties'])
+        return scrapmagnet.play_torrent(url, magnet, download_dir, tracking_data, play_torrent)
     else:
         Log.Error('Torrent proxy is not configured properly. Aborting.')
         raise Ex.MediaNotAvailable

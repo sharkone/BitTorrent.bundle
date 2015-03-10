@@ -1,18 +1,19 @@
 ###############################################################################
+import hashlib
 import mixpanel
 import uuid
 
 ###############################################################################
-TOKEN = '6e7ecd86cf4fa3cf08ddaf8ab3de81d6'
+TOKEN = 'fc9be0efdde56b4896b4a6cac1acef49'
 
 ###############################################################################
 def people_set(properties={}, meta={}):
     try:
         meta['$ip'] = Network.PublicAddress
 
-        properties['Server OS']       = str(Platform.OS)
-        properties['Server CPU']      = str(Platform.CPU)
-        properties['Channel Version'] = SharedCodeService.common.VERSION
+        properties['Server OS']       = Platform.OS
+        properties['Server CPU']      = Platform.CPU
+        properties['Channel Version'] = common.VERSION
 
         mp = mixpanel.Mixpanel(TOKEN)
         mp.people_set(get_distinct_id(), properties, meta)
@@ -23,24 +24,21 @@ def people_set(properties={}, meta={}):
 ###############################################################################
 def track(event, properties={}, meta={}):
     try:
-        meta['$ip'] = Network.PublicAddress
+        if Client.Product or Client.Platform:
+            meta['$ip'] = Network.PublicAddress
 
-        properties['Server OS']       = str(Platform.OS)
-        properties['Server CPU']      = str(Platform.CPU)
-        properties['Client Product']  = str(Client.Product)
-        properties['Client Platform'] = str(Client.Platform)
-        properties['Channel Version'] = SharedCodeService.common.VERSION
+            properties['Server OS']       = Platform.OS
+            properties['Server CPU']      = Platform.CPU
+            properties['Channel Version'] = common.VERSION
+            properties['Client Product']  = Client.Product
+            properties['Client Platform'] = Client.Platform
 
-        mp = mixpanel.Mixpanel(TOKEN)
-        mp.track(get_distinct_id(), event, properties, meta)
-        Log.Info('Sent tracking event: {0}'.format(event))
+            mp = mixpanel.Mixpanel(TOKEN)
+            mp.track(get_distinct_id(), event, properties, meta)
+            Log.Info('Sent tracking event: {0}'.format(event))
     except Exception as exception:
         Log.Error('Unhandled exception: {0}'.format(exception))
 
 ###############################################################################
 def get_distinct_id():
-    if not 'distinct_id' in Dict:
-        Dict['distinct_id'] = uuid.uuid4().hex
-        Dict.Save()
-
-    return Dict['distinct_id']
+    return hashlib.sha1(Platform.OS + Platform.CPU + Network.PublicAddress).hexdigest()

@@ -6,6 +6,7 @@ import stat
 import socket
 import subprocess
 import time
+import tracking
 import urllib2
 import utils
 
@@ -115,7 +116,7 @@ def get_exec_path():
     Log.Error('Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
-def play_torrent(url, magnet, download_dir, play_func):
+def play_torrent(url, magnet, download_dir, tracking_data, play_func):
     try:
         download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
         add_json     = JSON.ObjectFromURL(get_url('add?magnet={0}&download_dir={1}'.format(String.Quote(magnet), String.Quote(download_dir))), cacheTime=0)
@@ -134,12 +135,16 @@ def play_torrent(url, magnet, download_dir, play_func):
                     best_file_info = file_info
 
             if best_file_info['complete_pieces'] > 0:
+                if tracking_data:
+                    tracking_data['properties']['State'] = 'Playing'
+                    tracking.track(tracking_data['event'], tracking_data['properties'])
+                    tracking_data = {}
                 return IndirectResponse(VideoClipObject, key=get_url('files/{0}/{1}'.format(info_hash, String.Quote(best_file_info['path']))))
 
         time.sleep(2)
         need_redirect = str(Client.Platform) == 'Plex Home Theater'
         if need_redirect:
-            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir))
+            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, tracking_data=tracking_data))
 
 ###############################################################################
 def get_url(page):

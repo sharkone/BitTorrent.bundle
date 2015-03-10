@@ -1,7 +1,4 @@
 ################################################################################
-import tracking
-
-################################################################################
 SUBPREFIX = 'tvshows'
 
 ################################################################################
@@ -150,8 +147,6 @@ def season_menu(title, show_title, trakt_slug, season_index):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
 def episode_menu(show_title, trakt_slug, season_index, episode_index):
-    tracking.track('/TV Shows/Episode', { 'Title': show_title, 'Season': season_index, 'Episode': episode_index })
-
     object_container = ObjectContainer()
 
     json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index) + '/episode/' + str(episode_index)

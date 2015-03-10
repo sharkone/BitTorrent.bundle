@@ -34,10 +34,10 @@ class Mixpanel(object):
         provided, Mixpanel will use the default Consumer, which
         communicates one synchronous request for every message.
         """
-        self._token = token
-        self._consumer = consumer or Consumer()
+        self.token = token
+        self.consumer = consumer or Consumer()
 
-    def _now(self):
+    def now(self):
         return time.time()
 
     def track(self, distinct_id, event_name, properties={}, meta={}):
@@ -59,9 +59,9 @@ class Mixpanel(object):
           })
         """
         all_properties = {
-            'token': self._token,
+            'token': self.token,
             'distinct_id': distinct_id,
-            'time': int(self._now()),
+            'time': int(self.now()),
             'mp_lib': 'python',
             '$lib_version': VERSION,
         }
@@ -71,7 +71,7 @@ class Mixpanel(object):
             'properties': all_properties,
         }
         event.update(meta)
-        self._consumer.send('events', json.dumps(event, separators=(',', ':')))
+        self.consumer.send('events', json.dumps(event, separators=(',', ':')))
 
     def alias(self, alias_id, original, meta={}):
         """
@@ -86,7 +86,7 @@ class Mixpanel(object):
         self.track(original, '$create_alias', {
             'distinct_id': original,
             'alias': alias_id,
-            'token': self._token,
+            'token': self.token,
         }, meta=meta)
 
     def people_set(self, distinct_id, properties, meta={}):
@@ -234,12 +234,12 @@ class Mixpanel(object):
         https://mixpanel.com/help/reference/http
         """
         record = {
-            '$token': self._token,
-            '$time': int(self._now() * 1000),
+            '$token': self.token,
+            '$time': int(self.now() * 1000),
         }
         record.update(message)
         record.update(meta)
-        self._consumer.send('people', json.dumps(record, separators=(',', ':')))
+        self.consumer.send('people', json.dumps(record, separators=(',', ':')))
 
 
 class MixpanelException(Exception):
@@ -258,7 +258,7 @@ class Consumer(object):
     objects- if you don't provide your own, you get one of these.
     """
     def __init__(self, events_url=None, people_url=None):
-        self._endpoints = {
+        self.endpoints = {
             'events': events_url or 'https://api.mixpanel.com/track',
             'people': people_url or 'https://api.mixpanel.com/engage',
         }
@@ -279,12 +279,12 @@ class Consumer(object):
         :type json_message: str
         :raises: MixpanelException
         """
-        if endpoint in self._endpoints:
-            self._write_request(self._endpoints[endpoint], json_message)
+        if endpoint in self.endpoints:
+            self.write_request(self.endpoints[endpoint], json_message)
         else:
-            raise MixpanelException('No such endpoint "{0}". Valid endpoints are one of {1}'.format(self._endpoints.keys()))
+            raise MixpanelException('No such endpoint "{0}". Valid endpoints are one of {1}'.format(self.endpoints.keys()))
 
-    def _write_request(self, request_url, json_message):
+    def write_request(self, request_url, json_message):
         data = urllib.urlencode({
             'data': base64.b64encode(json_message),
             'verbose': 1,
@@ -318,12 +318,12 @@ class BufferedConsumer(object):
     send all remaining unsent events being held by the BufferedConsumer.
     """
     def __init__(self, max_size=50, events_url=None, people_url=None):
-        self._consumer = Consumer(events_url, people_url)
-        self._buffers = {
+        self.consumer = Consumer(events_url, people_url)
+        self.buffers = {
             'events': [],
             'people': [],
         }
-        self._max_size = min(50, max_size)
+        self.max_size = min(50, max_size)
 
     def send(self, endpoint, json_message):
         """
@@ -341,13 +341,13 @@ class BufferedConsumer(object):
         :type json_message: str
         :raises: MixpanelException
         """
-        if endpoint not in self._buffers:
-            raise MixpanelException('No such endpoint "{0}". Valid endpoints are one of {1}'.format(self._buffers.keys()))
+        if endpoint not in self.buffers:
+            raise MixpanelException('No such endpoint "{0}". Valid endpoints are one of {1}'.format(self.buffers.keys()))
 
-        buf = self._buffers[endpoint]
+        buf = self.buffers[endpoint]
         buf.append(json_message)
-        if len(buf) >= self._max_size:
-            self._flush_endpoint(endpoint)
+        if len(buf) >= self.max_size:
+            self.flush_endpoint(endpoint)
 
     def flush(self):
         """
@@ -365,18 +365,18 @@ class BufferedConsumer(object):
 
         :raises: MixpanelException
         """
-        for endpoint in self._buffers.keys():
-            self._flush_endpoint(endpoint)
+        for endpoint in self.buffers.keys():
+            self.flush_endpoint(endpoint)
 
-    def _flush_endpoint(self, endpoint):
-        buf = self._buffers[endpoint]
+    def flush_endpoint(self, endpoint):
+        buf = self.buffers[endpoint]
         while buf:
-            batch = buf[:self._max_size]
+            batch = buf[:self.max_size]
             batch_json = '[{0}]'.format(','.join(batch))
             try:
-                self._consumer.send(endpoint, batch_json)
+                self.consumer.send(endpoint, batch_json)
             except MixpanelException as e:
                 e.message = 'batch_json'
                 e.endpoint = endpoint
-            buf = buf[self._max_size:]
-        self._buffers[endpoint] = buf
+            buf = buf[self.max_size:]
+        self.buffers[endpoint] = buf

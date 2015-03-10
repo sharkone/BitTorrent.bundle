@@ -1,7 +1,4 @@
 ################################################################################
-import tracking
-
-################################################################################
 SUBPREFIX = 'movies'
 
 ################################################################################
@@ -92,8 +89,6 @@ def search_menu(title, query):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie')
 def movie_menu(title, trakt_slug):
-    tracking.track('/Movies/Movie', { 'Title': title })
-
     object_container = ObjectContainer(title2=title)
 
     if 'movies_watchlist' in Dict and trakt_slug in Dict['movies_watchlist']:

@@ -48,22 +48,10 @@
         "default":  "600"
     },
     {
-        "id":       "MOVIES_ENABLED",
-        "label":    "Enable Movies category",
-        "type":     "bool",
-        "default":  "true"
-    },
-    {
         "id":       "MOVIES_DOWNLOAD_DIR",
         "label":    "Movies download directory",
         "type":     "text",
         "default":  "."
-    },
-    {
-        "id":       "TVSHOWS_ENABLED",
-        "label":    "Enable TV Shows category",
-        "type":     "bool",
-        "default":  "true"
     },
     {
         "id":       "TVSHOWS_DOWNLOAD_DIR",
@@ -76,12 +64,6 @@
         "label":    "VPN Fix (only enable if not working already)",
         "type":     "bool",
         "default":  "false"
-    },
-    {
-        "id":       "METADATA_TIMEOUT",
-        "label":    "Metadata timeout (in s)",
-        "type":     "text",
-        "default":  "60"
     },
     {
         "id":       "TORRENT_PROXY_TYPE",

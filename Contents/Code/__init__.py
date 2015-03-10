@@ -2,8 +2,6 @@
 import movies_menu
 import tvshows_menu
 
-import tracking
-
 ################################################################################
 TITLE  = 'BitTorrent'
 ART    = 'art-default.jpg'
@@ -34,9 +32,7 @@ def Start():
     Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))
     Log.Info(' - Maximum upload rate:     {0}'.format(Prefs['MAX_UPLOAD_RATE']))
     Log.Info(' - Keep files:              {0}'.format(Prefs['KEEP_FILES']))
-    Log.Info(' - Movies enabled:          {0}'.format(Prefs['MOVIES_ENABLED']))
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))
-    Log.Info(' - TV shows enabled:        {0}'.format(Prefs['TVSHOWS_ENABLED']))
     Log.Info(' - TV shows download dir:   {0}'.format(Prefs['TVSHOWS_DOWNLOAD_DIR']))
     Log.Info(' - VPN Fix enabled:         {0}'.format(Prefs['VPN_FIX']))
     Log.Info(' - Metadata timeout:        {0}'.format(Prefs['METADATA_TIMEOUT']))
@@ -45,7 +41,7 @@ def Start():
     Log.Info(' - Torrent Proxy port:      {0}'.format(Prefs['TORRENT_PROXY_PORT']))
     Log.Info('============================================')
     
-    tracking.people_set()
+    SharedCodeService.tracking.people_set()
     SharedCodeService.scrapmagnet.stop()
     Thread.Create(SharedCodeService.scrapmagnet.log_thread_func)
     SharedCodeService.scrapmagnet.start()
@@ -60,13 +56,8 @@ def Main():
     Log.Info('============================================')
 
     object_container = ObjectContainer(title2=TITLE)
-    
-    if Prefs['MOVIES_ENABLED']:
-        object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies'))
-    
-    if Prefs['TVSHOWS_ENABLED']:
-        object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows"))
-    
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies'))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows"))
     object_container.add(PrefsObject(title='Preferences', summary='Preferences for BitTorrent channel'))
     object_container.add(DirectoryObject(key=Callback(about_menu, title='About'), title='About', summary='About BitTorrent channel', thumb=R('about.png')))
     return object_container
