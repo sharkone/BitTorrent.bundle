@@ -1,5 +1,6 @@
 ###############################################################################
 import common
+import platform
 import os
 import re
 import stat
