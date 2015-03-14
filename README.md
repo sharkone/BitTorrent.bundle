@@ -5,15 +5,7 @@ BitTorrent channel for Plex Media Server
 
 -----------------
 
-Installation
-------------
-- Available through the [Unsupported AppStore](https://github.com/mikedm139/UnSupportedAppstore.bundle) 
-
-Known issues:
--------------
-
-Due to a bug in the current version of Plex Home Theater, make sure to set your preferences using the web interface before
-using the channel.
+[Official thread on the Plex forum](https://forums.plex.tv/index.php/topic/102253-rel-bittorrent-channel/)
 
 =================
 
