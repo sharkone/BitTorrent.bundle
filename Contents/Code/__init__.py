@@ -1,6 +1,7 @@
 ################################################################################
 import movies_menu
 import tvshows_menu
+import updater
 
 ################################################################################
 TITLE  = 'BitTorrent'
@@ -54,10 +55,15 @@ def Main():
     Log.Info('============================================')
 
     object_container = ObjectContainer(title2=TITLE)
-    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies'))
-    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows"))
-    object_container.add(PrefsObject(title='Preferences', summary='Preferences for BitTorrent channel'))
-    object_container.add(DirectoryObject(key=Callback(about_menu, title='About'), title='About', summary='About BitTorrent channel', thumb=R('about.png')))
+
+    if updater.update_available():
+        object_container.add(updater.create_button())
+
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies.'))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows."))
+    object_container.add(PrefsObject(title='Preferences', summary='Preferences for BitTorrent channel.'))
+    object_container.add(DirectoryObject(key=Callback(about_menu, title='About'), title='About', summary='About BitTorrent channel.', thumb=R('about.png')))
+
     return object_container
 
 ################################################################################
@@ -93,7 +99,7 @@ def about_menu(title):
         local_ip_summary = 'Local IP is properly determined.'
     else:
         local_ip_result  = 'ERROR'
-        local_ip_summary = 'Unable to determine local IP'
+        local_ip_summary = 'Unable to determine local IP.'
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Local IP: {0}'.format(local_ip_result), summary=local_ip_summary))
 
     # Public IP
@@ -103,7 +109,7 @@ def about_menu(title):
         public_ip_summary = 'Public IP is properly determined.'
     else:
         public_ip_result  = 'ERROR'
-        public_ip_summary = 'Unable to determine public IP'
+        public_ip_summary = 'Unable to determine public IP.'
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Public IP: {0}'.format(public_ip_result), summary=public_ip_summary))
     
     # Torrent Proxy
