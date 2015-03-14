@@ -1,4 +1,5 @@
 ###############################################################################
+import base64
 import common
 import platform
 import os
@@ -6,20 +7,25 @@ import re
 import stat
 import socket
 import subprocess
-import time
-import tracking
 import urllib2
 import utils
 
 ###############################################################################
 RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
+MIXPANEL_TOKEN      = '63b4a20135a998db7eef5bbca5743df6'
 
 ###############################################################################
 def log_thread_func():
     Log.Info('Log thread starting')
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(("0.0.0.0", common.LOG_PORT))
+
+    while True:
+        try:
+            sock.bind(("0.0.0.0", common.LOG_PORT))
+            break
+        except:
+            pass
 
     while True:
         try:
@@ -58,6 +64,10 @@ def start():
         inactivity_remove_timeout = 0
         Log.Error('Invalid Torrent inactivity remove timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT'], inactivity_remove_timeout))
 
+    mixpanel_data = { 'Channel Version': common.VERSION }
+    mixpanel_data = JSON.StringFromObject(mixpanel_data)
+    mixpanel_data = base64.b64encode(mixpanel_data)
+
     command =   [
                     get_exec_path(),
                     '-http-port', str(common.HTTP_PORT),
@@ -74,6 +84,8 @@ def start():
                     '-proxy-port', str(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else "1080",
                     '-proxy-user', str(Prefs['TORRENT_PROXY_USER']),
                     '-proxy-password', str(Prefs['TORRENT_PROXY_PASSWORD']),
+                    '-mixpanel-token', MIXPANEL_TOKEN,
+                    '-mixpanel-data', mixpanel_data,
                 ]
 
     Log.Info(' '.join(command))
@@ -86,13 +98,21 @@ def start():
 
 ###############################################################################
 def is_running():
-    return get_server_status() != None
+    try:
+        JSON.ObjectFromURL(get_url(''), cacheTime=0, timeout=5)
+        return True
+    except urllib2.URLError as exception:
+        Log.Error('Server unreachable: {0}'.format(repr(exception)))
+    except Exception as exception:
+        Log.Error('Unhandled exception: {0}'.format(repr(exception)))
+
+    return False
 
 ###############################################################################
 def stop():
     try:
         Log.Info('Stopping scrapmagnet')
-        HTML.ElementFromURL(get_url('shutdown'), cacheTime=0)
+        HTML.ElementFromURL(get_url('shutdown'), cacheTime=0, timeout=5)
     except:
         pass
 
@@ -117,47 +137,6 @@ def get_exec_path():
     Log.Error('Unsupported OS: {0}'.format(Platform.OS))
 
 ###############################################################################
-def play_torrent(url, magnet, download_dir, tracking_data, play_func):
-    try:
-        download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
-        add_json     = JSON.ObjectFromURL(get_url('add?magnet={0}&download_dir={1}'.format(String.Quote(magnet), String.Quote(download_dir))), cacheTime=0)
-    except urllib2.URLError as exception:
-        Log.Error('Server unreachable: {0}'.format(exception.reason))
-        raise Ex.MediaNotAvailable
-    
-    while True:
-        info_hash   = RE_MAGNET_INFO_HASH.search(magnet).group(1).upper()
-        status_json = JSON.ObjectFromURL(get_url('files/{0}'.format(info_hash)), cacheTime=0)
-
-        if status_json['files']:
-            best_file_info = None
-            for file_info in status_json['files']:
-                if not best_file_info or best_file_info['size'] < file_info['size']:
-                    best_file_info = file_info
-
-            if best_file_info['complete_pieces'] > 0:
-                if tracking_data and tracking_data['properties']['State'] == 'Buffering':
-                    tracking_data['properties']['State'] = 'Playing'
-                    tracking.track(tracking_data['event'], tracking_data['properties'])
-                    tracking_data = {}
-                return IndirectResponse(VideoClipObject, key=get_url('files/{0}/{1}'.format(info_hash, String.Quote(best_file_info['path']))))
-
-        time.sleep(2)
-        need_redirect = str(Client.Platform) == 'Plex Home Theater'
-        if need_redirect:
-            return IndirectResponse(VideoClipObject, key=Callback(play_func, url=url, magnet=magnet, download_dir=download_dir, tracking_data=tracking_data))
-
-###############################################################################
 def get_url(page):
     local_host = utils.get_local_host()
     return 'http://{0}:{1}/{2}'.format(local_host, common.HTTP_PORT, page)
-
-###############################################################################
-def get_server_status():
-    try:
-        status_json = JSON.ObjectFromURL(get_url('files'), cacheTime=0, timeout=5)
-        return status_json
-    except urllib2.URLError as exception:
-        Log.Error('Server unreachable: {0}'.format(repr(exception)))
-    except Exception as exception:
-        Log.Error('Unhandled exception: {0}'.format(repr(exception)))

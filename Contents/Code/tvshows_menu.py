@@ -5,18 +5,18 @@ SUBPREFIX = 'tvshows'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='TV Shows')
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1, per_page=31), title='Trending', summary='Browse TV shows currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1), title='Trending', summary='Browse TV shows currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1), title='Popular', summary='Browse most popular TV shows.'))
     object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))    
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', page_index=int, per_page=int)
-def shows_menu(title, page, page_index, per_page):
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', page_index=int)
+def shows_menu(title, page, page_index):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
+    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}'.format(page_index)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
@@ -28,7 +28,7 @@ def shows_menu(title, page, page_index, per_page):
             object_container.add(show_object)
 
     if (page_index + 1) <= 10:
-        object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1, per_page=per_page), title="More..."))
+        object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1), title="More..."))
 
     return object_container
 

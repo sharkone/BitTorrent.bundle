@@ -1,10 +1,12 @@
 ################################################################################
 import common
+import os
 import re
 import scrapmagnet
-import tracking
+import time
 import utils
 
+################################################################################
 RE_MAGNET = re.compile('\?magnet=(.+)$')
 
 ################################################################################
@@ -44,13 +46,14 @@ def MediaObjectsForURL(url):
             if magnet_data['link'] == magnet:
                 if '/api/movie' in url:
                     download_dir  = Prefs['MOVIES_DOWNLOAD_DIR']
-                    tracking_data = { 'event': 'Movie', 'properties': { 'State': 'Unset', 'Title': json_data['title'], 'Magnet': magnet_data['title'] } }
                 elif '/api/show' in url:
                     download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
-                    tracking_data = { 'event': 'Show', 'properties': { 'State': 'Unset', 'Title': json_data['show_title'], 'Season': json_data['season_index'], 'Episode': json_data['episode_index'], 'Magnet': magnet_data['title'] } }
+
+                download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
+                video_url    = scrapmagnet.get_url('video?magnet_link={0}&download_dir={1}'.format(String.Quote(magnet_data['link']), String.Quote(download_dir)))
 
                 media_object = MediaObject()
-                media_object.add(PartObject(key=Callback(play_torrent, url=url, magnet=magnet, download_dir=download_dir, tracking_data=tracking_data)))
+                media_object.add(PartObject(key=Callback(play_torrent_indirect, url=video_url)))
 
                 if title_contains_pattern(magnet_data['title'], ['avi']):
                     media_object.container = 'avi'
@@ -91,6 +94,27 @@ def MediaObjectsForURL(url):
 
                 return [media_object]
 
+###############################################################################
+@indirect
+def play_torrent_indirect(url):
+    if utils.is_connection_allowed():
+        try:
+            video_preview = JSON.ObjectFromURL(url + '&preview=1', cacheTime=0, timeout=5)
+        except urllib2.URLError as exception:
+            Log.Error('Server unreachable: {0}'.format(repr(exception)))
+            raise Ex.MediaNotAvailable
+
+        if not video_preview or video_preview['video_ready'] == False:
+            time.sleep(2)
+            Log.Info('Video is not ready yet, redirecting')
+            return IndirectResponse(VideoClipObject, key=Callback(play_torrent_indirect, url=url))
+
+        Log.Info('Video is ready')
+        return IndirectResponse(VideoClipObject, key=url)
+    else:
+        Log.Error('Torrent proxy is not configured properly. Aborting.')
+        raise Ex.MediaNotAvailable
+
 ################################################################################
 def get_image_async(url):
     return Redirect(url)
@@ -100,16 +124,3 @@ def title_contains_pattern(title, pattern_list):
     for pattern in pattern_list:
         if pattern.lower() in title.lower():
             return True
-
-###############################################################################
-@indirect
-def play_torrent(url, magnet, download_dir, tracking_data={}):
-    if utils.is_connection_allowed():
-        if tracking_data and tracking_data['properties']['State'] == 'Unset':
-            tracking_data['properties']['State'] = 'Buffering'
-            if Client.Product != 'Plex for Roku':
-                tracking.track(tracking_data['event'], tracking_data['properties'])
-        return scrapmagnet.play_torrent(url, magnet, download_dir, tracking_data, play_torrent)
-    else:
-        Log.Error('Torrent proxy is not configured properly. Aborting.')
-        raise Ex.MediaNotAvailable

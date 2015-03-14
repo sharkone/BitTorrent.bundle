@@ -5,18 +5,18 @@ SUBPREFIX = 'movies'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='Movies')
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/api/movies/trending', page_index=1, per_page=31), title='Trending', summary='Browse movies currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/api/movies/popular', page_index=1, per_page=31), title='Popular', summary='Browse most popular movies.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/api/movies/trending', page_index=1), title='Trending', summary='Browse movies currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/api/movies/popular', page_index=1), title='Popular', summary='Browse most popular movies.'))
     object_container.add(DirectoryObject(key=Callback(watchlist_menu, title='Watchlist'), title='Watchlist', summary='Browse your watchlist', thumb=R('favorites.png')))
     object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', page_index=int, per_page=int)
-def movies_menu(title, page, page_index, per_page):
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', page_index=int)
+def movies_menu(title, page, page_index):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}&limit={1}'.format(page_index, per_page)
+    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}'.format(page_index)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
     if json_data and 'movies' in json_data:
@@ -32,7 +32,7 @@ def movies_menu(title, page, page_index, per_page):
             object_container.add(directory_object)
     
     if (page_index + 1) <= 10:
-        object_container.add(NextPageObject(key=Callback(movies_menu, title=title, page=page, page_index=page_index + 1, per_page=per_page), title="More..."))
+        object_container.add(NextPageObject(key=Callback(movies_menu, title=title, page=page, page_index=page_index + 1), title="More..."))
     
     return object_container
 
