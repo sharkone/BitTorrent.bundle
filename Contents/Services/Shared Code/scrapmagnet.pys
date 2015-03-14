@@ -70,6 +70,7 @@ def start():
 
     command =   [
                     get_exec_path(),
+                    '-ppid', str(os.getpid()),
                     '-http-port', str(common.HTTP_PORT),
                     '-log-port', str(common.LOG_PORT),
                     '-bittorrent-port', str(Prefs['INCOMING_PORT']),
