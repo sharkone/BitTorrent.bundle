@@ -4,6 +4,7 @@ import os
 import re
 import scrapmagnet
 import time
+import urllib2
 import utils
 
 ################################################################################
