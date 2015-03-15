@@ -115,7 +115,7 @@ def stop():
     try:
         Log.Info('Stopping scrapmagnet')
         HTML.ElementFromURL(get_url('shutdown'), cacheTime=0, timeout=5)
-        while is_running:
+        while is_running():
             time.sleep(100)
     except:
         pass
