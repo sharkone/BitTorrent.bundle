@@ -78,7 +78,7 @@ def about_menu(title):
     scrapyard_server_result  = 'Available'
     scrapyard_server_summary = Prefs['SCRAPYARD_URL'] + ' is available.'
     try:
-        HTML.ElementFromURL(Prefs['SCRAPYARD_URL'], timeout=5.0)
+        HTML.ElementFromURL(Prefs['SCRAPYARD_URL'], timeout=5)
     except:
         scrapyard_server_result  = 'Unavailable'
         scrapyard_server_summary = Prefs['SCRAPYARD_URL'] + ' is unavailable, check URL the in Preferences.'

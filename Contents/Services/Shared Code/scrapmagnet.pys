@@ -8,7 +8,6 @@ import stat
 import socket
 import subprocess
 import time
-import urllib2
 import utils
 
 ###############################################################################
@@ -101,12 +100,10 @@ def start():
 ###############################################################################
 def is_running():
     try:
-        JSON.ObjectFromURL(get_url(''), cacheTime=0, timeout=5)
+        JSON.ObjectFromURL(get_url(''), cacheTime=0, timeout=10)
         return True
-    except urllib2.URLError as exception:
-        Log.Error('Server unreachable: {0}'.format(repr(exception)))
     except Exception as exception:
-        Log.Error('Unhandled exception: {0}'.format(repr(exception)))
+        Log.Error('Server unreachable: {0}'.format(repr(exception)))
 
     return False
 
@@ -114,7 +111,7 @@ def is_running():
 def stop():
     try:
         Log.Info('Stopping scrapmagnet')
-        HTML.ElementFromURL(get_url('shutdown'), cacheTime=0, timeout=5)
+        HTML.ElementFromURL(get_url('shutdown'), cacheTime=0, timeout=10)
         while is_running():
             time.sleep(100)
     except:

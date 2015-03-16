@@ -4,7 +4,6 @@ import os
 import re
 import scrapmagnet
 import time
-import urllib2
 import utils
 
 ################################################################################
@@ -105,12 +104,12 @@ def MediaObjectsForURL(url):
 def play_torrent_indirect(url):
     if utils.is_connection_allowed():
         try:
-            video_preview = JSON.ObjectFromURL(url + '&preview=1', cacheTime=0, timeout=5)
-        except urllib2.URLError as exception:
+            video_preview = JSON.ObjectFromURL(url + '&preview=1', cacheTime=0, timeout=10)
+        except Exception as exception:
             Log.Error('Server unreachable: {0}'.format(repr(exception)))
             raise Ex.MediaNotAvailable
 
-        if not video_preview or video_preview['video_ready'] == False:
+        if video_preview['video_ready'] == False:
             time.sleep(2)
             Log.Info('Video is not ready yet, redirecting')
             return IndirectResponse(VideoClipObject, key=Callback(play_torrent_indirect, url=url))
