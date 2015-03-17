@@ -51,8 +51,13 @@ def MediaObjectsForURL(url):
                 elif '/api/show' in url:
                     download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
 
+                if Client.Product == "Plex Web":
+                    look_ahead = 0.0
+                else:
+                    look_ahead = 0.005
+
                 download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
-                video_url    = scrapmagnet.get_url('video?magnet_link={0}&download_dir={1}'.format(String.Quote(magnet_data['link']), String.Quote(download_dir)))
+                video_url    = scrapmagnet.get_url('video?magnet_link={0}&download_dir={1}&look_ahead={2}'.format(String.Quote(magnet_data['link']), String.Quote(download_dir), look_ahead))
 
                 media_object = MediaObject()
                 media_object.add(PartObject(key=Callback(play_torrent_indirect, url=video_url)))
