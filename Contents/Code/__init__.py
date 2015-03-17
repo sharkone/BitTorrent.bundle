@@ -125,7 +125,6 @@ def about_menu(title):
         except Exception as exception:
             torrent_proxy_result  = 'ERROR'
             torrent_proxy_summary = 'Torrent proxy is not working properly: {0}'.format(exception)
-            Log.Error(torrent_proxy_summary)
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Torrent Proxy: {0}'.format(torrent_proxy_result), summary=torrent_proxy_summary))
 
     return object_container

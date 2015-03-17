@@ -53,12 +53,6 @@ def start():
         Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_UPLOAD_RATE'], max_upload_rate))
 
     try:
-        inactivity_pause_timeout = int(float(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT']))
-    except:
-        inactivity_pause_timeout = 30
-        Log.Error('Invalid Torrent inactivity pause timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT'], inactivity_pause_timeout))
-
-    try:
         inactivity_remove_timeout = int(float(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT']))
     except:
         inactivity_remove_timeout = 0
@@ -78,7 +72,6 @@ def start():
                     '-upnp-natpmp-enabled={0}'.format(Prefs['UPNP_NATPMP_ENABLED']),
                     '-max-download-rate', str(max_download_rate),
                     '-max-upload-rate', str(max_upload_rate),
-                    '-inactivity-pause-timeout', str(inactivity_pause_timeout),
                     '-inactivity-remove-timeout', str(inactivity_remove_timeout),
                     '-proxy-type', str(Prefs['TORRENT_PROXY_TYPE']),
                     '-proxy-host', str(Prefs['TORRENT_PROXY_HOST']),
