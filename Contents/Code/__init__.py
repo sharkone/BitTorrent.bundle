@@ -90,6 +90,9 @@ def about_menu(title):
     if not SharedCodeService.scrapmagnet.is_running():
         scrapmagnet_result  = 'ERROR'
         scrapmagnet_summary = 'Scrapmagnet is not running.'
+    elif not SharedCodeService.scrapmagnet.is_incoming_port_open():
+        scrapmagnet_result  = 'WARNING'
+        scrapmagnet_summary = 'Scrapmagnet incoming port ({0}) is not visible from the Internet. Transfer speeds won\'t be optimal.'.format(Prefs['INCOMING_PORT'])
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Scrapmagnet: {0}'.format(scrapmagnet_result), summary=scrapmagnet_summary))
 
     # Local IP

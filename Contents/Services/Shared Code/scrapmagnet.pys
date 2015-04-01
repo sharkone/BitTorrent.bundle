@@ -101,6 +101,14 @@ def is_running():
     return False
 
 ###############################################################################
+def is_incoming_port_open():
+    try:
+        result = JSON.ObjectFromURL('http://tuq.in/tools/port.json?port={0}'.format(str(Prefs['INCOMING_PORT'])))
+        return (result == True)
+    except Exception as exception:
+        Log.Error('Unable to check if incoming is open: {0}'.format(repr(exception)))
+
+###############################################################################
 def stop():
     try:
         Log.Info('Stopping scrapmagnet')
