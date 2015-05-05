@@ -28,6 +28,7 @@ def Start():
     Log.Info('--------------------------------------------')
     Log.Info('Preferences:')
     Log.Info(' - Scrapyard server URL:    {0}'.format(Prefs['SCRAPYARD_URL']))
+    Log.Info(' - Scrapmagnet version:     {0}'.format(Prefs['SCRAPMAGNET_VERSION']))
     Log.Info(' - Torrent incoming port:   {0}'.format(Prefs['INCOMING_PORT']))
     Log.Info(' - UPnP / NAT-PMP enabled:  {0}'.format(Prefs['UPNP_NATPMP_ENABLED']))
     Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))

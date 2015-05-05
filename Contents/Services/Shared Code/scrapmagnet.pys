@@ -129,9 +129,13 @@ def get_exec_path():
     if Platform.OS == 'MacOSX':
         return os.path.join(get_bin_dir(), 'darwin_amd64', 'scrapmagnet')
     elif Platform.OS == 'Linux':
-        if platform.architecture()[0] == '64bit':
+        if Prefs['SCRAPMAGNET_VERSION'] != 'Auto':
+            architecture = Prefs['SCRAPMAGNET_VERSION']
+        else:
+            architecture = platform.architecture()[0]
+        if architecture == '64bit':
             return os.path.join(get_bin_dir(), 'linux_amd64', 'scrapmagnet')
-        elif platform.architecture()[0] == '32bit':
+        elif architecture == '32bit':
             return os.path.join(get_bin_dir(), 'linux_386', 'scrapmagnet')
     elif Platform.OS == 'Windows':
         return os.path.join(get_bin_dir(), 'windows_386', 'scrapmagnet.exe')

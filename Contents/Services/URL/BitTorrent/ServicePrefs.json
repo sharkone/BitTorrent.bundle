@@ -6,6 +6,13 @@
         "default":  "http://scrapyard.en-mousse.org"
     },
     {
+        "id":       "SCRAPMAGNET_VERSION",
+        "label":    "Scrapmagnet version",
+        "type":     "enum",
+        "values":   ["Auto", "32bit", "64bit"],
+        "default":  "Auto"
+    },
+    {
         "id":       "INCOMING_PORT",
         "label":    "Torrent incoming port",
         "type":     "text",
