@@ -40,9 +40,8 @@ def favorites_menu(title):
     object_container = ObjectContainer(title2=title)
     
     json_url = Prefs['SCRAPYARD_URL'] + '/api/shows/favorites?'
-    for trakt_slug in trakt_slugs:
-        json_url += 'id={0}&'.format(trakt_slug)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_post = { 'shows_favorites': JSON.StringFromObject(trakt_slugs) }
+    json_data = JSON.ObjectFromURL(json_url, values=json_post, cacheTime=CACHE_1HOUR)
 
     if json_data and 'shows' in json_data:
         for json_item in json_data['shows']:
