@@ -36,12 +36,11 @@ def Start():
     Log.Info(' - Keep files:              {0}'.format(Prefs['KEEP_FILES']))
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))
     Log.Info(' - TV shows download dir:   {0}'.format(Prefs['TVSHOWS_DOWNLOAD_DIR']))
-    Log.Info(' - VPN Fix enabled:         {0}'.format(Prefs['VPN_FIX']))
     Log.Info(' - Torrent Proxy type:      {0}'.format(Prefs['TORRENT_PROXY_TYPE']))
     Log.Info(' - Torrent Proxy host:      {0}'.format(Prefs['TORRENT_PROXY_HOST']))
     Log.Info(' - Torrent Proxy port:      {0}'.format(Prefs['TORRENT_PROXY_PORT']))
     Log.Info('============================================')
-    
+
     SharedCodeService.scrapmagnet.stop()
     Thread.Create(SharedCodeService.scrapmagnet.log_thread_func)
     SharedCodeService.scrapmagnet.start()
@@ -74,7 +73,7 @@ def about_menu(title):
 
     # Channel Version
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Channel version: {0}'.format(SharedCodeService.common.VERSION), summary='Current version of the BitTorrent channel.'))
-    
+
     # Scrapyard server
     scrapyard_server_result  = 'Available'
     scrapyard_server_summary = Prefs['SCRAPYARD_URL'] + ' is available.'
@@ -115,7 +114,7 @@ def about_menu(title):
         public_ip_result  = 'ERROR'
         public_ip_summary = 'Unable to determine public IP.'
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Public IP: {0}'.format(public_ip_result), summary=public_ip_summary))
-    
+
     # Torrent Proxy
     if Prefs['TORRENT_PROXY_TYPE'] == 'None':
         torrent_proxy_result  = 'Unused'

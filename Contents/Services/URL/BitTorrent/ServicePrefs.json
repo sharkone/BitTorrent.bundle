@@ -61,12 +61,6 @@
         "default":  "."
     },
     {
-        "id":       "VPN_FIX",
-        "label":    "VPN Fix (only enable if not working already)",
-        "type":     "bool",
-        "default":  "false"
-    },
-    {
         "id":       "TORRENT_PROXY_TYPE",
         "label":    "Torrent Proxy type",
         "type":     "enum",

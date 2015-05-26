@@ -1,11 +1,14 @@
 ###############################################################################
+import socket
 import socks
 
 ###############################################################################
 def get_local_host():
-    host = Network.Address
-    if Prefs['VPN_FIX'] and Network.Hostname:
-        host = Network.Hostname
+    host = Network.Hostname
+    if not host:
+        host = socket.gethostname()
+    if not host:
+        host = 'localhost'
     return host
 
 ###############################################################################
