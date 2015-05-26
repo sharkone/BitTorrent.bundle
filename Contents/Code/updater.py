@@ -14,7 +14,9 @@ def get_latest_version():
 def update_available():
     latest_version = get_latest_version()
     if latest_version:
-        return latest_version > SharedCodeService.common.VERSION
+        latest_version  = map(int, latest_version.split('.'))
+        current_version = map(int, SharedCodeService.common.VERSION.split('.'))
+        return latest_version[0] > current_version[0] or latest_version[1] > current_version[1] or latest_version[2] > current_version[2]
 
 ################################################################################
 def create_button():
