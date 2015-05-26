@@ -1,6 +1,6 @@
 ################################################################################
 PREFIX  = '/video/bittorrent'
-VERSION = '0.8.9'
+VERSION = '0.8.10'
 
 HTTP_PORT = 8042
 LOG_PORT  = 8043
@@ -49,7 +49,7 @@ def fill_show_object(show_object, json_data):
     show_object.content_rating          = json_data['certification']
     show_object.thumb                   = json_data['thumb']
     show_object.art                     = json_data['art']
-    
+
     for genre in json_data['genres']:
         show_object.genres.add(genre)
 
