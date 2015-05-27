@@ -36,9 +36,10 @@ def log_thread_func():
 
 ###############################################################################
 def start():
-    Log.Info('Starting scrapmagnet')
-
-    os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+    try:
+        os.chmod(get_exec_path(), stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+    except Exception as exception:
+        Log.Error('Failed set scrapmagnet permissions: {0}'.format(repr(exception)))
 
     try:
         max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
@@ -82,13 +83,17 @@ def start():
                     '-mixpanel-data', mixpanel_data,
                 ]
 
+    Log.Info('Starting scrapmagnet')
     Log.Info(' '.join(command))
 
-    if Platform.OS == 'Windows':
-        DETACHED_PROCESS = 0x00000008
-        process = subprocess.Popen(command, close_fds=True, creationflags=DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
-    else:
-        process = subprocess.Popen(command)
+    try:
+        if Platform.OS == 'Windows':
+            DETACHED_PROCESS = 0x00000008
+            process = subprocess.Popen(command, close_fds=True, creationflags=DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+        else:
+            process = subprocess.Popen(command)
+    except Exception as exception:
+        Log.Error('Failed to start scrapmagnet: {0}'.format(repr(exception)))
 
 ###############################################################################
 def is_running():
@@ -106,7 +111,7 @@ def is_incoming_port_open():
         result = JSON.ObjectFromURL('http://tuq.in/tools/port.json?port={0}'.format(str(Prefs['INCOMING_PORT'])))
         return (result == True)
     except Exception as exception:
-        Log.Error('Unable to check if incoming is open: {0}'.format(repr(exception)))
+        Log.Error('Failed to check if incoming port is open: {0}'.format(repr(exception)))
 
 ###############################################################################
 def stop():
