@@ -12,17 +12,12 @@ def get_latest_version():
 
 ################################################################################
 def update_available():
-    latest_version = get_latest_version()
-    if latest_version:
-        latest_version  = map(int, latest_version.split('.'))
+    latest_version_str = get_latest_version()
+    if latest_version_str:
+        latest_version  = map(int, latest_version_str.split('.'))
         current_version = map(int, SharedCodeService.common.VERSION.split('.'))
-        return latest_version[0] > current_version[0] or latest_version[1] > current_version[1] or latest_version[2] > current_version[2]
-
-################################################################################
-def create_button():
-    latest_version = get_latest_version()
-    if latest_version:
-        return DirectoryObject(key=Callback(update), title='Update available: {0}'.format(latest_version), summary='Install latest version of the BitTorrent channel.', thumb=R('update.png'))
+        return (latest_version[0] > current_version[0] or latest_version[1] > current_version[1] or latest_version[2] > current_version[2], latest_version_str)
+    return (False, None)
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/update')
