@@ -13,26 +13,16 @@ import utils
 ###############################################################################
 RE_MAGNET_INFO_HASH = re.compile('xt=urn:btih:([a-zA-Z0-9]+)')
 MIXPANEL_TOKEN      = '63b4a20135a998db7eef5bbca5743df6'
+THREAD_CREATE       = None
 
 ###############################################################################
-def log_thread_func():
+def log_thread_func(process):
     Log.Info('Log thread starting')
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    while True:
-        try:
-            sock.bind(("0.0.0.0", common.LOG_PORT))
-            break
-        except:
-            pass
-
-    while True:
-        try:
-            data, _ = sock.recvfrom(65536)
-            Log.Info(data.rstrip())
-        except:
-            pass
+    line = process.stdout.readline()
+    while line:
+        Log.Info(line.rstrip())
+        line = process.stdout.readline()
+    Log.Info('Log thread stopping')
 
 ###############################################################################
 def start():
@@ -91,7 +81,12 @@ def start():
             DETACHED_PROCESS = 0x00000008
             process = subprocess.Popen(command, close_fds=True, creationflags=DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
         else:
-            process = subprocess.Popen(command)
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        global THREAD_CREATE
+        if THREAD_CREATE:
+            THREAD_CREATE(log_thread_func, process=process)
+
     except Exception as exception:
         Log.Error('Failed to start scrapmagnet: {0}'.format(repr(exception)))
 

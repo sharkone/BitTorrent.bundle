@@ -41,8 +41,8 @@ def Start():
     Log.Info(' - Torrent Proxy port:      {0}'.format(Prefs['TORRENT_PROXY_PORT']))
     Log.Info('============================================')
 
+    SharedCodeService.scrapmagnet.THREAD_CREATE = Thread.Create
     SharedCodeService.scrapmagnet.stop()
-    Thread.Create(SharedCodeService.scrapmagnet.log_thread_func)
     SharedCodeService.scrapmagnet.start()
 
 ################################################################################
