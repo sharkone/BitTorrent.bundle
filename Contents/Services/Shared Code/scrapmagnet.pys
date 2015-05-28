@@ -77,11 +77,7 @@ def start():
     Log.Info(' '.join(command))
 
     try:
-        if Platform.OS == 'Windows':
-            DETACHED_PROCESS = 0x00000008
-            process = subprocess.Popen(command, close_fds=True, creationflags=DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
-        else:
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         global THREAD_CREATE
         if THREAD_CREATE:
