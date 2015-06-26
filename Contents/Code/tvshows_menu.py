@@ -8,7 +8,7 @@ def menu():
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1), title='Trending', summary='Browse TV shows currently being watched.'))
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1), title='Popular', summary='Browse most popular TV shows.'))
     object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
-    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))    
+    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))
     return object_container
 
 ################################################################################
@@ -38,7 +38,7 @@ def favorites_menu(title):
     trakt_slugs = Dict['shows_favorites'] if 'shows_favorites' in Dict else []
 
     object_container = ObjectContainer(title2=title)
-    
+
     json_url = Prefs['SCRAPYARD_URL'] + '/api/shows/favorites?'
     json_post = { 'shows_favorites': JSON.StringFromObject(trakt_slugs) }
     json_data = JSON.ObjectFromURL(json_url, values=json_post, cacheTime=CACHE_1HOUR)
@@ -50,9 +50,9 @@ def favorites_menu(title):
             show_object.rating_key = json_item['trakt_slug']
             show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
             object_container.add(show_object)
-    
-    object_container.objects.sort(key=lambda tvshow_object: show_object.title)
-    
+
+    object_container.objects.sort(key=lambda show_object: show_object.title)
+
     return object_container
 
 ################################################################################
