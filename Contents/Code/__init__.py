@@ -62,3 +62,8 @@ def Main():
     object_container.add(DirectoryObject(key=Callback(troubleshooting_menu.menu, title='Troubleshooting'), title='Troubleshooting', summary='Troubleshoot BitTorrent channel.', thumb=troubleshooting_menu.get_menu_thumb()))
 
     return object_container
+
+################################################################################
+def ValidatePrefs():
+    SharedCodeService.scrapmagnet.stop()
+    SharedCodeService.scrapmagnet.start()
