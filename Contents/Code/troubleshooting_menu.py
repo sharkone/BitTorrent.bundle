@@ -2,13 +2,13 @@
 import updater
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/about')
+@route(SharedCodeService.common.PREFIX + '/troubleshooting')
 def menu(title):
     object_container = ObjectContainer(title2=title)
 
     # Channel Version
     version_result, version_result_str, version_result_summary = test_version()
-    object_container.add(DirectoryObject(key=Callback(updater.update), title='Channel version: {0}'.format(version_result_str), summary=version_result_summary, thumb=get_test_thumb(version_result)))
+    object_container.add(DirectoryObject(key=Callback(empty_menu if version_result == True else updater.update), title='Channel version: {0}'.format(version_result_str), summary=version_result_summary, thumb=get_test_thumb(version_result)))
 
     # Scrapyard
     scrapyard_result, scrapyard_result_str, scrapyard_result_summary = test_scrapyard()
@@ -17,14 +17,6 @@ def menu(title):
     # Scrapmagnet
     scrapmagnet_result, scrapmagnet_result_str, scrapmagnet_result_summary = test_scrapmagnet()
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Scrapmagnet: {0}'.format(scrapmagnet_result_str), summary=scrapmagnet_result_summary, thumb=get_test_thumb(scrapmagnet_result)))
-
-    # Local IP
-    local_ip_result, local_ip_result_str, local_ip_result_summary = test_local_ip()
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Local IP: {0}'.format(local_ip_result_str), summary=local_ip_result_summary, thumb=get_test_thumb(local_ip_result)))
-
-    # Public IP
-    public_ip_result, public_ip_result_str, public_ip_result_summary = test_public_ip()
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Public IP: {0}'.format(public_ip_result_str), summary=public_ip_result_summary, thumb=get_test_thumb(public_ip_result)))
 
     # Torrent Proxy
     torrent_proxy_result, torrent_proxy_result_str, torrent_proxy_result_summary = test_torrent_proxy()
@@ -49,14 +41,6 @@ def get_menu_thumb():
         return get_test_thumb(result)
 
     result, _, _ = test_scrapmagnet()
-    if result != True:
-        return get_test_thumb(result)
-
-    result, _, _ = test_local_ip()
-    if result != True:
-        return get_test_thumb(result)
-
-    result, _, _ = test_public_ip()
     if result != True:
         return get_test_thumb(result)
 
@@ -119,34 +103,6 @@ def test_scrapmagnet():
         result         = 'Warning'
         result_str     = 'WARNING'
         result_summary = 'Scrapmagnet incoming port ({0}) is not visible from the Internet. Transfer speeds won\'t be optimal.'.format(Prefs['INCOMING_PORT'])
-
-    return (result, result_str, result_summary)
-
-################################################################################
-def test_local_ip():
-    local_ip = SharedCodeService.utils.get_local_host()
-    if local_ip:
-        result         = True
-        result_str     = local_ip
-        result_summary = 'Local IP is properly determined.'
-    else:
-        result         = False
-        result_str     = 'ERROR'
-        result_summary = 'Unable to determine local IP.'
-
-    return (result, result_str, result_summary)
-
-################################################################################
-def test_public_ip():
-    public_ip = Network.PublicAddress
-    if public_ip:
-        result         = True
-        result_str     = public_ip
-        result_summary = 'Public IP is properly determined.'
-    else:
-        result         = False
-        result_str     = 'ERROR'
-        result_summary = 'Unable to determine public IP.'
 
     return (result, result_str, result_summary)
 

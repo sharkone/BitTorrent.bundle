@@ -20,8 +20,6 @@ def Start():
     Log.Info('Server:')
     Log.Info(' - OS:        {0}'.format(Platform.OS))
     Log.Info(' - CPU:       {0}'.format(Platform.CPU))
-    Log.Info(' - Local IP:  {0}'.format(SharedCodeService.utils.get_local_host()))
-    Log.Info(' - Public IP: {0}'.format(Network.PublicAddress))
     Log.Info('--------------------------------------------')
     Log.Info('Channel:')
     Log.Info(' - Version: {0}'.format(SharedCodeService.common.VERSION))
