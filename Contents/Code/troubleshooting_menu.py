@@ -46,7 +46,7 @@ def get_menu_thumb():
 def get_test_thumb(result):
     if result == True:
         return R('ok.png')
-    elif result == 'Update`':
+    elif result == 'Update':
         return R('update.png')
     elif result == False:
         return R('error.png')
