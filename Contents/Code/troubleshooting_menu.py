@@ -73,7 +73,7 @@ def test_scrapyard():
     try:
         HTML.ElementFromURL(Prefs['SCRAPYARD_URL'] + '/api/movies/trending?page=1', timeout=5)
     except:
-        result         = True
+        result         = False
         result_str     = 'Unavailable'
         result_summary =  Prefs['SCRAPYARD_URL'] + ' is unavailable, check URL the in Preferences.'
 
