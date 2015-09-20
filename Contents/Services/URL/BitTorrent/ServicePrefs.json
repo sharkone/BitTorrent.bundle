@@ -13,46 +13,10 @@
         "default":  "Auto"
     },
     {
-        "id":       "INCOMING_PORT",
-        "label":    "Torrent incoming port",
-        "type":     "text",
-        "default":  "6900"
-    },
-    {
-        "id":       "UPNP_NATPMP_ENABLED",
-        "label":    "Enable UPnP / NAT-PMP",
-        "type":     "bool",
-        "default":  "true"
-    },
-    {
-        "id":       "MAX_DOWNLOAD_RATE",
-        "label":    "Maximum download rate (in kB/s, 0 = Unlimited)",
-        "type":     "text",
-        "default":  "0"
-    },
-    {
-        "id":       "MAX_UPLOAD_RATE",
-        "label":    "Maximum upload rate (in kB/s, 0 = Unlimited)",
-        "type":     "text",
-        "default":  "0"
-    },
-    {
         "id":       "KEEP_FILES",
         "label":    "Keep files after exiting",
         "type":     "bool",
         "default":  "false"
-    },
-    {
-        "id":       "TORRENT_INACTIVITY_PAUSE_TIMEOUT",
-        "label":    "Torrent inactivity pause timeout (in s)",
-        "type":     "text",
-        "default":  "4"
-    },
-    {
-        "id":       "TORRENT_INACTIVITY_REMOVE_TIMEOUT",
-        "label":    "Torrent inactivity remove timeout (in s)",
-        "type":     "text",
-        "default":  "600"
     },
     {
         "id":       "MOVIES_DOWNLOAD_DIR",
@@ -65,37 +29,5 @@
         "label":    "TV Shows download directory",
         "type":     "text",
         "default":  "."
-    },
-    {
-        "id":       "TORRENT_PROXY_TYPE",
-        "label":    "Torrent Proxy type",
-        "type":     "enum",
-        "values":   ["None", "SOCKS5"],
-        "default":  "None"
-    },
-    {
-        "id":       "TORRENT_PROXY_HOST",
-        "label":    "Torrent Proxy host/IP",
-        "type":     "text",
-        "default":  ""
-    },
-    {
-        "id":       "TORRENT_PROXY_PORT",
-        "label":    "Torrent Proxy port",
-        "type":     "text",
-        "default":  ""
-    },
-    {
-        "id":       "TORRENT_PROXY_USER",
-        "label":    "Torrent Proxy user",
-        "type":     "text",
-        "default":  ""
-    },
-    {
-        "id":       "TORRENT_PROXY_PASSWORD",
-        "label":    "Torrent Proxy password",
-        "type":     "text",
-        "option":   "hidden",
-        "default":  ""
     },
 ]

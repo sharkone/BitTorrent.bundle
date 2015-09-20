@@ -31,53 +31,20 @@ def start():
     except Exception as exception:
         Log.Error('Failed set scrapmagnet permissions: {0}'.format(repr(exception)))
 
-    try:
-        max_download_rate = int(float(Prefs['MAX_DOWNLOAD_RATE']))
-    except:
-        max_download_rate = 0
-        Log.Error('Invalid Max Download Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_DOWNLOAD_RATE'], max_download_rate))
-
-    try:
-        max_upload_rate = int(float(Prefs['MAX_UPLOAD_RATE']))
-    except:
-        max_upload_rate = 0
-        Log.Error('Invalid Max Upload Rate value ({0}): Defaulting to {1}'.format(Prefs['MAX_UPLOAD_RATE'], max_upload_rate))
-
-    try:
-        inactivity_pause_timeout = int(float(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT']))
-    except:
-        inactivity_pause_timeout = 4
-        Log.Error('Invalid Torrent inactivity pause timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT'], inactivity_pause_timeout))
-
-    try:
-        inactivity_remove_timeout = int(float(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT']))
-    except:
-        inactivity_remove_timeout = 600
-        Log.Error('Invalid Torrent inactivity remove timeout value ({0}): Defaulting to {1}'.format(Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT'], inactivity_remove_timeout))
-
     mixpanel_data = { 'Channel Version': common.VERSION }
     mixpanel_data = JSON.StringFromObject(mixpanel_data)
     mixpanel_data = base64.b64encode(mixpanel_data)
 
     command =   [
                     get_exec_path(),
-                    '-ppid', str(os.getpid()),
-                    '-http-port', str(common.HTTP_PORT),
-                    '-bittorrent-port', str(Prefs['INCOMING_PORT']),
-                    '-keep-files={0}'.format(Prefs['KEEP_FILES']),
-                    '-upnp-natpmp-enabled={0}'.format(Prefs['UPNP_NATPMP_ENABLED']),
-                    '-max-download-rate', str(max_download_rate),
-                    '-max-upload-rate', str(max_upload_rate),
-                    '-inactivity-pause-timeout', str(inactivity_pause_timeout),
-                    '-inactivity-remove-timeout', str(inactivity_remove_timeout),
-                    '-proxy-type', str(Prefs['TORRENT_PROXY_TYPE']),
-                    '-proxy-host', str(Prefs['TORRENT_PROXY_HOST']),
-                    '-proxy-port', str(Prefs['TORRENT_PROXY_PORT']) if Prefs['TORRENT_PROXY_PORT'] else "1080",
-                    '-proxy-user', str(Prefs['TORRENT_PROXY_USER']),
-                    '-proxy-password', str(Prefs['TORRENT_PROXY_PASSWORD']),
-                    '-mixpanel-token', MIXPANEL_TOKEN,
-                    '-mixpanel-data', mixpanel_data,
+                    '--ppid', str(os.getpid()),
+                    '--port', str(common.HTTP_PORT),
+                    '--mixpanel-token', MIXPANEL_TOKEN,
+                    '--mixpanel-data', mixpanel_data,
                 ]
+
+    if Prefs['KEEP_FILES']:
+        command.append('--keep')
 
     Log.Info('Starting scrapmagnet')
     Log.Info(' '.join(command))
@@ -101,14 +68,6 @@ def is_running():
         Log.Error('Server unreachable: {0}'.format(repr(exception)))
 
     return False
-
-###############################################################################
-def is_incoming_port_open():
-    try:
-        result = JSON.ObjectFromURL('http://tuq.in/tools/port.json?port={0}'.format(str(Prefs['INCOMING_PORT'])))
-        return (result == True)
-    except Exception as exception:
-        Log.Error('Failed to check if incoming port is open: {0}'.format(repr(exception)))
 
 ###############################################################################
 def stop():

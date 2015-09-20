@@ -18,10 +18,6 @@ def menu(title):
     scrapmagnet_result, scrapmagnet_result_str, scrapmagnet_result_summary = test_scrapmagnet()
     object_container.add(DirectoryObject(key=Callback(empty_menu), title='Scrapmagnet: {0}'.format(scrapmagnet_result_str), summary=scrapmagnet_result_summary, thumb=get_test_thumb(scrapmagnet_result)))
 
-    # Torrent Proxy
-    torrent_proxy_result, torrent_proxy_result_str, torrent_proxy_result_summary = test_torrent_proxy()
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Torrent Proxy: {0}'.format(torrent_proxy_result_str), summary=torrent_proxy_result_summary, thumb=get_test_thumb(torrent_proxy_result)))
-
     return object_container
 
 ################################################################################
@@ -44,18 +40,12 @@ def get_menu_thumb():
     if result != True:
         return get_test_thumb(result)
 
-    result, _, _ = test_torrent_proxy()
-    if result != True:
-        return get_test_thumb(result)
-
     return get_test_thumb(True)
 
 ################################################################################
 def get_test_thumb(result):
     if result == True:
         return R('ok.png')
-    elif result == 'Warning':
-        return R('warning.png')
     elif result == 'Update`':
         return R('update.png')
     elif result == False:
@@ -99,29 +89,5 @@ def test_scrapmagnet():
         result         = False
         result_str     = 'ERROR'
         result_summary = 'Scrapmagnet is not running.'
-    elif not SharedCodeService.scrapmagnet.is_incoming_port_open():
-        result         = 'Warning'
-        result_str     = 'WARNING'
-        result_summary = 'Scrapmagnet incoming port ({0}) is not visible from the Internet. Transfer speeds won\'t be optimal.'.format(Prefs['INCOMING_PORT'])
-
-    return (result, result_str, result_summary)
-
-################################################################################
-def test_torrent_proxy():
-    if Prefs['TORRENT_PROXY_TYPE'] == 'None':
-        result         = True
-        result_str     = 'Unused'
-        result_summary = 'No torrent proxy set.'
-    else:
-        result         = True
-        result_str     = '{0}:{1}'.format(Prefs['TORRENT_PROXY_HOST'], Prefs['TORRENT_PROXY_PORT'])
-        result_summary = 'Torrent proxy is working properly.'
-
-        try:
-            SharedCodeService.utils.try_connection()
-        except Exception as exception:
-            result         = False
-            result_str     = 'ERROR'
-            result_summary = 'Torrent proxy is not working properly: {0}'.format(exception)
 
     return (result, result_str, result_summary)

@@ -27,16 +27,9 @@ def Start():
     Log.Info('Preferences:')
     Log.Info(' - Scrapyard server URL:    {0}'.format(Prefs['SCRAPYARD_URL']))
     Log.Info(' - Scrapmagnet version:     {0}'.format(Prefs['SCRAPMAGNET_VERSION']))
-    Log.Info(' - Torrent incoming port:   {0}'.format(Prefs['INCOMING_PORT']))
-    Log.Info(' - UPnP / NAT-PMP enabled:  {0}'.format(Prefs['UPNP_NATPMP_ENABLED']))
-    Log.Info(' - Maximum download rate:   {0}'.format(Prefs['MAX_DOWNLOAD_RATE']))
-    Log.Info(' - Maximum upload rate:     {0}'.format(Prefs['MAX_UPLOAD_RATE']))
     Log.Info(' - Keep files:              {0}'.format(Prefs['KEEP_FILES']))
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))
     Log.Info(' - TV shows download dir:   {0}'.format(Prefs['TVSHOWS_DOWNLOAD_DIR']))
-    Log.Info(' - Torrent Proxy type:      {0}'.format(Prefs['TORRENT_PROXY_TYPE']))
-    Log.Info(' - Torrent Proxy host:      {0}'.format(Prefs['TORRENT_PROXY_HOST']))
-    Log.Info(' - Torrent Proxy port:      {0}'.format(Prefs['TORRENT_PROXY_PORT']))
     Log.Info('============================================')
 
     SharedCodeService.scrapmagnet.THREAD_CREATE = Thread.Create
