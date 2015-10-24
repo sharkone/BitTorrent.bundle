@@ -39,6 +39,8 @@ def start():
                     get_exec_path(),
                     '--ppid', str(os.getpid()),
                     '--port', str(common.HTTP_PORT),
+                    '--inactivity-pause-timeout', Prefs['TORRENT_INACTIVITY_PAUSE_TIMEOUT'],
+                    '--inactivity-remove-timeout', Prefs['TORRENT_INACTIVITY_REMOVE_TIMEOUT'],
                     '--mixpanel-token', MIXPANEL_TOKEN,
                     '--mixpanel-data', mixpanel_data,
                 ]
