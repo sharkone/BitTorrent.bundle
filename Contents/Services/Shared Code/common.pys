@@ -11,7 +11,7 @@ def fill_movie_object(movie_object, json_data):
     movie_object.summary                 = json_data['overview']
     movie_object.tagline                 = json_data['tagline']
     movie_object.duration                = json_data['runtime']
-    movie_object.rating                  = json_data['rating']
+    movie_object.rating                  = float(json_data['rating'])
     movie_object.originally_available_at = Datetime.ParseDate(json_data['released'])
     movie_object.content_rating          = json_data['certification']
     movie_object.thumb                   = json_data['thumb']
@@ -43,7 +43,7 @@ def fill_show_object(show_object, json_data):
     show_object.summary                 = json_data['overview']
     show_object.studio                  = json_data['studio']
     show_object.duration                = json_data['runtime']
-    show_object.rating                  = json_data['rating']
+    show_object.rating                  = float(json_data['rating'])
     show_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
     show_object.content_rating          = json_data['certification']
     show_object.thumb                   = json_data['thumb']
@@ -69,7 +69,7 @@ def fill_episode_object(episode_object, json_data):
     episode_object.index                   = json_data['episode_index']
     episode_object.title                   = json_data['title']
     episode_object.summary                 = json_data['overview']
-    episode_object.rating                  = json_data['rating']
+    episode_object.rating                  = float(json_data['rating'])
     episode_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
     episode_object.thumb                   = json_data['thumb']
     episode_object.art                     = json_data['art']
