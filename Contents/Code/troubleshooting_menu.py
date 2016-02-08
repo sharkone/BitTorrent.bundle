@@ -71,7 +71,7 @@ def test_scrapyard():
     result_summary =  Prefs['SCRAPYARD_URL'] + ' is available.'
 
     try:
-        HTML.ElementFromURL(Prefs['SCRAPYARD_URL'] + '/api/movies/trending?page=1', timeout=5)
+        JSON.ObjectFromURL(Prefs['SCRAPYARD_URL'], timeout=5)
     except:
         result         = False
         result_str     = 'Unavailable'
