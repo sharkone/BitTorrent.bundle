@@ -22,7 +22,7 @@ def MetadataObjectForURL(url):
                 if '/api/movie' in url:
                     movie_object = MovieObject()
                     common.fill_movie_object(movie_object, json_data)
-                    movie_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\n\n{4}'.format(magnet_data['title'], magnet_data['seeds'], magnet_data['peers'], utils.get_magnet_size_str(magnet_data), movie_object.summary)
+                    movie_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\nSource: {4}\n\n{5}'.format(magnet_data['title'], magnet_data['seeds'], magnet_data['peers'], utils.get_magnet_size_str(magnet_data), magnet_data['source'], movie_object.summary)
                     movie_object.thumb   = Callback(get_image_async, url=json_data['thumb'])
                     movie_object.art     = Callback(get_image_async, url=json_data['art'])
                     return movie_object
@@ -30,7 +30,7 @@ def MetadataObjectForURL(url):
                 elif '/api/show' in url:
                     episode_object = EpisodeObject()
                     common.fill_episode_object(episode_object, json_data)
-                    episode_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\n\n{4}'.format(magnet_data['title'], magnet_data['seeds'], magnet_data['peers'], utils.get_magnet_size_str(magnet_data), episode_object.summary)
+                    episode_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\nSource: {4}\n\n{5}'.format(magnet_data['title'], magnet_data['seeds'], magnet_data['peers'], utils.get_magnet_size_str(magnet_data), magnet_data['source'], episode_object.summary)
                     episode_object.thumb   = Callback(get_image_async, url=json_data['thumb'])
                     episode_object.art     = Callback(get_image_async, url=json_data['art'])
                     return episode_object

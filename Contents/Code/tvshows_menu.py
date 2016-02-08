@@ -156,7 +156,7 @@ def episode_menu(show_title, trakt_slug, season_index, episode_index):
             episode_object = EpisodeObject()
             SharedCodeService.common.fill_episode_object(episode_object, json_data)
             episode_object.title   = json_item['title']
-            episode_object.summary = 'Seeds: {0} - Peers: {1}\nSize: {2}\n\n{3}'.format(json_item['seeds'], json_item['peers'], SharedCodeService.utils.get_magnet_size_str(json_item), episode_object.summary)
+            episode_object.summary = 'Seeds: {0} - Peers: {1}\nSize: {2}\nSource: {3}\n\n{4}'.format(json_item['seeds'], json_item['peers'], SharedCodeService.utils.get_magnet_size_str(json_item), json_item['source'], episode_object.summary)
             episode_object.url     = json_url + '?magnet=' + String.Quote(json_item['link'])
             object_container.add(episode_object)
 
