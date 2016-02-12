@@ -1,4 +1,8 @@
 ################################################################################
+
+from DumbTools import DumbKeyboard
+
+################################################################################
 SUBPREFIX = 'movies'
 
 ################################################################################
@@ -8,7 +12,11 @@ def menu():
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/api/movies/trending', page_index=1), title='Trending', summary='Browse movies currently being watched.'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/api/movies/popular', page_index=1), title='Popular', summary='Browse most popular movies.'))
     object_container.add(DirectoryObject(key=Callback(watchlist_menu, title='Watchlist'), title='Watchlist', summary='Browse your watchlist', thumb=R('favorites.png')))
-    object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
+
+    if Client.Product in DumbKeyboard.clients:
+        DumbKeyboard(SharedCodeService.common.PREFIX + '/' + SUBPREFIX, object_container, search_menu, dktitle='Search', dkthumb=R('search.png'), title='Search')
+    else:
+        object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search movies', thumb=R('search.png'), prompt='Search for movies'))
     return object_container
 
 ################################################################################
