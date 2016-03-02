@@ -3,7 +3,7 @@ import urllib2
 
 
 class DumbKeyboard:
-    clients = ['Plex for iOS', 'Plex for Roku', 'Plex Media Player', 'Plex Web']
+    clients = ['Plex for iOS', 'Plex for Roku', 'Plex Media Player']
     KEYS = list('abcdefghijklmnopqrstuvwxyz1234567890-=;[]\\\',./')
     SHIFT_KEYS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+:{}|\"<>?')
 
