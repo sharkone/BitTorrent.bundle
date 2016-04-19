@@ -22,13 +22,13 @@
         "id":       "TORRENT_INACTIVITY_PAUSE_TIMEOUT",
         "label":    "Torrent inactivity pause timeout (in s)",
         "type":     "text",
-        "default":  "10"
+        "default":  "30"
     },
     {
         "id":       "TORRENT_INACTIVITY_REMOVE_TIMEOUT",
         "label":    "Torrent inactivity remove timeout (in s)",
         "type":     "text",
-        "default":  "20"
+        "default":  "40"
     },
     {
         "id":       "MOVIES_DOWNLOAD_DIR",
