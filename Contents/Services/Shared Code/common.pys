@@ -4,38 +4,28 @@ VERSION = '1.0.8'
 
 HTTP_PORT = 8042
 
+POPCORN_API = 'https://api-fetch.website/tv'
+
 ################################################################################
 def fill_movie_object(movie_object, json_data):
     movie_object.title                   = json_data['title']
-    movie_object.year                    = json_data['year']
-    movie_object.summary                 = json_data['overview']
-    movie_object.tagline                 = json_data['tagline']
-    movie_object.duration                = json_data['runtime']
-    movie_object.rating                  = float(json_data['rating'])
-    movie_object.originally_available_at = Datetime.ParseDate(json_data['released'])
+    movie_object.year                    = int(json_data['year'])
+    movie_object.summary                 = json_data['synopsis']
+    movie_object.duration                = int(json_data['runtime']) * 60 * 60 * 1000
+    movie_object.rating                  = float(json_data['rating']['percentage'])
+    movie_object.originally_available_at = Datetime.FromTimestamp(json_data['released'])
     movie_object.content_rating          = json_data['certification']
-    movie_object.thumb                   = json_data['thumb']
-    movie_object.art                     = json_data['art']
+    movie_object.thumb                   = json_data['images']['poster']
+    movie_object.art                     = json_data['images']['fanart']
 
     for genre in json_data['genres']:
         movie_object.genres.add(genre)
 
-    if 'people' in json_data:
-        if 'crew' in json_data['people']:
-            if 'directing' in json_data['people']['crew']:
-                for director in json_data['people']['crew']['directing']:
-                    movie_object.directors.add(director['name'])
-            if 'writing' in json_data['people']['crew']:
-                for writer in json_data['people']['crew']['writing']:
-                    movie_object.directors.add(writer['name'])
-            if 'production' in json_data['people']['crew']:
-                for producer in json_data['people']['crew']['production']:
-                    movie_object.producers.add(producer['name'])
-        if 'cast' in json_data['people']:
-            for member in json_data['people']['cast']:
-                new_role       = movie_object.roles.new()
-                new_role.actor = member['character']
-                new_role.role  = member['name']
+################################################################################
+def fix_movie_torrent_title(json_data, key, magnet_data):
+    if 'title' in magnet_data:
+        return magnet_data['title']
+    return '{0} ({1}) - {2} - {3}'.format(json_data['title'], json_data['year'], key, magnet_data['provider'])
 
 ################################################################################
 def fill_show_object(show_object, json_data):
@@ -44,7 +34,7 @@ def fill_show_object(show_object, json_data):
     show_object.studio                  = json_data['studio']
     show_object.duration                = json_data['runtime']
     show_object.rating                  = float(json_data['rating'])
-    show_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
+    show_object.originally_available_at = Datetime.FromTimestamp(json_data['first_aired'])
     show_object.content_rating          = json_data['certification']
     show_object.thumb                   = json_data['thumb']
     show_object.art                     = json_data['art']
@@ -70,6 +60,6 @@ def fill_episode_object(episode_object, json_data):
     episode_object.title                   = json_data['title']
     episode_object.summary                 = json_data['overview']
     episode_object.rating                  = float(json_data['rating'])
-    episode_object.originally_available_at = Datetime.ParseDate(json_data['first_aired'])
+    episode_object.originally_available_at = Datetime.FromTimestamp(json_data['first_aired'])
     episode_object.thumb                   = json_data['thumb']
     episode_object.art                     = json_data['art']

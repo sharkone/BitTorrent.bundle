@@ -9,24 +9,3 @@ def get_local_host():
     if not host:
         host = 'localhost'
     return host
-
-###############################################################################
-def get_magnet_size_str(magnet_data):
-    if 'size' in magnet_data and magnet_data['size'] > 0:
-        bytes      = magnet_data['size']
-        kilo_bytes = bytes / 1024.0
-        mega_bytes = kilo_bytes / 1024.0
-        giga_bytes = mega_bytes / 1024.0
-        tera_bytes = giga_bytes / 1024.0
-
-        if int(tera_bytes) > 0:
-            return '{0:.2f} TB'.format(tera_bytes)
-        elif int(giga_bytes) > 0:
-            return '{0:.2f} GB'.format(giga_bytes)
-        elif int(mega_bytes) > 0:
-            return '{0:.2f} MB'.format(mega_bytes)
-        elif int(kilo_bytes) > 0:
-            return '{0:.2f} KB'.format(kilo_bytes)
-        else:
-            return '{0} B'.format(bytes)
-    return 'N/A'
