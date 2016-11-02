@@ -3,7 +3,7 @@ import urllib2
 
 
 class DumbKeyboard:
-    clients = ['Plex for iOS', 'Plex Media Player']
+    clients = ['Plex for iOS', 'Plex for Xbox One', 'Plex Media Player']
     KEYS = list('abcdefghijklmnopqrstuvwxyz1234567890-=;[]\\\',./')
     SHIFT_KEYS = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+:{}|\"<>?')
 
@@ -89,7 +89,7 @@ class DumbKeyboard:
 
 class DumbPrefs:
     clients = ['Plex for iOS', 'Plex Media Player', 'Plex Home Theater',
-               'OpenPHT', 'Plex for Roku']
+               'OpenPHT', 'Plex for Roku', 'Plex for Xbox One']
 
     def __init__(self, prefix, oc, title=None, thumb=None):
         self.host = 'http://127.0.0.1:32400'
