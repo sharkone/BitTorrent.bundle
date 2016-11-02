@@ -11,7 +11,7 @@ def menu():
     object_container = ObjectContainer(title2='Movies')
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Recent', page='/movies', sort='last%20added', page_index=1), title='Recent', summary='Browse recent movies.'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies', sort='trending', page_index=1), title='Trending', summary='Browse trending movies.'))
-    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies', sort='rating', page_index=1), title='Popular', summary='Browse popular movies.'))
+    object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies', sort='', page_index=1), title='Popular', summary='Browse popular movies.'))
     object_container.add(DirectoryObject(key=Callback(watchlist_menu, title='Watchlist'), title='Watchlist', summary='Browse your watchlist', thumb=R('favorites.png')))
 
     if Client.Product in DumbKeyboard.clients:
@@ -87,7 +87,7 @@ def movie_menu(title, id):
             movie_object = MovieObject()
             SharedCodeService.common.fill_movie_object(movie_object, json_data)
             movie_object.title   = SharedCodeService.common.fix_movie_torrent_title(json_data, key, json_item)
-            movie_object.summary = 'Seeds: {0} - Peers: {1}\nSize: {2}\nSource: {3}\n\n{4}'.format(json_item['seed'], json_item['peer'], json_item['filesize'], json_item['provider'], movie_object.summary)
+            movie_object.summary = 'Seeds: {0} - Peers: {1}\nSize: {2}\n\n{3}'.format(json_item['seed'], json_item['peer'], json_item['filesize'], movie_object.summary)
             movie_object.url     = json_url + '?magnet=' + String.Quote(json_item['url'])
             object_container.add(movie_object)
 

@@ -10,9 +10,9 @@ def menu(title):
     version_result, version_result_str, version_result_summary = test_version()
     object_container.add(DirectoryObject(key=Callback(empty_menu if version_result == True else updater.update), title='Channel version: {0}'.format(version_result_str), summary=version_result_summary, thumb=get_test_thumb(version_result)))
 
-    # Scrapyard
-    scrapyard_result, scrapyard_result_str, scrapyard_result_summary = test_scrapyard()
-    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Scrapyard server: {0}'.format(scrapyard_result_str), summary=scrapyard_result_summary, thumb=get_test_thumb(scrapyard_result)))
+    # Popcorn API
+    popcorn_result, popcorn_result_str, popcorn_result_summary = test_popcorn()
+    object_container.add(DirectoryObject(key=Callback(empty_menu), title='Popcorn API: {0}'.format(popcorn_result_str), summary=popcorn_result_summary, thumb=get_test_thumb(popcorn_result)))
 
     # Scrapmagnet
     scrapmagnet_result, scrapmagnet_result_str, scrapmagnet_result_summary = test_scrapmagnet()
@@ -32,7 +32,7 @@ def get_menu_thumb():
     if result != True:
         return get_test_thumb(result)
 
-    result, _, _ = test_scrapyard()
+    result, _, _ = test_popcorn()
     if result != True:
         return get_test_thumb(result)
 
@@ -65,17 +65,17 @@ def test_version():
     return (result, result_str, result_summary)
 
 ################################################################################
-def test_scrapyard():
+def test_popcorn():
     result         = True
     result_str     = 'Available'
-    result_summary =  Prefs['SCRAPYARD_URL'] + ' is available.'
+    result_summary =  'Popcorn API is available.'
 
     try:
-        JSON.ObjectFromURL(Prefs['SCRAPYARD_URL'], timeout=5)
+        JSON.ObjectFromURL(SharedCodeService.common.POPCORN_API, timeout=5)
     except:
         result         = False
         result_str     = 'Unavailable'
-        result_summary =  Prefs['SCRAPYARD_URL'] + ' is unavailable, check URL the in Preferences.'
+        result_summary = 'Popcorn API is unavailable.'
 
     return (result, result_str, result_summary)
 

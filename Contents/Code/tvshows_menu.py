@@ -9,8 +9,9 @@ SUBPREFIX = 'tvshows'
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
 def menu():
     object_container = ObjectContainer(title2='TV Shows')
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1), title='Trending', summary='Browse TV shows currently being watched.'))
-    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1), title='Popular', summary='Browse most popular TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Recent', page='/shows', sort='updated', page_index=1), title='Recent', summary='Browse recently updated TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/shows', sort='trending', page_index=1), title='Trending', summary='Browse trending TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/shows', sort='', page_index=1), title='Popular', summary='Browse popular TV shows.'))
     object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
 
     if Client.Product in DumbKeyboard.clients:
@@ -21,19 +22,15 @@ def menu():
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', page_index=int)
-def shows_menu(title, page, page_index):
+def shows_menu(title, page, sort, page_index):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = Prefs['SCRAPYARD_URL'] + page + '?page={0}'.format(page_index)
+    json_url  = SharedCodeService.common.POPCORN_API + page + '/{0}?sort={1}'.format(page_index, sort)
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
-    if json_data and 'shows' in json_data:
-        for json_item in json_data['shows']:
-            show_object = TVShowObject()
-            SharedCodeService.common.fill_show_object(show_object, json_item)
-            show_object.rating_key = json_item['trakt_slug']
-            show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
-            object_container.add(show_object)
+    if json_data:
+        for json_item in json_data:
+            object_container.add(create_tvshow_object(json_item))
 
     if (page_index + 1) <= 10:
         object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1), title="More..."))
@@ -43,21 +40,16 @@ def shows_menu(title, page, page_index):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
 def favorites_menu(title):
-    trakt_slugs = Dict['shows_favorites'] if 'shows_favorites' in Dict else []
+    ids = Dict['SHOWS_FAVORITES'] if 'SHOWS_FAVORITES' in Dict else []
 
     object_container = ObjectContainer(title2=title)
 
-    json_url = Prefs['SCRAPYARD_URL'] + '/api/shows/favorites?'
-    json_post = { 'shows_favorites': JSON.StringFromObject(trakt_slugs) }
-    json_data = JSON.ObjectFromURL(json_url, values=json_post, cacheTime=CACHE_1HOUR)
+    for id in ids:
+        json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
-    if json_data and 'shows' in json_data:
-        for json_item in json_data['shows']:
-            show_object = TVShowObject()
-            SharedCodeService.common.fill_show_object(show_object, json_item)
-            show_object.rating_key = json_item['trakt_slug']
-            show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
-            object_container.add(show_object)
+        if json_data:
+            object_container.add(create_tvshow_object(json_data))
 
     object_container.objects.sort(key=lambda show_object: show_object.title)
 
@@ -68,50 +60,109 @@ def favorites_menu(title):
 def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
-    json_url  = Prefs['SCRAPYARD_URL'] + '/api/shows/search?query=' + String.Quote(query)
+    json_url  = SharedCodeService.common.POPCORN_API + '/shows/1?keywords={0}'.format(String.Quote(query))
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
-    if json_data and 'shows' in json_data:
-        for json_item in json_data['shows']:
-            show_object = TVShowObject()
-            SharedCodeService.common.fill_show_object(show_object, json_item)
-            show_object.rating_key = json_item['trakt_slug']
-            show_object.key        = Callback(show_menu, title=show_object.title, trakt_slug=json_item['trakt_slug'])
-            object_container.add(show_object)
+    if json_data:
+        for json_item in json_data:
+            object_container.add(create_tvshow_object(json_item))
 
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')
-def show_menu(title, trakt_slug):
+def show_menu(title, id):
     object_container = ObjectContainer(title2=title)
 
-    if 'shows_favorites' in Dict and trakt_slug in Dict['shows_favorites']:
-        object_container.add(DirectoryObject(key=Callback(remove_from_favorites, title='Remove from Favorites', show_title=title, trakt_slug=trakt_slug), title='Remove from Favorites', summary='Remove TV show from Favorites', thumb=R('favorites.png')))
-    else:
-        object_container.add(DirectoryObject(key=Callback(add_to_favorites, title='Add to Favorites', show_title=title, trakt_slug=trakt_slug), title='Add to Favorites', summary='Add TV show to Favorites', thumb=R('favorites.png')))
-
-    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug
+    json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
 
-    if json_data and 'seasons' in json_data:
-        for json_item in json_data['seasons']:
-            season_object = SeasonObject()
-            SharedCodeService.common.fill_season_object(season_object, json_item)
-            season_object.rating_key    = '{0}-{1}'.format(trakt_slug, season_object.index)
-            season_object.key           = Callback(season_menu, title=season_object.title, show_title=title, trakt_slug=trakt_slug, season_index=season_object.index)
-            object_container.add(season_object)
+    if json_data:
+        seasons = []
+
+        for json_item in json_data['episodes']:
+            if json_item['season'] not in seasons:
+                seasons.append(json_item['season'])
+
+                season_object            = SeasonObject()
+                season_object.title      = 'Season {0}'.format(json_item['season'])
+                season_object.index      = json_item['season']
+                season_object.show       = title
+                season_object.rating_key = '{0}-{1}'.format(id, season_object.index)
+                season_object.key        = Callback(season_menu, title=season_object.title, show_title=season_object.show, id=id, season_index=season_object.index)
+                object_container.add(season_object)
+
+    object_container.objects.sort(key=lambda season_object: season_object.index)
+
+    if 'SHOWS_FAVORITES' in Dict and id in Dict['SHOWS_FAVORITES']:
+        object_container.add(DirectoryObject(key=Callback(remove_from_favorites, title='Remove from Favorites', show_title=title, id=id), title='Remove from Favorites', summary='Remove TV show from Favorites', thumb=R('favorites.png')))
+    else:
+        object_container.add(DirectoryObject(key=Callback(add_to_favorites, title='Add to Favorites', show_title=title, id=id), title='Add to Favorites', summary='Add TV show to Favorites', thumb=R('favorites.png')))
+
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
+def season_menu(title, show_title, id, season_index):
+    object_container = ObjectContainer(title2=title)
+
+    json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+    if json_data and 'episodes' in json_data:
+        episodes = []
+
+        for json_item in json_data['episodes']:
+            if json_item['season'] == season_index:
+                episode            = {}
+                episode['title']   = u'{0}. {1}'.format(json_item['episode'], json_item['title'])
+                episode['summary'] = json_item['overview']
+                episode['index']   = json_item['episode']
+                episodes.append(episode)
+
+        episodes.sort(key=lambda episode: episode['index'])
+
+        for episode in episodes:
+            directory_object = DirectoryObject()
+            directory_object.title   = episode['title']
+            directory_object.summary = episode['summary']
+            directory_object.thumb   = json_data['images']['poster']
+            directory_object.art     = json_data['images']['fanart']
+            directory_object.key     = Callback(episode_menu, show_title=show_title, id=id, season_index=season_index, episode_index=episode['index'])
+            object_container.add(directory_object)
+
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
+def episode_menu(show_title, id, season_index, episode_index):
+    object_container = ObjectContainer()
+
+    json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+
+    if json_data and 'episodes' in json_data:
+        for json_item in json_data['episodes']:
+            if json_item['season'] == season_index and json_item['episode'] == episode_index:
+                if 'torrents' in json_item:
+                    for key, magnet_data in json_item['torrents'].iteritems():
+                        episode_object = EpisodeObject()
+                        SharedCodeService.common.fill_episode_object(episode_object, json_item, json_data)
+                        episode_object.title   = SharedCodeService.common.fix_episode_torrent_title(json_data, json_item, key, magnet_data)
+                        episode_object.summary = 'Seeds: {0} - Peers: {1}\n\n{2}'.format(magnet_data['seeds'], magnet_data['peers'], episode_object.summary)
+                        episode_object.url     = json_url + '?magnet=' + String.Quote(magnet_data['url'])
+                        object_container.add(episode_object)
 
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
-def add_to_favorites(title, show_title, trakt_slug):
-    if 'shows_favorites' not in Dict:
-        Dict['shows_favorites'] = []
+def add_to_favorites(title, show_title, id):
+    if 'SHOWS_FAVORITES' not in Dict:
+        Dict['SHOWS_FAVORITES'] = []
 
-    if trakt_slug not in Dict['shows_favorites']:
-        Dict['shows_favorites'].append(trakt_slug)
+    if id not in Dict['SHOWS_FAVORITES']:
+        Dict['SHOWS_FAVORITES'].append(id)
         Dict.Save()
 
     object_container = ObjectContainer(title2=title)
@@ -121,9 +172,9 @@ def add_to_favorites(title, show_title, trakt_slug):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
-def remove_from_favorites(title, show_title, trakt_slug):
-    if 'shows_favorites' in Dict and trakt_slug in Dict['shows_favorites']:
-        Dict['shows_favorites'].remove(trakt_slug)
+def remove_from_favorites(title, show_title, id):
+    if 'SHOWS_FAVORITES' in Dict and id in Dict['SHOWS_FAVORITES']:
+        Dict['SHOWS_FAVORITES'].remove(id)
         Dict.Save()
 
     object_container = ObjectContainer(title2=title)
@@ -132,46 +183,9 @@ def remove_from_favorites(title, show_title, trakt_slug):
     return object_container
 
 ################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
-def season_menu(title, show_title, trakt_slug, season_index):
-    object_container = ObjectContainer(title2=title)
-
-    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
-
-    if json_data and 'episodes' in json_data:
-        for json_item in json_data['episodes']:
-            directory_object = DirectoryObject()
-            directory_object.title   = '{0}. {1}'.format(json_item['episode_index'], json_item['title'])
-            directory_object.summary = json_item['overview']
-            directory_object.thumb   = json_item['thumb']
-            directory_object.art     = json_item['art']
-            directory_object.key     = Callback(episode_menu, show_title=show_title, trakt_slug=trakt_slug, season_index=season_index, episode_index=json_item['episode_index'])
-            object_container.add(directory_object)
-
-    return object_container
-
-################################################################################
-@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
-def episode_menu(show_title, trakt_slug, season_index, episode_index):
-    object_container = ObjectContainer()
-
-    json_url  = Prefs['SCRAPYARD_URL'] + '/api/show/' + trakt_slug + '/season/' + str(season_index) + '/episode/' + str(episode_index)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
-
-    if json_data and 'magnets' in json_data:
-        for json_item in json_data['magnets']:
-            episode_object = EpisodeObject()
-            SharedCodeService.common.fill_episode_object(episode_object, json_data)
-            episode_object.title   = json_item['title']
-            episode_object.summary = 'Seeds: {0} - Peers: {1}\nSize: {2}\nSource: {3}\n\n{4}'.format(json_item['seeds'], json_item['peers'], SharedCodeService.utils.get_magnet_size_str(json_item), json_item['source'], episode_object.summary)
-            episode_object.url     = json_url + '?magnet=' + String.Quote(json_item['link'])
-            object_container.add(episode_object)
-
-    return object_container
-
-################################################################################
-@route(SharedCodeService.common.PREFIX + '/empty')
-def empty_menu():
-    object_container = ObjectContainer(title2='Empty')
-    return object_container
+def create_tvshow_object(json_item):
+    show_object = TVShowObject()
+    SharedCodeService.common.fill_show_object(show_object, json_item)
+    show_object.rating_key = json_item['_id']
+    show_object.key        = Callback(show_menu, title=show_object.title, id=json_item['_id'])
+    return show_object

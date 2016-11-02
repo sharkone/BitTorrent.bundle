@@ -1,11 +1,5 @@
 [
     {
-        "id":       "SCRAPYARD_URL",
-        "label":    "Scrapyard server URL",
-        "type":     "text",
-        "default":  "http://scrapyard.en-mousse.org"
-    },
-    {
         "id":       "SCRAPMAGNET_VERSION",
         "label":    "Scrapmagnet version",
         "type":     "enum",

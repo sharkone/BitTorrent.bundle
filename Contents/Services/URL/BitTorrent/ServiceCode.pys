@@ -12,99 +12,119 @@ RE_MAGNET = re.compile('\?magnet=(.+)$')
 
 ################################################################################
 def MetadataObjectForURL(url):
-    magnet = String.Unquote(RE_MAGNET.search(url).group(1))
-
+    magnet    = String.Unquote(RE_MAGNET.search(url).group(1))
     json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
 
-    if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
-        for key, json_item in json_data['torrents']['en'].iteritems():
-            if json_item['url'] == magnet:
-                if '/movie' in url:
-                    json_item['title'] = common.fix_movie_torrent_title(json_data, key, json_item)
+    if '/movie' in url:
+        if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
+            for key, magnet_data in json_data['torrents']['en'].iteritems():
+                if magnet_data['url'] == magnet:
+                    magnet_data['title'] = common.fix_movie_torrent_title(json_data, key, magnet_data)
 
                     movie_object = MovieObject()
                     common.fill_movie_object(movie_object, json_data)
-                    movie_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\nSource: {4}\n\n{5}'.format(json_item['title'], json_item['seed'], json_item['peer'], json_item['filesize'], json_item['provider'], movie_object.summary)
+                    movie_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\n\n{4}'.format(magnet_data['title'], magnet_data['seed'], magnet_data['peer'], magnet_data['filesize'], movie_object.summary)
                     movie_object.thumb   = Callback(get_image_async, url=json_data['images']['poster'])
                     movie_object.art     = Callback(get_image_async, url=json_data['images']['fanart'])
                     return movie_object
 
-                elif '/api/show' in url:
-                    episode_object = EpisodeObject()
-                    common.fill_episode_object(episode_object, json_data)
-                    episode_object.summary = '{0}\nSeeds: {1} - Peers: {2}\nSize: {3}\nSource: {4}\n\n{5}'.format(json_item['title'], json_item['seeds'], json_item['peers'], utils.get_magnet_size_str(magnet_data), magnet_data['source'], episode_object.summary)
-                    episode_object.thumb   = Callback(get_image_async, url=json_data['thumb'])
-                    episode_object.art     = Callback(get_image_async, url=json_data['art'])
-                    return episode_object
+    elif '/show' in url:
+        if json_data and 'episodes' in json_data:
+            for episode_data in json_data['episodes']:
+                if 'torrents' in episode_data:
+                    for key, magnet_data in episode_data['torrents'].iteritems():
+                        if magnet_data['url'] == magnet:
+                            magnet_data['title'] = common.fix_episode_torrent_title(json_data, episode_data, key, magnet_data)
+
+                            episode_object = EpisodeObject()
+                            common.fill_episode_object(episode_object, episode_data, json_data)
+                            episode_object.summary = '{0}\nSeeds: {1} - Peers: {2}\n\n{3}'.format(magnet_data['title'], magnet_data['seeds'], magnet_data['peers'], episode_object.summary)
+                            episode_object.thumb   = Callback(get_image_async, url=json_data['images']['poster'])
+                            episode_object.art     = Callback(get_image_async, url=json_data['images']['fanart'])
+                            return episode_object
 
     Log.Error('MetadataObjectForURL failed. Aborting.')
     raise Ex.MediaNotAvailable
 
 ################################################################################
 def MediaObjectsForURL(url):
-    magnet = String.Unquote(RE_MAGNET.search(url).group(1))
+    if '/movie' in url:
+        download_dir = Prefs['MOVIES_DOWNLOAD_DIR']
+    elif '/show' in url:
+        download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
 
+    magnet    = String.Unquote(RE_MAGNET.search(url).group(1))
     json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
+    json_item = None
 
-    if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
-        for key, json_item in json_data['torrents']['en'].iteritems():
-            if json_item['url'] == magnet:
-                if '/movie' in url:
-                    json_item['title'] = common.fix_movie_torrent_title(json_data, key, json_item)
-                    download_dir       = Prefs['MOVIES_DOWNLOAD_DIR']
-                elif '/api/show' in url:
-                    download_dir  = Prefs['TVSHOWS_DOWNLOAD_DIR']
+    if '/movie' in url:
+        if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
+            for key, magnet_data in json_data['torrents']['en'].iteritems():
+                if magnet_data['url'] == magnet:
+                    json_item          = magnet_data
+                    json_item['title'] = common.fix_movie_torrent_title(json_data, key, magnet_data)
+                    break
+    elif '/show' in url:
+        if json_data and 'episodes' in json_data:
+            for episode_data in json_data['episodes']:
+                if 'torrents' in episode_data:
+                    for key, magnet_data in episode_data['torrents'].iteritems():
+                        if magnet_data['url'] == magnet:
+                            json_item          = magnet_data
+                            json_item['title'] = common.fix_episode_torrent_title(json_data, episode_data, key, magnet_data)
+                            break
 
-                mixpanel_data = { 'Client Product': Client.Product }
-                mixpanel_data = JSON.StringFromObject(mixpanel_data)
-                mixpanel_data = base64.b64encode(mixpanel_data)
+    if json_item:
+        mixpanel_data = { 'Client Product': Client.Product }
+        mixpanel_data = JSON.StringFromObject(mixpanel_data)
+        mixpanel_data = base64.b64encode(mixpanel_data)
 
-                download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
-                video_url    = scrapmagnet.get_url('video?magnet_link={0}&download_dir={1}&mixpanel_data={2}'.format(String.Quote(json_item['url']), String.Quote(download_dir), mixpanel_data))
+        download_dir = os.path.abspath(download_dir).replace('\\\\?\\', '')
+        video_url    = scrapmagnet.get_url('video?magnet_link={0}&download_dir={1}&mixpanel_data={2}'.format(String.Quote(json_item['url']), String.Quote(download_dir), mixpanel_data))
 
-                media_object = MediaObject()
-                media_object.add(PartObject(key=Callback(play_torrent_indirect, url=video_url)))
+        media_object = MediaObject()
+        media_object.add(PartObject(key=Callback(play_torrent_indirect, url=video_url)))
 
-                if title_contains_pattern(json_item['title'], ['avi']):
-                    media_object.container = 'avi'
-                elif title_contains_pattern(json_item['title'], ['flv']):
-                    media_object.container = 'flv'
-                elif title_contains_pattern(json_item['title'], ['mkv']):
-                    media_object.container = 'mkv'
-                elif title_contains_pattern(json_item['title'], ['mov']):
-                    media_object.container = 'mov'
-                elif title_contains_pattern(json_item['title'], ['mp4']):
-                    media_object.container = 'mp4'
+        if title_contains_pattern(json_item['title'], ['avi']):
+            media_object.container = 'avi'
+        elif title_contains_pattern(json_item['title'], ['flv']):
+            media_object.container = 'flv'
+        elif title_contains_pattern(json_item['title'], ['mkv']):
+            media_object.container = 'mkv'
+        elif title_contains_pattern(json_item['title'], ['mov']):
+            media_object.container = 'mov'
+        elif title_contains_pattern(json_item['title'], ['mp4']):
+            media_object.container = 'mp4'
 
-                if title_contains_pattern(json_item['title'], ['aac']):
-                    media_object.audio_codec = 'aac'
-                elif title_contains_pattern(json_item['title'], ['ac3', 'DD5.1', 'DD 5 1']):
-                    media_object.audio_codec = 'ac3'
-                elif title_contains_pattern(json_item['title'], ['dts']):
-                    media_object.audio_codec = 'dts'
-                elif title_contains_pattern(json_item['title'], ['mp3']):
-                    media_object.audio_codec = 'mp3'
+        if title_contains_pattern(json_item['title'], ['aac']):
+            media_object.audio_codec = 'aac'
+        elif title_contains_pattern(json_item['title'], ['ac3', 'DD5.1', 'DD 5 1']):
+            media_object.audio_codec = 'ac3'
+        elif title_contains_pattern(json_item['title'], ['dts']):
+            media_object.audio_codec = 'dts'
+        elif title_contains_pattern(json_item['title'], ['mp3']):
+            media_object.audio_codec = 'mp3'
 
-                if media_object.audio_codec == 'ac3' or media_object.audio_codec == 'dts' or title_contains_pattern(json_item['title'], ['5.1', '6CH']):
-                    media_object.audio_channels = 6
-                else:
-                    media_object.audio_channels = 2
+        if media_object.audio_codec == 'ac3' or media_object.audio_codec == 'dts' or title_contains_pattern(json_item['title'], ['5.1', '6CH']):
+            media_object.audio_channels = 6
+        else:
+            media_object.audio_channels = 2
 
-                if title_contains_pattern(json_item['title'], ['x264', 'h264']):
-                    media_object.video_codec = 'h264'
-                elif title_contains_pattern(json_item['title'], ['divx']):
-                    media_object.video_codec = 'divx'
-                elif title_contains_pattern(json_item['title'], ['xvid']):
-                    media_object.video_codec = 'xvid'
+        if title_contains_pattern(json_item['title'], ['x264', 'h264']):
+            media_object.video_codec = 'h264'
+        elif title_contains_pattern(json_item['title'], ['divx']):
+            media_object.video_codec = 'divx'
+        elif title_contains_pattern(json_item['title'], ['xvid']):
+            media_object.video_codec = 'xvid'
 
-                if title_contains_pattern(json_item['title'], ['1080p', '1920x1080']):
-                    media_object.video_resolution = 1080
-                elif title_contains_pattern(json_item['title'], ['720p', '1280x720']):
-                    media_object.video_resolution = 720
-                elif title_contains_pattern(json_item['title'], ['480p']):
-                    media_object.video_resolution = 480
+        if title_contains_pattern(json_item['title'], ['1080p', '1920x1080']):
+            media_object.video_resolution = 1080
+        elif title_contains_pattern(json_item['title'], ['720p', '1280x720']):
+            media_object.video_resolution = 720
+        elif title_contains_pattern(json_item['title'], ['480p']):
+            media_object.video_resolution = 480
 
-                return [media_object]
+        return [media_object]
 
     Log.Error('MediaObjectsForURL failed. Aborting.')
     raise Ex.MediaNotAvailable

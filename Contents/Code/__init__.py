@@ -25,7 +25,6 @@ def Start():
     Log.Info(' - Version: {0}'.format(SharedCodeService.common.VERSION))
     Log.Info('--------------------------------------------')
     Log.Info('Preferences:')
-    Log.Info(' - Scrapyard server URL:    {0}'.format(Prefs['SCRAPYARD_URL']))
     Log.Info(' - Scrapmagnet version:     {0}'.format(Prefs['SCRAPMAGNET_VERSION']))
     Log.Info(' - Keep files:              {0}'.format(Prefs['KEEP_FILES']))
     Log.Info(' - Movies download dir:     {0}'.format(Prefs['MOVIES_DOWNLOAD_DIR']))

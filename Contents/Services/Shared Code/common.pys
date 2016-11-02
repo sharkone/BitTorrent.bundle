@@ -23,43 +23,39 @@ def fill_movie_object(movie_object, json_data):
 
 ################################################################################
 def fix_movie_torrent_title(json_data, key, magnet_data):
-    if 'title' in magnet_data:
-        return magnet_data['title']
     return '{0} ({1}) - {2} - {3}'.format(json_data['title'], json_data['year'], key, magnet_data['provider'])
+
+################################################################################
+def fix_episode_torrent_title(show_data, episode_data, key, magnet_data):
+    result = '{0} - S{1:02d}E{2:02d}'.format(show_data['title'], episode_data['season'], episode_data['episode'])
+    if key != '0':
+        result += ' - {0}'.format(key)
+    result += ' - {0}'.format(magnet_data['provider'])
+    return result
 
 ################################################################################
 def fill_show_object(show_object, json_data):
     show_object.title                   = json_data['title']
-    show_object.summary                 = json_data['overview']
-    show_object.studio                  = json_data['studio']
-    show_object.duration                = json_data['runtime']
-    show_object.rating                  = float(json_data['rating'])
-    show_object.originally_available_at = Datetime.FromTimestamp(json_data['first_aired'])
-    show_object.content_rating          = json_data['certification']
-    show_object.thumb                   = json_data['thumb']
-    show_object.art                     = json_data['art']
+    # show_object.summary                 = json_data['overview']
+    # show_object.studio                  = json_data['studio']
+    # show_object.duration                = json_data['runtime']
+    # show_object.rating                  = float(json_data['rating'])
+    # show_object.originally_available_at = Datetime.FromTimestamp(json_data['first_aired'])
+    # show_object.content_rating          = json_data['certification']
+    show_object.thumb                   = json_data['images']['poster']
+    show_object.art                     = json_data['images']['fanart']
 
-    for genre in json_data['genres']:
-        show_object.genres.add(genre)
-
-################################################################################
-def fill_season_object(season_object, json_data):
-    season_object.show          = json_data['show_title']
-    season_object.index         = json_data['season_index']
-    season_object.episode_count = json_data['episode_count']
-    season_object.title         = json_data['title']
-    season_object.summary       = json_data['overview']
-    season_object.thumb         = json_data['thumb']
-    season_object.art           = json_data['art']
+    # for genre in json_data['genres']:
+    #     show_object.genres.add(genre)
 
 ################################################################################
-def fill_episode_object(episode_object, json_data):
-    episode_object.show                    = json_data['show_title']
-    episode_object.season                  = json_data['season_index']
-    episode_object.index                   = json_data['episode_index']
-    episode_object.title                   = json_data['title']
-    episode_object.summary                 = json_data['overview']
-    episode_object.rating                  = float(json_data['rating'])
-    episode_object.originally_available_at = Datetime.FromTimestamp(json_data['first_aired'])
-    episode_object.thumb                   = json_data['thumb']
-    episode_object.art                     = json_data['art']
+def fill_episode_object(episode_object, json_item, json_data):
+    # episode_object.show                    = json_data['title']
+    episode_object.season                  = json_item['season']
+    episode_object.index                   = json_item['episode']
+    episode_object.title                   = json_item['title']
+    episode_object.summary                 = json_item['overview']
+    # episode_object.rating                  = float(json_data['rating'])
+    episode_object.originally_available_at = Datetime.FromTimestamp(json_item['first_aired'])
+    episode_object.thumb                   = json_data['images']['poster']
+    episode_object.art                     = json_data['images']['fanart']
