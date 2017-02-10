@@ -33,7 +33,7 @@ def shows_menu(title, page, sort, page_index):
             object_container.add(create_tvshow_object(json_item))
 
     if (page_index + 1) <= 10:
-        object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, page_index=page_index + 1), title="More..."))
+        object_container.add(NextPageObject(key=Callback(shows_menu, title=title, page=page, sort=sort, page_index=page_index + 1), title="More..."))
 
     return object_container
 
