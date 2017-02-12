@@ -1,10 +1,10 @@
 ################################################################################
 PREFIX  = '/video/bittorrent'
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 HTTP_PORT = 8042
 
-POPCORN_API = 'https://api-fetch.website/tv'
+POPCORN_API = 'https://tv-v2.api-fetch.website'
 
 ################################################################################
 def fill_movie_object(movie_object, json_data):
