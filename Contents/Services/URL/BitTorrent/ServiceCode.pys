@@ -60,7 +60,7 @@ def MediaObjectsForURL(url):
     if '/movie' in url:
         if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
             for key, magnet_data in json_data['torrents']['en'].iteritems():
-                if magnet_data['url'] == magnet:
+                if magnet_data and magnet_data['url'] == magnet:
                     json_item          = magnet_data
                     json_item['title'] = common.fix_movie_torrent_title(json_data, key, magnet_data)
                     break
@@ -69,7 +69,7 @@ def MediaObjectsForURL(url):
             for episode_data in json_data['episodes']:
                 if 'torrents' in episode_data:
                     for key, magnet_data in episode_data['torrents'].iteritems():
-                        if magnet_data['url'] == magnet:
+                        if magnet_data and magnet_data['url'] == magnet:
                             json_item          = magnet_data
                             json_item['title'] = common.fix_episode_torrent_title(json_data, episode_data, key, magnet_data)
                             break
