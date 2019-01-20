@@ -71,7 +71,7 @@ def test_popcorn():
     result_summary =  'Popcorn API is available.'
 
     try:
-        JSON.ObjectFromURL(SharedCodeService.common.POPCORN_API + "/status", timeout=5)
+        JSON.ObjectFromURL(SharedCodeService.common.POPCORN_API + "/status", timeout=5, headers=SharedCodeService.common.HEADERS)
     except:
         result         = False
         result_str     = 'Unavailable'

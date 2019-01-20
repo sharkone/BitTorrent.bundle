@@ -26,7 +26,7 @@ def movies_menu(title, page, sort, page_index):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + page + '/{0}?sort={1}'.format(page_index, sort)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data:
         for json_item in json_data:
@@ -46,7 +46,7 @@ def watchlist_menu(title):
 
     for id in ids:
         json_url  = SharedCodeService.common.POPCORN_API + '/movie/' + id
-        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
         if json_data:
             object_container.add(create_directory_object(json_data))
@@ -61,7 +61,7 @@ def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/movies/1?keywords={0}'.format(String.Quote(query))
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data:
         for json_item in json_data:
@@ -80,7 +80,7 @@ def movie_menu(title, id):
         object_container.add(DirectoryObject(key=Callback(add_to_watchlist, title='Add to Watchlist', movie_title=title, id=id), title='Add to Watchlist', summary='Add movie to Watchlist', thumb=R('favorites.png')))
 
     json_url  = SharedCodeService.common.POPCORN_API + '/movie/' + id
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
         for key, json_item in json_data['torrents']['en'].iteritems():

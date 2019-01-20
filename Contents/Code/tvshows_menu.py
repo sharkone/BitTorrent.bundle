@@ -26,7 +26,7 @@ def shows_menu(title, page, sort, page_index):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + page + '/{0}?sort={1}'.format(page_index, sort)
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data:
         for json_item in json_data:
@@ -46,7 +46,7 @@ def favorites_menu(title):
 
     for id in ids:
         json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
-        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+        json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
         if json_data:
             object_container.add(create_tvshow_object(json_data))
@@ -61,7 +61,7 @@ def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/shows/1?keywords={0}'.format(String.Quote(query))
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data:
         for json_item in json_data:
@@ -75,7 +75,7 @@ def show_menu(title, id):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data:
         seasons = []
@@ -107,7 +107,7 @@ def season_menu(title, show_title, id, season_index):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data and 'episodes' in json_data:
         episodes = []
@@ -139,7 +139,7 @@ def episode_menu(show_title, id, season_index, episode_index):
     object_container = ObjectContainer()
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
-    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
     if json_data and 'episodes' in json_data:
         for json_item in json_data['episodes']:
