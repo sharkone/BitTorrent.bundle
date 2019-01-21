@@ -13,6 +13,7 @@ def menu():
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies', sort='trending', page_index=1), title='Trending', summary='Browse trending movies.'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Popular', page='/movies', sort='', page_index=1), title='Popular', summary='Browse popular movies.'))
     object_container.add(DirectoryObject(key=Callback(watchlist_menu, title='Watchlist'), title='Watchlist', summary='Browse your watchlist', thumb=R('favorites.png')))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows."))
 
     if Client.Product in DumbKeyboard.clients:
         DumbKeyboard(SharedCodeService.common.PREFIX + '/' + SUBPREFIX, object_container, search_menu, dktitle='Search', dkthumb=R('search.png'), title='Search')
@@ -44,12 +45,34 @@ def watchlist_menu(title):
 
     object_container = ObjectContainer(title2=title)
 
+    
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows."))
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies.'))
+    
+    json_url  = Prefs['SCRAPYARD_URL'] + '/api/movies/watchlist?'
+    json_post = { 'movies_watchlist': JSON.StringFromObject(trakt_slugs) }
+    json_data = JSON.ObjectFromURL(json_url, values=json_post, cacheTime=CACHE_1HOUR)
+
+    if json_data and 'movies' in json_data:
+        for json_item in json_data['movies']:
+            directory_object          = DirectoryObject()
+            directory_object.title    = json_item['title']
+            directory_object.summary  = json_item['overview']
+            directory_object.tagline  = json_item['tagline']
+            directory_object.duration = json_item['runtime']
+            directory_object.thumb    = json_item['thumb']
+            directory_object.art      = json_item['art']
+            directory_object.key      = Callback(movie_menu, title=directory_object.title, trakt_slug=json_item['trakt_slug'])
+            object_container.add(directory_object)
+=======
+
     for id in ids:
         json_url  = SharedCodeService.common.POPCORN_API + '/movie/' + id
         json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
         if json_data:
             object_container.add(create_directory_object(json_data))
+
 
     object_container.objects.sort(key=lambda directory_object: directory_object.title)
 
@@ -59,6 +82,10 @@ def watchlist_menu(title):
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
 def search_menu(title, query):
     object_container = ObjectContainer(title2=title)
+    
+    object_container.add(DirectoryObject(key=Callback(movies_menu.menu), title='Movies', summary='Browse movies.'))
+    object_container.add(DirectoryObject(key=Callback(tvshows_menu.menu), title='TV Shows', summary="Browse TV shows."))
+    object_container.add(DirectoryObject(key=Callback(watchlist_menu, title='Watchlist'), title='Watchlist', summary='Browse your watchlist', thumb=R('favorites.png')))
 
     json_url  = SharedCodeService.common.POPCORN_API + '/movies/1?keywords={0}'.format(String.Quote(query))
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
@@ -121,6 +148,20 @@ def remove_from_watchlist(title, movie_title, id):
     return object_container
 
 ################################################################################
+
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
+def menu():
+    object_container = ObjectContainer(title2='TV Shows')
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/api/shows/trending', page_index=1), title='Trending', summary='Browse TV shows currently being watched.'))
+    object_container.add(DirectoryObject(key=Callback(shows_menu, title='Popular', page='/api/shows/popular', page_index=1), title='Popular', summary='Browse most popular TV shows.'))
+    object_container.add(DirectoryObject(key=Callback(favorites_menu, title='Favorites'), title='Favorites', summary='Browse your favorite TV shows', thumb=R('favorites.png')))
+
+    if Client.Product in DumbKeyboard.clients:
+        DumbKeyboard(SharedCodeService.common.PREFIX + '/' + SUBPREFIX, object_container, search_menu, dktitle='Search', dkthumb=R('search.png'), title='Search')
+    else:
+        object_container.add(InputDirectoryObject(key=Callback(search_menu, title='Search'), title='Search', summary='Search TV shows', thumb=R('search.png'), prompt='Search for TV shows'))
+return object_container
+=======
 def create_directory_object(json_item):
     directory_object          = DirectoryObject()
     directory_object.title    = json_item['title']
@@ -130,3 +171,4 @@ def create_directory_object(json_item):
     directory_object.art      = json_item['images']['fanart']
     directory_object.key      = Callback(movie_menu, title=directory_object.title, id=json_item['_id'])
     return directory_object
+
