@@ -13,12 +13,12 @@ RE_MAGNET = re.compile('\?magnet=(.+)$')
 ################################################################################
 def MetadataObjectForURL(url):
     magnet    = String.Unquote(RE_MAGNET.search(url).group(1))
-    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR, headers=common.HEADERS)
 
     if '/movie' in url:
         if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
             for key, magnet_data in json_data['torrents']['en'].iteritems():
-                if magnet_data['url'] == magnet:
+                if magnet_data and magnet_data['url'] == magnet:
                     magnet_data['title'] = common.fix_movie_torrent_title(json_data, key, magnet_data)
 
                     movie_object = MovieObject()
@@ -33,7 +33,7 @@ def MetadataObjectForURL(url):
             for episode_data in json_data['episodes']:
                 if 'torrents' in episode_data:
                     for key, magnet_data in episode_data['torrents'].iteritems():
-                        if magnet_data['url'] == magnet:
+                        if magnet_data and magnet_data['url'] == magnet:
                             magnet_data['title'] = common.fix_episode_torrent_title(json_data, episode_data, key, magnet_data)
 
                             episode_object = EpisodeObject()
@@ -54,7 +54,7 @@ def MediaObjectsForURL(url):
         download_dir = Prefs['TVSHOWS_DOWNLOAD_DIR']
 
     magnet    = String.Unquote(RE_MAGNET.search(url).group(1))
-    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR)
+    json_data = JSON.ObjectFromURL(url, cacheTime=CACHE_1HOUR, headers=common.HEADERS)
     json_item = None
 
     if '/movie' in url:
@@ -85,43 +85,43 @@ def MediaObjectsForURL(url):
         media_object = MediaObject()
         media_object.add(PartObject(key=Callback(play_torrent_indirect, url=video_url)))
 
-        if title_contains_pattern(json_item['title'], ['avi']):
+        if title_contains_pattern(json_item['title'], magnet, ['avi']):
             media_object.container = 'avi'
-        elif title_contains_pattern(json_item['title'], ['flv']):
+        elif title_contains_pattern(json_item['title'], magnet, ['flv']):
             media_object.container = 'flv'
-        elif title_contains_pattern(json_item['title'], ['mkv']):
+        elif title_contains_pattern(json_item['title'], magnet, ['mkv']):
             media_object.container = 'mkv'
-        elif title_contains_pattern(json_item['title'], ['mov']):
+        elif title_contains_pattern(json_item['title'], magnet, ['mov']):
             media_object.container = 'mov'
-        elif title_contains_pattern(json_item['title'], ['mp4']):
+        elif title_contains_pattern(json_item['title'], magnet, ['mp4']):
             media_object.container = 'mp4'
 
-        if title_contains_pattern(json_item['title'], ['aac']):
+        if title_contains_pattern(json_item['title'], magnet, ['aac']):
             media_object.audio_codec = 'aac'
-        elif title_contains_pattern(json_item['title'], ['ac3', 'DD5.1', 'DD 5 1']):
+        elif title_contains_pattern(json_item['title'], magnet, ['ac3', 'DD5.1', 'DD 5 1']):
             media_object.audio_codec = 'ac3'
-        elif title_contains_pattern(json_item['title'], ['dts']):
+        elif title_contains_pattern(json_item['title'], magnet, ['dts']):
             media_object.audio_codec = 'dts'
-        elif title_contains_pattern(json_item['title'], ['mp3']):
+        elif title_contains_pattern(json_item['title'], magnet, ['mp3']):
             media_object.audio_codec = 'mp3'
 
-        if media_object.audio_codec == 'ac3' or media_object.audio_codec == 'dts' or title_contains_pattern(json_item['title'], ['5.1', '6CH']):
+        if media_object.audio_codec == 'ac3' or media_object.audio_codec == 'dts' or title_contains_pattern(json_item['title'], magnet, ['5.1', '6CH']):
             media_object.audio_channels = 6
         else:
             media_object.audio_channels = 2
 
-        if title_contains_pattern(json_item['title'], ['x264', 'h264']):
+        if title_contains_pattern(json_item['title'], magnet, ['x264', 'h264']):
             media_object.video_codec = 'h264'
-        elif title_contains_pattern(json_item['title'], ['divx']):
+        elif title_contains_pattern(json_item['title'], magnet, ['divx']):
             media_object.video_codec = 'divx'
-        elif title_contains_pattern(json_item['title'], ['xvid']):
+        elif title_contains_pattern(json_item['title'], magnet, ['xvid']):
             media_object.video_codec = 'xvid'
 
-        if title_contains_pattern(json_item['title'], ['1080p', '1920x1080']):
+        if title_contains_pattern(json_item['title'], magnet, ['1080p', '1920x1080']):
             media_object.video_resolution = 1080
-        elif title_contains_pattern(json_item['title'], ['720p', '1280x720']):
+        elif title_contains_pattern(json_item['title'], magnet, ['720p', '1280x720']):
             media_object.video_resolution = 720
-        elif title_contains_pattern(json_item['title'], ['480p']):
+        elif title_contains_pattern(json_item['title'], magnet, ['480p']):
             media_object.video_resolution = 480
 
         return [media_object]
@@ -133,7 +133,7 @@ def MediaObjectsForURL(url):
 @indirect
 def play_torrent_indirect(url):
     try:
-        video_preview = JSON.ObjectFromURL(url.replace('/video', '/add'), cacheTime=0, timeout=10)
+        video_preview = JSON.ObjectFromURL(url.replace('/video', '/add'), cacheTime=0, headers=common.HEADERS, timeout=10)
     except Exception as exception:
         Log.Error('Server unreachable: {0}'.format(repr(exception)))
         raise Ex.MediaNotAvailable
@@ -151,7 +151,9 @@ def get_image_async(url):
     return Redirect(url)
 
 ################################################################################
-def title_contains_pattern(title, pattern_list):
+def title_contains_pattern(title, magnet, pattern_list):
     for pattern in pattern_list:
         if pattern.lower() in title.lower():
+            return True
+        if pattern.lower() in magnet.lower():
             return True
