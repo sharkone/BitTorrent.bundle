@@ -7,7 +7,7 @@ SUBPREFIX = 'tvshows'
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
-def menu():
+def menu(**kwargs):
     object_container = ObjectContainer(title2='TV Shows')
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Recent', page='/shows', sort='updated', page_index=1), title='Recent', summary='Browse recently updated TV shows.'))
     object_container.add(DirectoryObject(key=Callback(shows_menu, title='Trending', page='/shows', sort='trending', page_index=1), title='Trending', summary='Browse trending TV shows.'))
@@ -22,7 +22,7 @@ def menu():
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/shows', page_index=int)
-def shows_menu(title, page, sort, page_index):
+def shows_menu(title, page, sort, page_index, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + page + '/{0}?sort={1}'.format(page_index, sort)
@@ -39,7 +39,7 @@ def shows_menu(title, page, sort, page_index):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/favorites')
-def favorites_menu(title):
+def favorites_menu(title, **kwargs):
     ids = Dict['SHOWS_FAVORITES'] if 'SHOWS_FAVORITES' in Dict else []
 
     object_container = ObjectContainer(title2=title)
@@ -57,7 +57,7 @@ def favorites_menu(title):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search_menu(title, query):
+def search_menu(title, query, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/shows/1?keywords={0}'.format(String.Quote(query))
@@ -71,7 +71,7 @@ def search_menu(title, query):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/tvshow')
-def show_menu(title, id):
+def show_menu(title, id, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
@@ -103,7 +103,7 @@ def show_menu(title, id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/season', season_index=int)
-def season_menu(title, show_title, id, season_index):
+def season_menu(title, show_title, id, season_index, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
@@ -135,7 +135,7 @@ def season_menu(title, show_title, id, season_index):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/episode', season_index=int, episode_index=int)
-def episode_menu(show_title, id, season_index, episode_index):
+def episode_menu(show_title, id, season_index, episode_index, **kwargs):
     object_container = ObjectContainer()
 
     json_url  = SharedCodeService.common.POPCORN_API + '/show/' + id
@@ -157,7 +157,7 @@ def episode_menu(show_title, id, season_index, episode_index):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_favorites')
-def add_to_favorites(title, show_title, id):
+def add_to_favorites(title, show_title, id, **kwargs):
     if 'SHOWS_FAVORITES' not in Dict:
         Dict['SHOWS_FAVORITES'] = []
 
@@ -172,7 +172,7 @@ def add_to_favorites(title, show_title, id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_favorites')
-def remove_from_favorites(title, show_title, id):
+def remove_from_favorites(title, show_title, id, **kwargs):
     if 'SHOWS_FAVORITES' in Dict and id in Dict['SHOWS_FAVORITES']:
         Dict['SHOWS_FAVORITES'].remove(id)
         Dict.Save()

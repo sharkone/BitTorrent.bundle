@@ -21,7 +21,7 @@ def update_available():
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/update')
-def update():
+def update(**kwargs):
     try:
         latest_version = get_latest_version()
         if latest_version:

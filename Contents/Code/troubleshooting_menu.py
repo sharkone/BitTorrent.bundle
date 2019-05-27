@@ -3,7 +3,7 @@ import updater
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/troubleshooting')
-def menu(title):
+def menu(title, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     # Channel Version
@@ -22,7 +22,7 @@ def menu(title):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/empty')
-def empty_menu():
+def empty_menu(**kwargs):
     object_container = ObjectContainer(title2='Empty')
     return object_container
 

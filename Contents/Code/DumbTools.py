@@ -28,7 +28,7 @@ class DumbKeyboard:
         self.callback_args = kwargs
         self.secure = dksecure
 
-    def Keyboard(self, query=None, shift=False):
+    def Keyboard(self, query=None, shift=False, **kwargs):
         if self.secure and query is not None:
             string = ''.join(['*' for i in range(len(query[:-1]))]) + query[-1]
         else:
@@ -60,7 +60,7 @@ class DumbKeyboard:
                                    title=u'%s'%key))
         return oc
 
-    def History(self):
+    def History(self, **kwargs):
         oc = ObjectContainer()
         if Dict['DumbKeyboard-History']:
             oc.add(DirectoryObject(key=Callback(self.ClearHistory),
@@ -70,17 +70,17 @@ class DumbKeyboard:
                                    title=u'%s'%item))
         return oc
 
-    def ClearHistory(self):
+    def ClearHistory(self, **kwargs):
         Dict['DumbKeyboard-History'] = []
         Dict.Save()
         return self.History()
 
-    def AddHistory(self, query):
+    def AddHistory(self, query, **kwargs):
         if query not in Dict['DumbKeyboard-History']:
             Dict['DumbKeyboard-History'].append(query)
             Dict.Save()
 
-    def Submit(self, query):
+    def Submit(self, query, **kwargs):
         self.AddHistory(query)
         kwargs = {'query': query}
         kwargs.update(self.callback_args)
@@ -91,7 +91,7 @@ class DumbPrefs:
     clients = ['Plex for iOS', 'Plex Media Player', 'Plex Home Theater',
                'OpenPHT', 'Plex for Roku', 'Plex for Xbox One']
 
-    def __init__(self, prefix, oc, title=None, thumb=None):
+    def __init__(self, prefix, oc, title=None, thumb=None, **kwargs):
         self.host = 'http://127.0.0.1:32400'
         try:
             self.CheckAuth()
@@ -134,7 +134,7 @@ class DumbPrefs:
                                  if pref.xpath("@values") else None
                       } for pref in prefs]
 
-    def Set(self, key, value):
+    def Set(self, key, value, **kwargs):
         HTTP.Request("%s/:/plugins/%s/prefs/set?%s=%s" % (self.host,
                                                           Plugin.Identifier,
                                                           key, value),
@@ -142,7 +142,7 @@ class DumbPrefs:
                      immediate=True)
         return ObjectContainer()
 
-    def ListPrefs(self):
+    def ListPrefs(self, **kwargs):
         oc = ObjectContainer(no_cache=True)
         for pref in self.prefs:
             do = DirectoryObject()
@@ -171,7 +171,7 @@ class DumbPrefs:
             oc.add(do)
         return oc
 
-    def ListEnum(self, id):
+    def ListEnum(self, id, **kwargs):
         oc = ObjectContainer()
         for pref in self.prefs:
             if pref['id'] == id:
@@ -180,5 +180,5 @@ class DumbPrefs:
                                            title=u'%s'%option))
         return oc
 
-    def SetText(self, query, id):
-        return self.Set(key=id, value=query)
+    def SetText(self, query, id, **kwargs):
+        return self.Set(key=id, value=query, **kwargs)

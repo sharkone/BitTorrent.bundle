@@ -37,7 +37,7 @@ def Start():
 
 ################################################################################
 @handler(SharedCodeService.common.PREFIX, TITLE, thumb=ICON, art=ART)
-def Main():
+def Main(**kwargs):
     Log.Info('============================================')
     Log.Info('Client:')
     Log.Info(' - Product:  {0}'.format(Client.Product))
