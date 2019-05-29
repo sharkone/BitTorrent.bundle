@@ -52,7 +52,7 @@ def watchlist_menu(title, **kwargs):
             object_container.add(create_directory_object(json_data))
 
     object_container.objects.sort(key=lambda directory_object: directory_object.title)
-
+    object_container.add(DirectoryObject(key=Callback(reset_watchlist_menu, title='Reset Watchlist'), title='Reset Watchlist', summary='Reset Watchlist'))
     return object_container
 
 ################################################################################
@@ -111,7 +111,7 @@ def add_to_watchlist(title, movie_title, id, **kwargs):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_watchlist')
 def remove_from_watchlist(title, movie_title, id, **kwargs):
-    if 'MOVIES_WATCHLIST' in Dict and id in Dict['movies_watchlist']:
+    if 'MOVIES_WATCHLIST' in Dict and id in Dict['MOVIES_WATCHLIST']:
         Dict['MOVIES_WATCHLIST'].remove(id)
         Dict.Save()
 
@@ -121,18 +121,32 @@ def remove_from_watchlist(title, movie_title, id, **kwargs):
     return object_container
 
 ################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_watchlist_menu')
+def reset_watchlist_menu(title, **kwargs):
+    object_container = ObjectContainer(title2=title)
+    object_container.header = 'Reset Watchlist'
+    object_container.add(DirectoryObject(key=Callback(reset_watchlist, title='Confirm'), title='Confirm', summary='Reset Watchlist Confirmation'))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_watchlist')
+def reset_watchlist(title, **kwargs):
+    if 'MOVIES_WATCHLIST' in Dict:
+        Dict['MOVIES_WATCHLIST'] = []
+        Dict.Save()
+
+    object_container = ObjectContainer(title2=title)
+    object_container.message = 'Watchlist has been reset'
+    return object_container
+
+################################################################################
 def create_directory_object(json_item):
     directory_object          = DirectoryObject()
-    if 'title' in json_item:
-        directory_object.title    = json_item['title']
-    if 'synopsis' in json_item:
-        directory_object.summary  = json_item['synopsis']
-    if 'runtime' in json_item:
-        directory_object.duration = int(json_item['runtime']) * 60 * 60 * 1000
+    directory_object.title    = json_item['title'] if 'title' in json_item else ''
+    directory_object.summary  = json_item['synopsis'] if 'synopsis' in json_item else ''
+    directory_object.duration = int(json_item['runtime']) * 60 * 60 * 1000 if 'runtime' in json_item else 0
     if 'images' in json_item:
-        if 'poster' in json_item['images']:
-            directory_object.thumb    = json_item['images']['poster']
-        if 'fanart' in json_item['images']:
-            directory_object.art      = json_item['images']['fanart']
-    directory_object.key      = Callback(movie_menu, title=directory_object.title, id=json_item['_id'])
+        directory_object.thumb    = json_item['images']['poster'] if 'poster' in json_item['images'] else ''
+        directory_object.art      = json_item['images']['fanart'] if 'fanart' in json_item['images'] else ''
+    directory_object.key      = Callback(movie_menu, title=directory_object.title, id=json_item['_id']) if '_id' in json_item else ''
     return directory_object

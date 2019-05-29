@@ -52,7 +52,7 @@ def favorites_menu(title, **kwargs):
             object_container.add(create_tvshow_object(json_data))
 
     object_container.objects.sort(key=lambda show_object: show_object.title)
-
+    object_container.add(DirectoryObject(key=Callback(reset_favorites_menu, title='Reset Favorites'), title='Reset Favorites', summary='Reset Favorites'))
     return object_container
 
 ################################################################################
@@ -86,7 +86,7 @@ def show_menu(title, id, **kwargs):
 
                 season_object            = SeasonObject()
                 season_object.title      = 'Season {0}'.format(json_item['season'])
-                season_object.index      = json_item['season']
+                season_object.index      = int(json_item['season'])
                 season_object.show       = title
                 season_object.rating_key = '{0}-{1}'.format(id, season_object.index)
                 season_object.key        = Callback(season_menu, title=season_object.title, show_title=season_object.show, id=id, season_index=season_object.index)
@@ -124,11 +124,12 @@ def season_menu(title, show_title, id, season_index, **kwargs):
 
         for episode in episodes:
             directory_object = DirectoryObject()
-            directory_object.title   = episode['title']
-            directory_object.summary = episode['summary']
-            directory_object.thumb   = json_data['images']['poster']
-            directory_object.art     = json_data['images']['fanart']
-            directory_object.key     = Callback(episode_menu, show_title=show_title, id=id, season_index=season_index, episode_index=episode['index'])
+            directory_object.title   = episode['title'] if 'title' in episode else ''
+            directory_object.summary = episode['summary'] if 'summary' in episode else ''
+            if 'images' in json_data:
+            	directory_object.thumb   = json_data['images']['poster'] if 'poster' in json_data['images'] else ''
+            	directory_object.art     = json_data['images']['fanart'] if 'fanart' in json_data['images'] else ''
+            directory_object.key     = Callback(episode_menu, show_title=show_title, id=id, season_index=season_index, episode_index=episode['index']) if 'index' in episode else ''
             object_container.add(directory_object)
 
     return object_container
@@ -183,9 +184,28 @@ def remove_from_favorites(title, show_title, id, **kwargs):
     return object_container
 
 ################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_favorites_menu')
+def reset_favorites_menu(title, **kwargs):
+    object_container = ObjectContainer(title2=title)
+    object_container.header  = 'Reset Favorites'
+    object_container.add(DirectoryObject(key=Callback(reset_favorites, title='Confirm'), title='Confirm', summary='Reset Favorites Confirmation'))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_favorites')
+def reset_favorites(title, **kwargs):
+    if 'SHOWS_FAVORITES' in Dict:
+        Dict['SHOWS_FAVORITES'] = []
+        Dict.Save()
+
+    object_container = ObjectContainer(title2=title)
+    object_container.message = 'Favorites has been reset'
+    return object_container
+
+################################################################################
 def create_tvshow_object(json_item):
     show_object = TVShowObject()
     SharedCodeService.common.fill_show_object(show_object, json_item)
-    show_object.rating_key = json_item['_id']
-    show_object.key        = Callback(show_menu, title=show_object.title, id=json_item['_id'])
+    show_object.rating_key = json_item['_id'] if '_id' in json_item else ''
+    show_object.key        = Callback(show_menu, title=show_object.title, id=json_item['_id']) if '_id' in json_item else ''
     return show_object
