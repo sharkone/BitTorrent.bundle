@@ -7,7 +7,7 @@ SUBPREFIX = 'movies'
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/menu')
-def menu():
+def menu(**kwargs):
     object_container = ObjectContainer(title2='Movies')
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Recent', page='/movies', sort='last%20added', page_index=1), title='Recent', summary='Browse recent movies.'))
     object_container.add(DirectoryObject(key=Callback(movies_menu, title='Trending', page='/movies', sort='trending', page_index=1), title='Trending', summary='Browse trending movies.'))
@@ -22,7 +22,7 @@ def menu():
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movies', page_index=int)
-def movies_menu(title, page, sort, page_index):
+def movies_menu(title, page, sort, page_index, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + page + '/{0}?sort={1}'.format(page_index, sort)
@@ -39,7 +39,7 @@ def movies_menu(title, page, sort, page_index):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/watchlist')
-def watchlist_menu(title):
+def watchlist_menu(title, **kwargs):
     ids = Dict['MOVIES_WATCHLIST'] if 'MOVIES_WATCHLIST' in Dict else []
 
     object_container = ObjectContainer(title2=title)
@@ -52,12 +52,12 @@ def watchlist_menu(title):
             object_container.add(create_directory_object(json_data))
 
     object_container.objects.sort(key=lambda directory_object: directory_object.title)
-
+    object_container.add(DirectoryObject(key=Callback(reset_watchlist_menu, title='Reset Watchlist'), title='Reset Watchlist', summary='Reset Watchlist'))
     return object_container
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/search')
-def search_menu(title, query):
+def search_menu(title, query, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     json_url  = SharedCodeService.common.POPCORN_API + '/movies/1?keywords={0}'.format(String.Quote(query))
@@ -71,7 +71,7 @@ def search_menu(title, query):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/movie')
-def movie_menu(title, id):
+def movie_menu(title, id, **kwargs):
     object_container = ObjectContainer(title2=title)
 
     if 'MOVIES_WATCHLIST' in Dict and id in Dict['MOVIES_WATCHLIST']:
@@ -95,7 +95,7 @@ def movie_menu(title, id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/add_to_watchlist')
-def add_to_watchlist(title, movie_title, id):
+def add_to_watchlist(title, movie_title, id, **kwargs):
     if 'MOVIES_WATCHLIST' not in Dict:
         Dict['MOVIES_WATCHLIST'] = []
 
@@ -110,7 +110,7 @@ def add_to_watchlist(title, movie_title, id):
 
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_watchlist')
-def remove_from_watchlist(title, movie_title, id):
+def remove_from_watchlist(title, movie_title, id, **kwargs):
     if 'MOVIES_WATCHLIST' in Dict and id in Dict['MOVIES_WATCHLIST']:
         Dict['MOVIES_WATCHLIST'].remove(id)
         Dict.Save()
@@ -121,12 +121,32 @@ def remove_from_watchlist(title, movie_title, id):
     return object_container
 
 ################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_watchlist_menu')
+def reset_watchlist_menu(title, **kwargs):
+    object_container = ObjectContainer(title2=title)
+    object_container.header = 'Reset Watchlist'
+    object_container.add(DirectoryObject(key=Callback(reset_watchlist, title='Confirm'), title='Confirm', summary='Reset Watchlist Confirmation'))
+    return object_container
+
+################################################################################
+@route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/reset_watchlist')
+def reset_watchlist(title, **kwargs):
+    if 'MOVIES_WATCHLIST' in Dict:
+        Dict['MOVIES_WATCHLIST'] = []
+        Dict.Save()
+
+    object_container = ObjectContainer(title2=title)
+    object_container.message = 'Watchlist has been reset'
+    return object_container
+
+################################################################################
 def create_directory_object(json_item):
     directory_object          = DirectoryObject()
-    directory_object.title    = json_item['title']
-    directory_object.summary  = json_item['synopsis']
-    directory_object.duration = int(json_item['runtime']) * 60 * 60 * 1000
-    directory_object.thumb    = json_item['images']['poster']
-    directory_object.art      = json_item['images']['fanart']
-    directory_object.key      = Callback(movie_menu, title=directory_object.title, id=json_item['_id'])
+    directory_object.title    = json_item['title'] if 'title' in json_item else ''
+    directory_object.summary  = json_item['synopsis'] if 'synopsis' in json_item else ''
+    directory_object.duration = int(json_item['runtime']) * 60 * 60 * 1000 if 'runtime' in json_item else 0
+    if 'images' in json_item:
+        directory_object.thumb    = json_item['images']['poster'] if 'poster' in json_item['images'] else ''
+        directory_object.art      = json_item['images']['fanart'] if 'fanart' in json_item['images'] else ''
+    directory_object.key      = Callback(movie_menu, title=directory_object.title, id=json_item['_id']) if '_id' in json_item else ''
     return directory_object
