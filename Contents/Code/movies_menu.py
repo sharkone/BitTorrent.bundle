@@ -82,6 +82,11 @@ def movie_menu(title, id, **kwargs):
     json_url  = SharedCodeService.common.POPCORN_API + '/movie/' + id
     json_data = JSON.ObjectFromURL(json_url, cacheTime=CACHE_1HOUR, headers=SharedCodeService.common.HEADERS)
 
+    if json_data and 'trailer' in json_data:
+        video = VideoClipObject(title="Trailer", url= json_data['trailer'])
+        SharedCodeService.common.fill_youtube_video_object(video)
+        object_container.add(video)
+
     if json_data and 'torrents' in json_data and 'en' in json_data['torrents']:
         for key, json_item in json_data['torrents']['en'].iteritems():
             movie_object = MovieObject()

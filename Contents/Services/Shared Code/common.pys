@@ -60,3 +60,13 @@ def fill_episode_object(episode_object, json_item, json_data):
     episode_object.originally_available_at = Datetime.FromTimestamp(json_item['first_aired'])
     episode_object.thumb                   = json_data['images']['poster']
     episode_object.art                     = json_data['images']['fanart']
+
+################################################################################
+def fill_youtube_video_object(video_object):
+    url = video_object.url
+    thumb = 'https://i.ytimg.com/vi/%s/hqdefault.jpg' % youtube_video_url(url)
+    video_object.thumb = thumb
+    video_object.art = thumb
+
+def youtube_video_url(url):
+    return url.split("?v=",1)[1]
