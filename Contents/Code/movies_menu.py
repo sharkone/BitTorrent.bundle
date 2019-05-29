@@ -111,7 +111,7 @@ def add_to_watchlist(title, movie_title, id):
 ################################################################################
 @route(SharedCodeService.common.PREFIX + '/' + SUBPREFIX + '/remove_from_watchlist')
 def remove_from_watchlist(title, movie_title, id):
-    if 'MOVIES_WATCHLIST' in Dict and id in Dict['movies_watchlist']:
+    if 'MOVIES_WATCHLIST' in Dict and id in Dict['MOVIES_WATCHLIST']:
         Dict['MOVIES_WATCHLIST'].remove(id)
         Dict.Save()
 
